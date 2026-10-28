@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Снова весна</title>
+<link href="https://fonts.googleapis.com/css2?family=PT+Serif:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ui: #14161f; --ui-2: #1e2130; --ui-fg: #e8e9f0; --ui-dim: #9aa0b8; --accent: #8b9bff;
+    --plate: #f4efe2; --plate-ink: #232846; --plate-may: #dff3d6; --plate-may-ink: #24502a;
+    --text: #1d2140;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ui); color: var(--ui-fg); font: 15px/1.45 system-ui, sans-serif; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 16px; }
+
+  /* ---------- сцена ---------- */
+  .stage {
+    position: relative; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 12px;
+    background: linear-gradient(#545e88 0%, #7d88b2 45%, #a3abcb 62%, #b9bfd8 100%);
+    font-family: "PT Serif", Georgia, serif;
+  }
+  .stage:fullscreen { border-radius: 0; }
+  .cloud {
+    position: absolute; border-radius: 50%; filter: blur(30px); opacity: .45;
+    background: #c3c8e0; animation: drift linear infinite;
+  }
+  @keyframes drift { from { transform: translateX(-30%); } to { transform: translateX(130%); } }
+  .hills { position: absolute; inset: auto 0 0 0; width: 100%; height: 55%; }
+  .house { position: absolute; right: 0; top: 10%; width: 13%; height: 100%; }
+
+  .lyrics {
+    position: absolute; top: 9%; left: 5%; width: 68%;
+    display: grid; place-items: start center; text-align: center;
+    font-size: clamp(16px, 3.6vw, 34px); color: var(--text);
+  }
+  .line {
+    grid-area: 1 / 1; display: flex; flex-wrap: wrap; justify-content: center;
+    gap: .25em .35em; transition: opacity .6s, filter .6s, transform .6s;
+  }
+  .line.out { opacity: 0; filter: blur(10px); transform: translateY(-.6em); }
+
+  .w {
+    display: inline-grid; opacity: 0; filter: blur(8px); transform: translateY(.5em);
+    transition: opacity .45s, filter .45s, transform .45s;
+  }
+  .w.on { opacity: 1; filter: none; transform: none; }
+  .w > span { grid-area: 1 / 1; transition: transform .5s, opacity .5s; backface-visibility: hidden; }
+  .w .b { transform: rotateX(90deg); opacity: 0; }
+  .w.flip .a { transform: rotateX(-90deg); opacity: 0; }
+  .w.flip .b { transform: none; opacity: 1; }
+
+  /* режим «таблички» */
+  .plates .w {
+    transform: translateY(-160%) rotate(-10deg);
+    transition: opacity .3s, filter .3s, transform .7s cubic-bezier(.34, 1.56, .64, 1);
+  }
+  .plates .w.on { transform: rotate(var(--r)); }
+  .plates .w > span {
+    position: relative; padding: .12em .5em; border-radius: .25em;
+    background: var(--plate); color: var(--plate-ink);
+    box-shadow: 0 .15em .4em rgba(20, 24, 50, .35);
+  }
+  .plates .w > span::before {   /* верёвочка, на которой висит табличка */
+    content: ""; position: absolute; left: 50%; bottom: 100%; width: 2px; height: 2em;
+    background: rgba(40, 44, 70, .5); transform: translateX(-50%);
+  }
+  .plates .w .b { background: var(--plate-may); color: var(--plate-may-ink); }
+
+  /* ---------- панель ---------- */
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
+  button, .file {
+    font: inherit; color: var(--ui-fg); background: var(--ui-2); border: 1px solid #2d3146;
+    border-radius: 8px; padding: 8px 12px; cursor: pointer;
+  }
+  button:hover, .file:hover { border-color: var(--accent); }
+  button.active { background: var(--accent); color: #0d0f18; }
+  .file input { display: none; }
+  .time { margin-left: auto; color: var(--ui-dim); font-variant-numeric: tabular-nums; }
+  textarea {
+    width: 100%; min-height: 180px; resize: vertical; padding: 12px; border-radius: 8px;
+    background: var(--ui-2); color: var(--ui-fg); border: 1px solid #2d3146;
+    font: 14px/1.6 ui-monospace, monospace;
+  }
+  .help { color: var(--ui-dim); font-size: 13px; }
+  .help code { color: var(--ui-fg); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="stage" id="stage">
+    <div class="cloud" style="width:45%;height:18%;top:6%;animation-duration:70s"></div>
+    <div class="cloud" style="width:35%;height:14%;top:22%;animation-duration:95s;animation-delay:-40s"></div>
+    <div class="cloud" style="width:50%;height:16%;top:34%;animation-duration:120s;animation-delay:-80s"></div>
+    <svg class="hills" viewBox="0 0 400 220" preserveAspectRatio="none">
+      <path d="M0 70 L60 60 L140 66 L220 55 L300 64 L400 58 V220 H0Z" fill="#6d7699"/>
+      <path d="M0 95 Q40 70 80 88 T160 84 T240 92 T320 80 T400 90 V220 H0Z" fill="#26332e"/>
+      <path d="M0 120 Q30 100 60 115 T130 110 T200 122 T270 108 T340 118 T400 112 V220 H0Z" fill="#17221d"/>
+      <path d="M0 160 Q50 140 100 158 T200 150 T300 162 T400 150 V220 H0Z" fill="#0f1713"/>
+    </svg>
+    <svg class="house" viewBox="0 0 60 300" preserveAspectRatio="none">
+      <path d="M0 40 L45 0 L60 0 V300 H0Z" fill="#c9c6c0"/>
+      <path d="M0 40 L45 0 L60 0 V8 L48 8 L4 48 L0 48Z" fill="#2c2f38"/>
+      <rect x="6" y="50" width="3" height="250" fill="#3a3d46"/>
+    </svg>
+    <div class="lyrics plates" id="lyrics"></div>
+  </div>
+
+  <div class="bar">
+    <button id="play">▶ Играть</button>
+    <button id="restart">⟲ С начала</button>
+    <label class="file">🎵 Песня<input type="file" id="file" accept="audio/*,video/*"></label>
+    <button id="tap" title="Нажимай пробел в начале каждой строки">⏱ Разметка</button>
+    <button id="mode">Режим: таблички</button>
+    <button id="full">⛶</button>
+    <span class="time" id="time">0:00.0</span>
+  </div>
+
+  <textarea id="script" spellcheck="false">0.5  снова весна
+2.5  и снова [весна&gt;май]
+6.5  снова весна и снова май
+</textarea>
+  <p class="help">
+    Одна строка = одна фраза: <code>время текст</code> (секунды или <code>0:12.5</code>).
+    <code>[весна&gt;май]</code> — слово, которое переворачивается в другое.
+    Вставь свой текст песни без времени, загрузи песню, нажми «Разметка» и жми <b>пробел</b> в начале каждой строки — время проставится само.
+  </p>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const lyricsEl = $("lyrics"), scriptEl = $("script"), timeEl = $("time");
+const media = document.createElement("video");
+media.playsInline = true;
+
+let lines = [], cur = -1, curEl = null;
+let playing = false, clockStart = 0, clockOffset = 0;
+let tap = null;
+
+const TIME_RE = /^\s*(?:(\d+):)?(\d+(?:\.\d+)?)\s+/;
+
+function parse(src) {
+  const out = [];
+  for (const raw of src.split("\n")) {
+    const m = raw.match(TIME_RE);
+    if (!m) continue;
+    const text = raw.slice(m[0].length).trim();
+    if (!text) continue;
+    const words = text.match(/\[[^\]]+\]|\S+/g).map(w => {
+      const s = w.match(/^\[(.+?)>(.+)\]$/);
+      return s ? { a: s[1], b: s[2] } : { a: w };
+    });
+    out.push({ t: (+m[1] || 0) * 60 + +m[2], words });
+  }
+  out.sort((x, y) => x.t - y.t);
+  out.forEach((l, i) => {
+    l.end = i + 1 < out.length ? out[i + 1].t : l.t + 4;
+    const show = (l.end - l.t) * 0.6;
+    l.step = Math.min(0.45, show / l.words.length);
+    l.flipAt = l.t + l.step * l.words.length + Math.min(1, (l.end - l.t) * 0.25);
+  });
+  return out;
+}
+
+function fmt(t) {
+  const m = Math.floor(t / 60), s = (t % 60).toFixed(1).padStart(4, "0");
+  return `${m}:${s}`;
+}
+
+function now() {
+  if (media.src) return media.currentTime;
+  return playing ? clockOffset + (performance.now() - clockStart) / 1000 : clockOffset;
+}
+
+function buildLine(line) {
+  const el = document.createElement("div");
+  el.className = "line";
+  for (const w of line.words) {
+    const span = document.createElement("span");
+    span.className = "w";
+    span.style.setProperty("--r", (Math.random() * 8 - 4).toFixed(1) + "deg");
+    span.innerHTML = `<span class="a"></span>` + (w.b ? `<span class="b"></span>` : "");
+    span.querySelector(".a").textContent = w.a;
+    if (w.b) span.querySelector(".b").textContent = w.b;
+    el.append(span);
+  }
+  return el;
+}
+
+function showLine(i) {
+  if (curEl) {
+    const old = curEl;
+    old.classList.add("out");
+    setTimeout(() => old.remove(), 700);
+  }
+  cur = i;
+  curEl = i >= 0 ? buildLine(lines[i]) : null;
+  if (curEl) lyricsEl.append(curEl);
+}
+
+function frame() {
+  const t = now();
+  timeEl.textContent = fmt(t);
+  let i = -1;
+  for (let k = 0; k < lines.length; k++) if (lines[k].t <= t) i = k;
+  if (i >= 0 && t > lines[i].end) i = -1;
+  if (i !== cur) showLine(i);
+  if (curEl) {
+    const line = lines[i];
+    [...curEl.children].forEach((w, k) => {
+      w.classList.toggle("on", t >= line.t + k * line.step);
+      w.classList.toggle("flip", !!line.words[k].b && t >= line.flipAt);
+    });
+  }
+  requestAnimationFrame(frame);
+}
+
+function apply() {
+  lines = parse(scriptEl.value);
+  showLine(-1);
+}
+
+function setPlaying(p) {
+  if (p === playing) return;
+  playing = p;
+  if (media.src) p ? media.play() : media.pause();
+  else if (p) clockStart = performance.now();
+  else clockOffset = now();
+  $("play").textContent = p ? "⏸ Пауза" : "▶ Играть";
+}
+
+function restart() {
+  clockOffset = 0;
+  clockStart = performance.now();
+  if (media.src) media.currentTime = 0;
+  showLine(-1);
+}
+
+// ---------- разметка по пробелу ----------
+function startTap() {
+  const texts = scriptEl.value.split("\n").map(s => s.replace(TIME_RE, "").trim()).filter(Boolean);
+  if (!texts.length) return;
+  tap = { texts, times: [] };
+  writeTap();
+  $("tap").classList.add("active");
+  restart();
+  setPlaying(true);
+}
+function stopTap() {
+  tap = null;
+  $("tap").classList.remove("active");
+}
+function writeTap() {
+  scriptEl.value = tap.texts
+    .map((s, i) => i < tap.times.length ? `${fmt(tap.times[i])}  ${s}` : s)
+    .join("\n");
+  apply();
+}
+function doTap() {
+  tap.times.push(now());
+  writeTap();
+  if (tap.times.length === tap.texts.length) stopTap();
+}
+
+// ---------- кнопки ----------
+$("play").onclick = () => setPlaying(!playing);
+$("restart").onclick = () => { restart(); setPlaying(true); };
+$("tap").onclick = () => tap ? stopTap() : startTap();
+$("mode").onclick = () => {
+  const plates = lyricsEl.classList.toggle("plates");
+  $("mode").textContent = "Режим: " + (plates ? "таблички" : "текст");
+};
+$("full").onclick = () => document.fullscreenElement ? document.exitFullscreen() : $("stage").requestFullscreen();
+$("file").onchange = e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  setPlaying(false);
+  media.src = URL.createObjectURL(f);
+  restart();
+};
+media.onended = () => setPlaying(false);
+scriptEl.oninput = apply;
+
+document.addEventListener("keydown", e => {
+  if (e.target === scriptEl) return;
+  if (e.code === "Space") {
+    e.preventDefault();
+    tap ? doTap() : setPlaying(!playing);
+  }
+});
+
+apply();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
