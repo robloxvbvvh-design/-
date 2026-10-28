@@ -25,6 +25,9 @@ const ZOMBIE_TYPES = {
 };
 
 // ---------- DOM ----------
+const isTouch = window.matchMedia("(pointer: coarse)").matches || ("ontouchstart" in window && !window.matchMedia("(pointer: fine)").matches);
+if (isTouch) document.body.classList.add("touch");
+
 const $ = (id) => document.getElementById(id);
 const ui = {
   hud: $("hud"),
@@ -40,6 +43,7 @@ const ui = {
   damage: $("damage-overlay"),
   hitMarker: $("hit-marker"),
   finalStats: $("final-stats"),
+  touch: $("touch-controls"),
 };
 
 // ---------- Рендер и сцена ----------
@@ -645,20 +649,24 @@ function shoot() {
 
 function updatePlayer(dt) {
   // Движение
-  const speed = keys.ShiftLeft || keys.ShiftRight ? CONFIG.runSpeed : CONFIG.walkSpeed;
-  const forward = (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0);
-  const strafe = (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0);
+  // На телефоне джойстик, отведённый до упора, включает бег
+  const running = keys.ShiftLeft || keys.ShiftRight || Math.hypot(joystick.x, joystick.y) > 0.95;
+  const speed = running ? CONFIG.runSpeed : CONFIG.walkSpeed;
+  const forward = (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0) - joystick.y;
+  const strafe = (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0) + joystick.x;
   const move = new THREE.Vector3(strafe, 0, -forward);
-  const moving = move.lengthSq() > 0;
+  const moving = move.lengthSq() > 0.01;
   if (moving) {
-    move.normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), player.yaw).multiplyScalar(speed * dt);
+    // Джойстик даёт аналоговую скорость, клавиатура — полную
+    if (move.lengthSq() > 1) move.normalize();
+    move.applyAxisAngle(new THREE.Vector3(0, 1, 0), player.yaw).multiplyScalar(speed * dt);
     player.pos.add(move);
     if (player.onGround) player.bob += dt * speed * 1.6;
   }
   resolveCollisions(player.pos, CONFIG.playerRadius);
 
   // Прыжок и гравитация
-  if (keys.Space && player.onGround) {
+  if ((keys.Space || touchJump) && player.onGround) {
     player.velY = CONFIG.jumpSpeed;
     player.onGround = false;
   }
@@ -809,7 +817,23 @@ function resetGame() {
 
 function lockPointer() {
   initAudio();
+  if (isTouch) {
+    // На телефоне нет захвата курсора: просто продолжаем игру
+    game.state = "playing";
+    ui.pause.classList.add("hidden");
+    ui.touch.classList.remove("hidden");
+    document.documentElement.requestFullscreen?.().catch(() => {});
+    return;
+  }
   renderer.domElement.requestPointerLock();
+}
+
+function pauseGame() {
+  if (game.state !== "playing") return;
+  game.state = "paused";
+  mouseDown = false;
+  ui.pause.classList.remove("hidden");
+  ui.touch.classList.add("hidden");
 }
 
 function gameOver() {
@@ -820,6 +844,8 @@ function gameOver() {
   ui.finalStats.innerHTML = `Волна: <b>${game.wave}</b><br>Убито зомби: <b>${game.kills}</b><br>Очки: <b>${game.score}</b>`;
   ui.gameover.classList.remove("hidden");
   ui.hud.classList.add("hidden");
+  ui.touch.classList.add("hidden");
+  releaseTouchInput();
 }
 
 $("start-btn").addEventListener("click", () => {
@@ -846,10 +872,8 @@ document.addEventListener("pointerlockchange", () => {
   if (locked) {
     if (game.state === "paused") game.state = "playing";
     ui.pause.classList.add("hidden");
-  } else if (game.state === "playing") {
-    game.state = "paused";
-    mouseDown = false;
-    ui.pause.classList.remove("hidden");
+  } else {
+    pauseGame();
   }
 });
 
@@ -861,7 +885,7 @@ document.addEventListener("mousemove", (e) => {
 });
 
 document.addEventListener("mousedown", (e) => {
-  if (e.button === 0 && game.state === "playing") mouseDown = true;
+  if (e.button === 0 && game.state === "playing" && document.pointerLockElement === renderer.domElement) mouseDown = true;
 });
 document.addEventListener("mouseup", (e) => {
   if (e.button === 0) mouseDown = false;
@@ -879,6 +903,109 @@ window.addEventListener("blur", () => {
   for (const k in keys) keys[k] = false;
   mouseDown = false;
 });
+
+// ---------- Сенсорное управление ----------
+const joystick = { x: 0, y: 0, id: null };
+let touchJump = false;
+let lookTouchId = null;
+let lookLast = { x: 0, y: 0 };
+const joyEl = $("joystick");
+const knobEl = $("joystick-knob");
+
+function setJoystick(t) {
+  const rect = joyEl.getBoundingClientRect();
+  const max = rect.width / 2;
+  let dx = t.clientX - (rect.left + max);
+  let dy = t.clientY - (rect.top + max);
+  const len = Math.hypot(dx, dy);
+  if (len > max) {
+    dx = (dx / len) * max;
+    dy = (dy / len) * max;
+  }
+  joystick.x = dx / max;
+  joystick.y = dy / max;
+  knobEl.style.transform = `translate(${dx}px, ${dy}px)`;
+}
+
+function resetJoystick() {
+  joystick.x = joystick.y = 0;
+  joystick.id = null;
+  knobEl.style.transform = "";
+}
+
+function releaseTouchInput() {
+  resetJoystick();
+  lookTouchId = null;
+  touchJump = false;
+  mouseDown = false;
+  document.querySelectorAll(".touch-btn.active").forEach((b) => b.classList.remove("active"));
+}
+
+const findTouch = (list, id) => [...list].find((t) => t.identifier === id);
+
+joyEl.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  const t = e.changedTouches[0];
+  joystick.id = t.identifier;
+  setJoystick(t);
+}, { passive: false });
+
+// Кнопки: удержание
+function holdButton(id, onDown, onUp) {
+  const el = $(id);
+  el.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    el.classList.add("active");
+    initAudio();
+    onDown();
+  }, { passive: false });
+  const up = (e) => {
+    e.preventDefault();
+    el.classList.remove("active");
+    onUp?.();
+  };
+  el.addEventListener("touchend", up);
+  el.addEventListener("touchcancel", up);
+}
+holdButton("btn-fire", () => { if (game.state === "playing") mouseDown = true; }, () => { mouseDown = false; });
+holdButton("btn-jump", () => { touchJump = true; }, () => { touchJump = false; });
+holdButton("btn-reload", () => { if (game.state === "playing") startReload(); });
+holdButton("btn-pause", pauseGame);
+
+// Обзор: свайп по свободной области экрана
+document.addEventListener("touchstart", (e) => {
+  if (game.state !== "playing") return;
+  for (const t of e.changedTouches) {
+    if (t.target.closest?.(".touch-btn, #joystick")) continue;
+    if (lookTouchId === null) {
+      lookTouchId = t.identifier;
+      lookLast = { x: t.clientX, y: t.clientY };
+    }
+  }
+}, { passive: true });
+
+document.addEventListener("touchmove", (e) => {
+  if (game.state !== "playing") return;
+  e.preventDefault();
+  const jt = joystick.id !== null && findTouch(e.changedTouches, joystick.id);
+  if (jt) setJoystick(jt);
+  const lt = lookTouchId !== null && findTouch(e.changedTouches, lookTouchId);
+  if (lt) {
+    const sens = 0.006;
+    player.yaw -= (lt.clientX - lookLast.x) * sens;
+    player.pitch -= (lt.clientY - lookLast.y) * sens;
+    player.pitch = Math.max(-Math.PI / 2 + 0.05, Math.min(Math.PI / 2 - 0.05, player.pitch));
+    lookLast = { x: lt.clientX, y: lt.clientY };
+  }
+}, { passive: false });
+
+function onTouchEnd(e) {
+  if (joystick.id !== null && findTouch(e.changedTouches, joystick.id)) resetJoystick();
+  if (lookTouchId !== null && findTouch(e.changedTouches, lookTouchId)) lookTouchId = null;
+}
+document.addEventListener("touchend", onTouchEnd);
+document.addEventListener("touchcancel", onTouchEnd);
 
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;

@@ -158,3 +158,53 @@ canvas { display: block; }
   transition: opacity 0.5s;
 }
 #message.show { opacity: 1; }
+
+/* ---------- Сенсорное управление ---------- */
+body { touch-action: none; -webkit-touch-callout: none; }
+
+.touch-only { display: none !important; }
+body.touch .touch-only { display: grid !important; }
+body.touch .desktop-only { display: none !important; }
+
+/* На телефоне здоровье и патроны — сверху, чтобы не мешали джойстику и кнопкам */
+body.touch .hud-top { font-size: 16px; }
+body.touch .hud-bottom { top: 46px; bottom: auto; align-items: center; }
+body.touch #ammo { font-size: 22px; }
+body.touch .bar { height: 14px; width: min(200px, 40vw); }
+
+#touch-controls { position: fixed; inset: 0; z-index: 6; pointer-events: none; }
+
+#joystick {
+  position: absolute;
+  left: 24px; bottom: 24px;
+  width: 130px; height: 130px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  pointer-events: auto;
+}
+#joystick-knob {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 56px; height: 56px;
+  margin: -28px 0 0 -28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.touch-btn {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-weight: bold;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+.touch-btn.active { background: rgba(255, 80, 80, 0.5); }
+
+#btn-fire { right: 24px; bottom: 40px; width: 96px; height: 96px; font-size: 16px; background: rgba(200, 30, 30, 0.35); }
+#btn-jump { right: 136px; bottom: 24px; width: 62px; height: 62px; font-size: 26px; }
+#btn-reload { right: 40px; bottom: 150px; width: 62px; height: 62px; font-size: 22px; }
+#btn-pause { right: 16px; top: 84px; width: 44px; height: 44px; font-size: 14px; }

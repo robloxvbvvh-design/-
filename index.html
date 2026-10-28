@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Зомби-шутер 3D</title>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -26,11 +26,27 @@
     <div id="message"></div>
   </div>
 
+  <div id="touch-controls" class="hidden">
+    <div id="joystick"><div id="joystick-knob"></div></div>
+    <button id="btn-fire" class="touch-btn">ОГОНЬ</button>
+    <button id="btn-jump" class="touch-btn">⤒</button>
+    <button id="btn-reload" class="touch-btn">R</button>
+    <button id="btn-pause" class="touch-btn">❚❚</button>
+  </div>
+
   <div id="menu" class="overlay">
     <h1>ЗОМБИ-ШУТЕР 3D</h1>
     <p class="subtitle">Выживи как можно больше волн</p>
     <button id="start-btn">ИГРАТЬ</button>
-    <div class="controls">
+    <div class="controls touch-only">
+      <div><b>Джойстик слева</b> — движение</div>
+      <div><b>Свайп справа</b> — прицел</div>
+      <div><b>ОГОНЬ</b> — стрельба</div>
+      <div><b>R</b> — перезарядка</div>
+      <div><b>⤒</b> — прыжок</div>
+      <div><b>❚❚</b> — пауза</div>
+    </div>
+    <div class="controls desktop-only">
       <div><b>WASD</b> — движение</div>
       <div><b>Мышь</b> — прицел</div>
       <div><b>ЛКМ</b> — стрельба</div>
