@@ -4,3 +4,5 @@
 *.ptx
 *.cubin
 *.fatbin
+.env
+__pycache__/
