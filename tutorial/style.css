@@ -1,0 +1,251 @@
+:root {
+  --orange: #d97757;
+  --ink: #141413;
+  --red: #ff2a2a;
+  --font: "Montserrat", "Arial Black", "Liberation Sans", Arial, sans-serif;
+  --mono: "JetBrains Mono", "DejaVu Sans Mono", monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; background: #000; overflow: hidden; font-family: var(--font); }
+
+#viewport { position: fixed; inset: 0; display: grid; place-items: center; }
+
+/* Кадр 1080×1920, масштабируется под окно из JS */
+#stage {
+  position: absolute; left: 50%; top: 50%;
+  width: 1080px; height: 1920px;
+  overflow: hidden;
+  background: var(--ink);
+  transform-origin: 0 0;
+}
+
+.scene { position: absolute; inset: 0; opacity: 0; }
+
+/* ---------- Персонаж ---------- */
+.mascot { position: absolute; }
+.mascot svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.mascot .body, .mascot .arm, .mascot .leg { fill: var(--orange); }
+.mascot .eye { fill: #000; }
+.mascot.tiny { position: relative; width: 58px; height: 47px; }
+
+/* ---------- Логотип ElevenLabs: две вертикальные черты ---------- */
+.el-logo { display: flex; gap: 14%; justify-content: center; align-items: center; }
+.el-logo i { display: block; width: 14%; height: 56%; background: currentColor; border-radius: 4px; }
+
+.step-num {
+  position: absolute; left: 70px; top: 110px;
+  padding: 14px 30px; border-radius: 999px;
+  background: var(--orange); color: #fff;
+  font: 900 40px var(--font); letter-spacing: 4px;
+  z-index: 4;
+}
+
+/* ---------- 1. Заставка ---------- */
+#s1 { background: radial-gradient(90% 60% at 50% 40%, #2a1d17, var(--ink) 70%); }
+.tag {
+  position: absolute; left: 50%; top: 190px;
+  padding: 16px 44px; border-radius: 999px;
+  background: var(--red); color: #fff;
+  font: 900 52px var(--font); letter-spacing: 8px;
+}
+.title {
+  position: absolute; left: 0; right: 0; top: 330px;
+  text-align: center; color: #fff;
+  font: 900 128px/1.02 var(--font);
+}
+.title em { font-style: normal; color: var(--orange); }
+.mascot.hero { left: 50%; top: 680px; width: 400px; height: 326px; margin-left: -200px; }
+.steps { position: absolute; left: 0; right: 0; top: 1130px; display: flex; justify-content: center; align-items: center; gap: 26px; }
+.step { display: flex; flex-direction: column; align-items: center; gap: 16px; color: #fff; font: 800 32px var(--font); opacity: 0; }
+.step-ico { width: 170px; height: 170px; border-radius: 40px; display: grid; place-items: center; }
+.step-ico.el-logo { display: flex; background: #fff; color: #000; }
+.cc-ico { background: #2b2825; border: 3px solid var(--orange); }
+.cc-ico .mascot.tiny { transform: scale(1.9); }
+.dl-ico { background: var(--orange); color: #fff; font: 900 90px var(--font); }
+.arrow { color: var(--orange); font: 900 60px var(--font); opacity: 0; margin-bottom: 50px; }
+
+/* ---------- 2. ElevenLabs ---------- */
+#s2 { background: linear-gradient(#ece9e4, #d9d4cc); }
+.app-icon {
+  position: absolute; left: 50%; top: 520px;
+  width: 380px; height: 380px; margin-left: -190px;
+  border-radius: 90px; background: #000; color: #fff;
+  box-shadow: 0 40px 100px rgba(0,0,0,.35);
+  display: grid; place-items: stretch;
+}
+.el-logo.big { width: 100%; height: 100%; }
+.app-name { position: absolute; left: 0; right: 0; top: 950px; text-align: center; font: 900 110px var(--font); color: #000; letter-spacing: -2px; }
+
+.el-window {
+  position: absolute; left: 60px; top: 230px; width: 960px;
+  background: #fff; border-radius: 36px;
+  box-shadow: 0 40px 120px rgba(0,0,0,.25);
+  overflow: hidden; opacity: 0;
+}
+.el-top { display: flex; align-items: center; gap: 18px; height: 100px; padding: 0 36px; border-bottom: 2px solid #eee; font: 800 38px var(--font); color: #000; }
+.el-logo.small { width: 56px; height: 56px; border-radius: 14px; background: #000; color: #fff; }
+.el-top span { margin-left: auto; font: 600 28px var(--font); color: #888; }
+.el-body { padding: 30px 36px 40px; }
+.el-label { font: 800 28px var(--font); color: #777; margin: 6px 0 16px; text-transform: uppercase; letter-spacing: 2px; }
+.voices { display: flex; flex-direction: column; gap: 14px; margin-bottom: 28px; }
+.voice { display: flex; align-items: center; gap: 22px; padding: 16px 22px; border: 3px solid #eee; border-radius: 22px; font: 800 34px var(--font); color: #111; position: relative; }
+.voice small { display: block; font: 600 24px var(--font); color: #999; }
+.ava { width: 70px; height: 70px; border-radius: 50%; display: grid; place-items: center; color: #fff; font: 900 32px var(--font); }
+.a1 { background: linear-gradient(135deg, #ff9a62, #d9467a); }
+.a2 { background: linear-gradient(135deg, #6db4ff, #6a4cff); }
+.a3 { background: linear-gradient(135deg, #58c18a, #1d6b5a); }
+.check { position: absolute; right: 26px; width: 54px; height: 54px; border-radius: 50%; background: #000; color: #fff; display: grid; place-items: center; font-size: 30px; opacity: 0; }
+.el-text { min-height: 190px; padding: 24px; border: 3px solid #eee; border-radius: 22px; font: 700 36px/1.4 var(--font); color: #111; position: relative; }
+.ph { position: absolute; left: 24px; top: 24px; color: #aaa; }
+#ccPh { left: 0; top: 0; color: #7b746b; }
+.tbar { display: inline-block; width: 4px; height: 44px; background: var(--orange); vertical-align: -8px; margin-left: 3px; }
+.el-gen { margin-top: 24px; height: 96px; border-radius: 22px; background: #000; color: #fff; display: grid; place-items: center; font: 800 38px var(--font); }
+.player { display: flex; align-items: center; gap: 22px; margin-top: 22px; padding: 18px 22px; border-radius: 22px; background: #f3f1ee; opacity: 0; }
+.play-btn { width: 76px; height: 76px; border-radius: 50%; background: #000; color: #fff; display: grid; place-items: center; font-size: 32px; flex: none; }
+.pl-wave { flex: 1; height: 60px; background: repeating-linear-gradient(90deg, #c9c4bd 0 6px, transparent 6px 12px); -webkit-mask-image: linear-gradient(90deg, #000, #000); position: relative; }
+.pl-wave::after { content: ""; position: absolute; inset: 0; width: var(--p, 0%); background: repeating-linear-gradient(90deg, var(--orange) 0 6px, transparent 6px 12px); }
+.listen { padding: 16px 28px; border-radius: 16px; background: var(--orange); color: #fff; font: 800 32px var(--font); }
+
+/* ---------- 3. Claude Code ---------- */
+#s3 { background: radial-gradient(100% 70% at 50% 35%, #2a1d17, #0c0b0a 75%); }
+.window {
+  position: absolute; left: 60px; top: 260px; width: 960px;
+  background: #1f1e1c; border: 2px solid #3a3733; border-radius: 34px;
+  box-shadow: 0 50px 140px rgba(0,0,0,.7);
+  overflow: hidden;
+}
+.win-top { height: 76px; display: flex; align-items: center; gap: 14px; padding: 0 30px; background: #191816; color: #b6aea3; font: 700 28px var(--font); }
+.win-top i { width: 16px; height: 16px; border-radius: 50%; background: #5a5650; display: block; }
+.win-top span { margin-left: 18px; }
+.win-body { padding: 40px; }
+.hello { display: flex; align-items: center; gap: 30px; color: #f3ede4; font: 900 52px var(--font); }
+.hello small { font: 600 30px var(--font); color: #9a9288; }
+.hello .mascot.tiny { transform: scale(2); margin: 0 30px; }
+.prompt { margin-top: 36px; background: #2a2724; border: 3px solid #4a4540; border-radius: 28px; padding: 30px; }
+.prompt-text { min-height: 200px; color: #f6f1ea; font: 700 44px/1.35 var(--font); position: relative; }
+.files { display: flex; gap: 16px; margin-top: 16px; }
+.file {
+  display: flex; align-items: center; gap: 18px;
+  padding: 16px 22px; border-radius: 20px;
+  background: #1f1d1b; border: 2px solid #4a4540;
+  color: #fff; font: 800 30px var(--font);
+  opacity: 0;
+}
+.file small { display: block; font: 600 22px var(--font); color: #9a9288; }
+.file-ico { width: 62px; height: 62px; border-radius: 14px; background: var(--orange); display: grid; place-items: center; font: 900 34px var(--font); color: #fff; }
+.file-ico.txt { background: #5b8def; }
+.prompt-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 26px; }
+.attach { padding: 18px 30px; border-radius: 18px; border: 3px solid #4a4540; color: #cfc8be; font: 800 32px var(--font); }
+.send { width: 100px; height: 100px; border-radius: 28px; background: #4a4540; color: #fff; display: grid; place-items: center; font: 900 56px var(--font); }
+.send.ready { background: var(--orange); box-shadow: 0 0 40px rgba(217,119,87,.6); }
+
+/* ---------- 4. Создание и скачивание ---------- */
+#s4 { background: radial-gradient(90% 60% at 50% 40%, #2a1d17, #0c0b0a 75%); }
+.phone {
+  position: absolute; left: 50%; top: 230px;
+  width: 560px; height: 1000px; margin-left: -280px;
+  border-radius: 70px; background: #000;
+  border: 16px solid #2b2b2b;
+  box-shadow: 0 50px 140px rgba(0,0,0,.7), 0 0 120px rgba(217,119,87,.25);
+}
+.phone-screen { position: absolute; inset: 0; border-radius: 54px; overflow: hidden; }
+.ph-bg { position: absolute; inset: 0; background: linear-gradient(#4a3a78, #241a40 60%, #120d20); }
+.mascot.ph-mascot { left: 50%; top: 300px; width: 300px; height: 244px; margin-left: -150px; filter: drop-shadow(0 0 30px rgba(217,119,87,.6)); }
+.ph-sub { position: absolute; left: 0; right: 0; top: 640px; text-align: center; color: #fff; font: 900 50px var(--font); -webkit-text-stroke: 8px #000; paint-order: stroke fill; }
+.ph-sub b { color: var(--red); }
+.render { position: absolute; left: 0; right: 0; bottom: 0; padding: 36px 40px 50px; background: rgba(12,11,10,.92); }
+.render-label { display: flex; justify-content: space-between; color: #fff; font: 800 32px var(--font); margin-bottom: 16px; }
+.render-track { height: 22px; border-radius: 999px; background: #34302c; overflow: hidden; }
+.render-fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--orange), #ffb38c); border-radius: inherit; }
+.dl-btn {
+  position: absolute; left: 50%; top: 1280px;
+  padding: 26px 70px; border-radius: 26px;
+  background: var(--orange); color: #fff;
+  font: 900 54px var(--font);
+  box-shadow: 0 20px 60px rgba(217,119,87,.5);
+  opacity: 0;
+}
+.dl-toast {
+  position: absolute; right: 40px; top: 60px;
+  display: flex; align-items: center; gap: 22px;
+  padding: 22px 28px; border-radius: 26px;
+  background: #fff; color: #111;
+  font: 800 34px var(--font);
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  opacity: 0; z-index: 5;
+}
+.dl-toast small { display: block; font: 600 24px var(--font); color: #777; }
+.dl-ico { width: 64px; height: 64px; border-radius: 16px; background: var(--orange); color: #fff; display: grid; place-items: center; font: 900 36px var(--font); }
+.dl-ring { width: 54px; height: 54px; border-radius: 50%; background: #eee; overflow: hidden; position: relative; }
+.dl-ring div { position: absolute; left: 0; bottom: 0; width: 100%; height: 0; background: #2e9d5f; }
+.all-done {
+  position: absolute; left: 50%; top: 560px;
+  width: 360px; height: 360px; margin-left: -180px;
+  border-radius: 50%; background: #2e9d5f; color: #fff;
+  display: grid; place-items: center;
+  font: 900 230px var(--font);
+  box-shadow: 0 0 120px rgba(46,157,95,.7);
+  opacity: 0; z-index: 6;
+}
+
+/* ---------- 5. Без монтажа ---------- */
+#s5 { background: radial-gradient(90% 60% at 50% 40%, #1d2533, #0b0e14 70%); }
+.edit-icon {
+  position: absolute; left: 50%; top: 400px;
+  width: 560px; height: 560px; margin-left: -280px;
+  border-radius: 120px;
+  background: linear-gradient(145deg, #3a4a6b, #1b2234);
+  box-shadow: 0 40px 120px rgba(0,0,0,.6);
+  overflow: hidden;
+}
+.ei-strip { position: absolute; left: 0; right: 0; height: 64px; background: repeating-linear-gradient(90deg, #0d1018 0 40px, #e8e8e8 40px 70px, #0d1018 70px 100px); opacity: .85; }
+.ei-strip.top { top: 0; }
+.ei-strip.bottom { bottom: 0; }
+.ei-screen { position: absolute; left: 70px; right: 70px; top: 104px; height: 220px; border-radius: 26px; background: linear-gradient(#ffb36b, #e86a5a); display: grid; place-items: center; }
+.ei-play { width: 110px; height: 110px; border-radius: 50%; background: rgba(0,0,0,.4); color: #fff; display: grid; place-items: center; font-size: 50px; }
+.ei-tracks { position: absolute; left: 70px; right: 70px; top: 350px; display: flex; flex-direction: column; gap: 14px; }
+.ei-tracks i { display: block; height: 30px; border-radius: 8px; background: #5b8def; }
+.ei-tracks i:nth-child(2) { background: #58c18a; width: 75%; margin-left: 15%; }
+.ei-tracks i:nth-child(3) { background: #c46bd8; width: 60%; }
+.edit-name { position: absolute; left: 0; right: 0; top: 1010px; text-align: center; color: #fff; font: 900 110px var(--font); letter-spacing: 8px; }
+.cross { position: absolute; left: 50%; top: 330px; width: 760px; height: 760px; margin-left: -380px; overflow: visible; z-index: 3; }
+.cross line { stroke: var(--red); stroke-width: 13; stroke-linecap: round; stroke-dasharray: 114; stroke-dashoffset: 114; filter: drop-shadow(0 0 6px rgba(255,40,40,.8)); }
+.no-edit {
+  position: absolute; left: 50%; top: 1180px;
+  padding: 22px 60px; border-radius: 999px;
+  background: var(--red); color: #fff;
+  font: 900 76px var(--font); white-space: nowrap;
+  opacity: 0;
+}
+
+/* ---------- Курсор и клики ---------- */
+.pointer { position: absolute; left: 0; top: 0; width: 76px; height: 76px; opacity: 0; z-index: 30; filter: drop-shadow(0 6px 10px rgba(0,0,0,.6)); }
+.pointer svg { width: 100%; height: 100%; fill: #fff; stroke: #000; stroke-width: 1.4; stroke-linejoin: round; }
+.ripple { position: absolute; width: 160px; height: 160px; margin: -80px 0 0 -80px; border-radius: 50%; border: 8px solid var(--orange); opacity: 0; z-index: 29; }
+
+/* ---------- Караоке-субтитры ---------- */
+#subs { position: absolute; left: 50px; right: 50px; top: 1560px; z-index: 40; text-align: center; }
+.phrase {
+  position: absolute; left: 0; right: 0; top: 0;
+  display: none;
+  font: 900 84px/1.18 var(--font);
+  color: #fff;
+  text-transform: uppercase;
+  -webkit-text-stroke: 14px #000;
+  paint-order: stroke fill;
+  text-shadow: 0 8px 22px rgba(0,0,0,.6);
+}
+.phrase .w { display: inline-block; margin: 0 .14em; }
+.phrase .w.on { color: var(--red); }
+
+#play {
+  position: absolute; z-index: 50;
+  padding: 22px 46px; border: 0; border-radius: 999px;
+  background: var(--orange); color: #fff;
+  font: 800 28px var(--font); cursor: pointer;
+  box-shadow: 0 10px 40px rgba(217,119,87,.5);
+}
+#play span { margin-right: 8px; }
+body.capture #play { display: none; }

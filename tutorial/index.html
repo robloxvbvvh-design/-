@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Тутор: видео без монтажа</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="viewport">
+    <div id="stage">
+
+      <!-- 1. «Это тутор на создание видео» -->
+      <section class="scene" id="s1">
+        <div class="tag" id="tag">ТУТОР</div>
+        <h1 class="title" id="title">Как создать<br><em>видео</em></h1>
+        <div class="mascot hero" id="m1"></div>
+        <div class="steps">
+          <div class="step" id="st1"><div class="step-ico el-logo"><i></i><i></i></div><span>Голос</span></div>
+          <div class="arrow" id="ar1">→</div>
+          <div class="step" id="st2"><div class="step-ico cc-ico"><div class="mascot tiny"></div></div><span>Claude Code</span></div>
+          <div class="arrow" id="ar2">→</div>
+          <div class="step" id="st3"><div class="step-ico dl-ico">⬇</div><span>Видео</span></div>
+        </div>
+      </section>
+
+      <!-- 2. ElevenLabs: иконка → голос → текст → создать → слушать -->
+      <section class="scene" id="s2">
+        <div class="step-num" id="num1">ШАГ 1</div>
+        <div class="app-icon" id="elIcon"><div class="el-logo big"><i></i><i></i></div></div>
+        <div class="app-name" id="elName">ElevenLabs</div>
+
+        <div class="el-window" id="elWin">
+          <div class="el-top"><div class="el-logo small"><i></i><i></i></div><b>ElevenLabs</b><span>Text to Speech</span></div>
+          <div class="el-body">
+            <div class="el-label">Голос</div>
+            <div class="voices">
+              <div class="voice" id="vArtem"><div class="ava a1">A</div><div><b>Artem</b><small>Captivating</small></div><span class="check">✓</span></div>
+              <div class="voice" id="vAnna"><div class="ava a2">A</div><div><b>Anna</b><small>Calm</small></div></div>
+              <div class="voice" id="vMax"><div class="ava a3">M</div><div><b>Max</b><small>Deep</small></div></div>
+            </div>
+            <div class="el-label">Текст</div>
+            <div class="el-text"><span id="elTyped"></span><span class="tbar" id="elBar"></span><span class="ph" id="elPh">Введите текст для озвучки…</span></div>
+            <div class="el-gen" id="elGen"><span id="elGenLabel">Создать озвучку</span></div>
+            <div class="player" id="player">
+              <div class="play-btn" id="playBtn">▶</div>
+              <div class="pl-wave" id="plWave"></div>
+              <div class="listen" id="listen">Слушать</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Claude Code: запрос + файлы -->
+      <section class="scene" id="s3">
+        <div class="step-num" id="num2">ШАГ 2</div>
+        <div class="window" id="win">
+          <div class="win-top"><i></i><i></i><i></i><span>Claude Code</span></div>
+          <div class="win-body">
+            <div class="hello" id="hello"><div class="mascot tiny"></div><div><b>Claude Code</b><br><small>Opus 5.5 · готов к работе</small></div></div>
+            <div class="prompt">
+              <div class="prompt-text"><span id="ccTyped"></span><span class="tbar" id="ccBar"></span><span class="ph" id="ccPh">Опишите задачу…</span></div>
+              <div class="files">
+                <div class="file" id="fVoice"><span class="file-ico">♫</span><div><b>озвучка.mp3</b><small>0:17</small></div></div>
+                <div class="file" id="fText"><span class="file-ico txt">T</span><div><b>текст.txt</b><small>36 слов</small></div></div>
+              </div>
+              <div class="prompt-actions">
+                <div class="attach">＋ Файлы</div>
+                <div class="send" id="send">↑</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Создаёт видео → скачиваем → и всё -->
+      <section class="scene" id="s4">
+        <div class="step-num" id="num3">ШАГ 3</div>
+        <div class="phone" id="phone">
+          <div class="phone-screen">
+            <div class="ph-bg"></div>
+            <div class="mascot ph-mascot" id="m4"></div>
+            <div class="ph-sub" id="phSub">ДАЖЕ <b>НЕ</b> НУЖНО</div>
+            <div class="render" id="render">
+              <div class="render-label"><span id="rLabel">Создаю видео…</span><span id="rPct">0%</span></div>
+              <div class="render-track"><div class="render-fill" id="rFill"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="dl-btn" id="dlBtn">⬇ Скачать</div>
+        <div class="dl-toast" id="dlToast"><span class="dl-ico">⬇</span><div><b>video.mp4</b><small id="dlState">Загрузка…</small></div><div class="dl-ring"><div id="dlRing"></div></div></div>
+        <div class="all-done" id="allDone">✓</div>
+      </section>
+
+      <!-- 5. «Даже не нужно заходить в монтаж» — иконка монтажа зачёркнута -->
+      <section class="scene" id="s5">
+        <div class="edit-icon" id="editIcon">
+          <div class="ei-strip top"></div>
+          <div class="ei-screen"><div class="ei-play">▶</div></div>
+          <div class="ei-tracks"><i></i><i></i><i></i></div>
+          <div class="ei-strip bottom"></div>
+        </div>
+        <div class="edit-name" id="editName">МОНТАЖ</div>
+        <svg class="cross" id="cross" viewBox="0 0 100 100">
+          <line id="x1" x1="10" y1="10" x2="90" y2="90"/>
+          <line id="x2" x1="90" y1="10" x2="10" y2="90"/>
+        </svg>
+        <div class="no-edit" id="noEdit">без монтажа</div>
+      </section>
+
+      <div class="pointer" id="pointer"><svg viewBox="0 0 24 24"><path d="M3 2l7.5 19 2.6-7.9L21 10.5z"/></svg></div>
+      <div class="ripple" id="ripple"></div>
+
+      <div id="subs"></div>
+    </div>
+
+    <button id="play" aria-label="Смотреть"><span>▶</span> Смотреть</button>
+  </div>
+
+  <audio id="voice" src="../assets/voice-tutorial.mp3" preload="auto"></audio>
+  <script src="script.js"></script>
+</body>
+</html>
