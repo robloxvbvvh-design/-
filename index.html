@@ -18,6 +18,7 @@
     </div>
     <div class="hud-top">
       <div id="wave">Волна 1</div>
+      <div id="money">$ 0</div>
       <div id="score">Очки: 0</div>
       <div id="zombies-left">Зомби: 0</div>
     </div>
@@ -25,6 +26,7 @@
       <div class="health-wrap">
         <div class="label">ЗДОРОВЬЕ</div>
         <div class="bar"><div id="health-bar"></div></div>
+        <div class="bar armor"><div id="armor-bar"></div></div>
       </div>
       <div class="ammo-wrap">
         <div id="weapon-name">Пистолет</div>
@@ -32,7 +34,36 @@
       </div>
     </div>
     <div id="message"></div>
+    <div id="break-panel" class="hidden">
+      <div id="break-timer">Следующая волна через 25 с</div>
+      <div class="break-actions">
+        <button id="btn-shop">МАГАЗИН <span class="desktop-key">(B)</span></button>
+        <button id="btn-skip">НАЧАТЬ ВОЛНУ <span class="desktop-key">(N)</span></button>
+      </div>
+    </div>
     <div id="weapon-bar"></div>
+  </div>
+
+  <div id="shop" class="overlay panel hidden">
+    <div class="shop-head">
+      <h2>МАГАЗИН</h2>
+      <div id="shop-money">$ 0</div>
+    </div>
+    <div id="shop-timer"></div>
+    <div id="shop-items"></div>
+    <div class="shop-actions">
+      <button id="shop-close">ЗАКРЫТЬ <span class="desktop-key">(B)</span></button>
+      <button id="shop-skip">НАЧАТЬ ВОЛНУ <span class="desktop-key">(N)</span></button>
+    </div>
+  </div>
+
+  <div id="story" class="overlay panel hidden">
+    <div class="story-box">
+      <div id="story-chapter"></div>
+      <h1 id="story-title"></h1>
+      <div id="story-text"></div>
+      <button id="story-btn">ПРОДОЛЖИТЬ</button>
+    </div>
   </div>
 
   <div id="touch-controls" class="hidden">
@@ -45,7 +76,7 @@
 
   <div id="menu" class="overlay">
     <h1>ЗОМБИ-ШУТЕР 3D</h1>
-    <p class="subtitle">Выживи как можно больше волн</p>
+    <p class="subtitle">Сюжет из 4 глав, 4 босса и бесконечный режим</p>
     <button id="start-btn">ИГРАТЬ</button>
     <div class="controls touch-only">
       <div><b>Джойстик слева</b> — движение</div>
@@ -55,6 +86,7 @@
       <div><b>⤒</b> — прыжок</div>
       <div><b>❚❚</b> — пауза</div>
       <div><b>Панель внизу</b> — выбор оружия</div>
+      <div><b>МАГАЗИН</b> — между волнами</div>
     </div>
     <div class="controls desktop-only">
       <div><b>WASD</b> — движение</div>
@@ -65,6 +97,8 @@
       <div><b>Пробел</b> — прыжок</div>
       <div><b>Esc</b> — пауза</div>
       <div><b>1–0, -, =</b> / <b>колесо</b> — оружие</div>
+      <div><b>B</b> — магазин (между волнами)</div>
+      <div><b>N</b> — начать волну сразу</div>
     </div>
   </div>
 

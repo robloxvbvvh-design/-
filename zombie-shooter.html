@@ -279,6 +279,119 @@ body.touch .weapon-chip { padding: 8px 8px; }
   font-size: 11px;
   opacity: 0.6;
 }
+
+/* ---------- Деньги, броня, перерыв ---------- */
+#money { color: #ffd34d; }
+.bar.armor { height: 8px; margin-top: 4px; }
+#armor-bar { height: 100%; width: 0; background: linear-gradient(90deg, #2a6cff, #6fb2ff); transition: width 0.2s; }
+body.touch .bar.armor { height: 6px; }
+body.touch .desktop-key { display: none; }
+
+#break-panel {
+  position: absolute;
+  top: 58%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: rgba(10, 0, 0, 0.6);
+  border: 1px solid rgba(255, 80, 80, 0.5);
+  border-radius: 8px;
+  pointer-events: auto;
+  text-align: center;
+}
+#break-timer { font-size: 20px; font-weight: bold; text-shadow: 2px 2px 0 #000; }
+.break-actions, .shop-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+#break-panel button, #shop .shop-actions button {
+  letter-spacing: 0;
+  font: bold 15px "Segoe UI", Arial, sans-serif;
+  padding: 10px 16px;
+  color: #fff;
+  background: #8b0000;
+  border: 2px solid #ff4444;
+  border-radius: 6px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+#shop .shop-actions button:hover { transform: none; }
+#btn-skip, #shop #shop-skip { background: rgba(0, 0, 0, 0.5); border-color: rgba(255, 255, 255, 0.4); }
+
+/* ---------- Окна: магазин и сюжет ---------- */
+.overlay.panel {
+  justify-content: flex-start;
+  overflow-y: auto;
+  touch-action: pan-y;
+  padding-top: calc(20px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  z-index: 12;
+  background: rgba(8, 4, 4, 0.92);
+}
+.shop-head { display: flex; align-items: baseline; gap: 20px; }
+.shop-head h2 { font-size: 32px; color: #c41e1e; letter-spacing: 3px; }
+#shop-money { font-size: 26px; font-weight: bold; color: #ffd34d; }
+#shop-timer { color: #bbb; }
+#shop-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 10px;
+  width: min(1000px, 100%);
+}
+.shop-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+}
+.shop-card.weapon { border-color: rgba(255, 90, 90, 0.45); }
+.shop-kind { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #ff8080; }
+.shop-name { font-weight: bold; font-size: 16px; }
+.shop-note { font-size: 13px; color: #bbb; flex: 1; }
+#shop .shop-buy {
+  margin-top: 6px;
+  letter-spacing: 0;
+  font: bold 15px "Segoe UI", Arial, sans-serif;
+  padding: 8px;
+  color: #1a1200;
+  background: #ffd34d;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+#shop .shop-buy:hover { transform: none; background: #ffe080; }
+#shop .shop-buy:disabled { background: #444; color: #999; cursor: default; }
+
+.story-box {
+  max-width: 640px;
+  margin: auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+}
+#story-chapter { color: #ff8080; letter-spacing: 2px; text-transform: uppercase; font-size: 14px; }
+#story h1 { font-size: clamp(32px, 7vw, 56px); }
+#story-text { display: flex; flex-direction: column; gap: 10px; font-size: 17px; line-height: 1.55; color: #ddd; }
+#story-btn { align-self: center; margin-top: 8px; }
+
+/* Невысокий экран телефона в горизонтальном положении */
+@media (max-height: 500px) {
+  #story h1 { font-size: 30px; }
+  #story-text { font-size: 14px; line-height: 1.45; gap: 6px; }
+  .story-box { gap: 8px; }
+  .shop-head h2 { font-size: 24px; }
+  #shop-money { font-size: 20px; }
+  #break-timer { font-size: 16px; }
+  #break-panel { padding: 8px 12px; gap: 6px; }
+}
 </style>
 </head>
 <body>
@@ -293,6 +406,7 @@ body.touch .weapon-chip { padding: 8px 8px; }
     </div>
     <div class="hud-top">
       <div id="wave">Волна 1</div>
+      <div id="money">$ 0</div>
       <div id="score">Очки: 0</div>
       <div id="zombies-left">Зомби: 0</div>
     </div>
@@ -300,6 +414,7 @@ body.touch .weapon-chip { padding: 8px 8px; }
       <div class="health-wrap">
         <div class="label">ЗДОРОВЬЕ</div>
         <div class="bar"><div id="health-bar"></div></div>
+        <div class="bar armor"><div id="armor-bar"></div></div>
       </div>
       <div class="ammo-wrap">
         <div id="weapon-name">Пистолет</div>
@@ -307,7 +422,36 @@ body.touch .weapon-chip { padding: 8px 8px; }
       </div>
     </div>
     <div id="message"></div>
+    <div id="break-panel" class="hidden">
+      <div id="break-timer">Следующая волна через 25 с</div>
+      <div class="break-actions">
+        <button id="btn-shop">МАГАЗИН <span class="desktop-key">(B)</span></button>
+        <button id="btn-skip">НАЧАТЬ ВОЛНУ <span class="desktop-key">(N)</span></button>
+      </div>
+    </div>
     <div id="weapon-bar"></div>
+  </div>
+
+  <div id="shop" class="overlay panel hidden">
+    <div class="shop-head">
+      <h2>МАГАЗИН</h2>
+      <div id="shop-money">$ 0</div>
+    </div>
+    <div id="shop-timer"></div>
+    <div id="shop-items"></div>
+    <div class="shop-actions">
+      <button id="shop-close">ЗАКРЫТЬ <span class="desktop-key">(B)</span></button>
+      <button id="shop-skip">НАЧАТЬ ВОЛНУ <span class="desktop-key">(N)</span></button>
+    </div>
+  </div>
+
+  <div id="story" class="overlay panel hidden">
+    <div class="story-box">
+      <div id="story-chapter"></div>
+      <h1 id="story-title"></h1>
+      <div id="story-text"></div>
+      <button id="story-btn">ПРОДОЛЖИТЬ</button>
+    </div>
   </div>
 
   <div id="touch-controls" class="hidden">
@@ -320,7 +464,7 @@ body.touch .weapon-chip { padding: 8px 8px; }
 
   <div id="menu" class="overlay">
     <h1>ЗОМБИ-ШУТЕР 3D</h1>
-    <p class="subtitle">Выживи как можно больше волн</p>
+    <p class="subtitle">Сюжет из 4 глав, 4 босса и бесконечный режим</p>
     <button id="start-btn">ИГРАТЬ</button>
     <div class="controls touch-only">
       <div><b>Джойстик слева</b> — движение</div>
@@ -330,6 +474,7 @@ body.touch .weapon-chip { padding: 8px 8px; }
       <div><b>⤒</b> — прыжок</div>
       <div><b>❚❚</b> — пауза</div>
       <div><b>Панель внизу</b> — выбор оружия</div>
+      <div><b>МАГАЗИН</b> — между волнами</div>
     </div>
     <div class="controls desktop-only">
       <div><b>WASD</b> — движение</div>
@@ -340,6 +485,8 @@ body.touch .weapon-chip { padding: 8px 8px; }
       <div><b>Пробел</b> — прыжок</div>
       <div><b>Esc</b> — пауза</div>
       <div><b>1–0, -, =</b> / <b>колесо</b> — оружие</div>
+      <div><b>B</b> — магазин (между волнами)</div>
+      <div><b>N</b> — начать волну сразу</div>
     </div>
   </div>
 
@@ -386,40 +533,40 @@ const CONFIG = {
 
 // kind: "hitscan" (по умолчанию) | "flame" | "rocket"; pierce — сколько зомби пробивает пуля
 const WEAPONS = [
-  { name: "Пистолет", short: "Пистолет", damage: 30, rate: 0.2, mag: 12, reserve: Infinity, reload: 1.1, spread: 0.008, recoil: 0.3,
+  { name: "Пистолет", price: 0, note: "бесконечные патроны", short: "Пистолет", damage: 30, rate: 0.2, mag: 12, reserve: Infinity, reload: 1.1, spread: 0.008, recoil: 0.3,
     sound: { dur: 0.15, freq: 2400, vol: 0.25 },
     model: { len: 0.2, h: 0.1, barrel: 0.05, r: 0.016, color: 0x2e2e33 } },
-  { name: "Револьвер", short: "Револьвер", damage: 80, rate: 0.45, mag: 6, reserve: 36, reload: 1.8, spread: 0.004, recoil: 0.8, pierce: 2,
+  { name: "Револьвер", price: 250, note: "пробивает 2 зомби", short: "Револьвер", damage: 80, rate: 0.45, mag: 6, reserve: 36, reload: 1.8, spread: 0.004, recoil: 0.8, pierce: 2,
     sound: { dur: 0.3, freq: 1500, vol: 0.4 },
     model: { len: 0.2, h: 0.11, barrel: 0.16, r: 0.02, color: 0x9a9aa2, cylinder: true } },
-  { name: "Узи", short: "Узи", damage: 15, rate: 0.06, mag: 32, reserve: 192, reload: 1.3, spread: 0.03, recoil: 0.15,
+  { name: "Узи", price: 150, note: "очень быстрая стрельба", short: "Узи", damage: 15, rate: 0.06, mag: 32, reserve: 192, reload: 1.3, spread: 0.03, recoil: 0.15,
     sound: { dur: 0.1, freq: 2800, vol: 0.2 },
     model: { len: 0.24, h: 0.11, barrel: 0.06, r: 0.016, color: 0x1e1e22, magH: 0.2 } },
-  { name: "Автомат", short: "Автомат", damage: 26, rate: 0.1, mag: 30, reserve: 180, reload: 1.6, spread: 0.014, recoil: 0.35,
+  { name: "Автомат", price: 300, note: "надёжный и точный", short: "Автомат", damage: 26, rate: 0.1, mag: 30, reserve: 180, reload: 1.6, spread: 0.014, recoil: 0.35,
     sound: { dur: 0.22, freq: 1800, vol: 0.32 },
     model: { len: 0.45, h: 0.12, barrel: 0.3, r: 0.02, color: 0x3a3a40, magH: 0.18, stock: 0.25, wood: true } },
-  { name: "Дробовик", short: "Дробовик", damage: 14, pellets: 9, rate: 0.8, mag: 8, reserve: 48, reload: 2.2, spread: 0.09, recoil: 1,
+  { name: "Дробовик", price: 400, note: "дробь, сильный вблизи", short: "Дробовик", damage: 14, pellets: 9, rate: 0.8, mag: 8, reserve: 48, reload: 2.2, spread: 0.09, recoil: 1,
     sound: { dur: 0.4, freq: 1100, vol: 0.5 },
     model: { len: 0.4, h: 0.11, barrel: 0.4, r: 0.028, color: 0x2a2a2e, stock: 0.28, wood: true, pump: true } },
-  { name: "Двустволка", short: "Двустволка", damage: 16, pellets: 12, rate: 0.3, mag: 2, reserve: 40, reload: 1.8, spread: 0.13, recoil: 1.3,
+  { name: "Двустволка", price: 550, note: "12 дробин за выстрел", short: "Двустволка", damage: 16, pellets: 12, rate: 0.3, mag: 2, reserve: 40, reload: 1.8, spread: 0.13, recoil: 1.3,
     sound: { dur: 0.45, freq: 1000, vol: 0.55 },
     model: { len: 0.3, h: 0.1, barrel: 0.5, r: 0.024, barrels: 2, color: 0x5a5a5e, stock: 0.3, wood: true } },
-  { name: "Снайперская винтовка", short: "Снайперка", damage: 170, rate: 1.1, mag: 5, reserve: 35, reload: 2.2, spread: 0, recoil: 1.4, pierce: 5, tracer: 0xffffff,
+  { name: "Снайперская винтовка", price: 800, note: "пробивает до 5 зомби", short: "Снайперка", damage: 170, rate: 1.1, mag: 5, reserve: 35, reload: 2.2, spread: 0, recoil: 1.4, pierce: 5, tracer: 0xffffff,
     sound: { dur: 0.5, freq: 1300, vol: 0.55 },
     model: { len: 0.5, h: 0.11, barrel: 0.55, r: 0.018, color: 0x3b4a2f, stock: 0.3, scope: true, magH: 0.1 } },
-  { name: "Пулемёт", short: "Пулемёт", damage: 24, rate: 0.075, mag: 100, reserve: 300, reload: 3.2, spread: 0.025, recoil: 0.3,
+  { name: "Пулемёт", price: 1000, note: "магазин на 100 патронов", short: "Пулемёт", damage: 24, rate: 0.075, mag: 100, reserve: 300, reload: 3.2, spread: 0.025, recoil: 0.3,
     sound: { dur: 0.22, freq: 1600, vol: 0.32 },
     model: { len: 0.55, h: 0.15, barrel: 0.4, r: 0.026, color: 0x2b2f2b, stock: 0.25, box: true } },
-  { name: "Миниган", short: "Миниган", damage: 17, rate: 0.035, mag: 200, reserve: 600, reload: 4, spread: 0.035, recoil: 0.15,
+  { name: "Миниган", price: 1600, note: "200 патронов, шквальный огонь", short: "Миниган", damage: 17, rate: 0.035, mag: 200, reserve: 600, reload: 4, spread: 0.035, recoil: 0.15,
     sound: { dur: 0.12, freq: 2000, vol: 0.22 },
     model: { len: 0.4, h: 0.18, barrel: 0.5, r: 0.014, barrels: 6, color: 0x444448, box: true } },
-  { name: "Огнемёт", short: "Огнемёт", kind: "flame", damage: 7, range: 10, cone: 0.28, rate: 0.05, mag: 100, reserve: 300, reload: 2.5, recoil: 0.05,
+  { name: "Огнемёт", price: 1200, note: "жжёт всех перед собой", short: "Огнемёт", kind: "flame", damage: 7, range: 10, cone: 0.28, rate: 0.05, mag: 100, reserve: 300, reload: 2.5, recoil: 0.05,
     sound: { dur: 0.08, freq: 700, vol: 0.12 },
     model: { len: 0.45, h: 0.12, barrel: 0.25, r: 0.03, color: 0x6a3a1a, tank: true } },
-  { name: "Гранатомёт", short: "РПГ", kind: "rocket", damage: 240, radius: 5.5, speed: 38, rate: 1.0, mag: 1, reserve: 15, reload: 1.8, recoil: 1.2,
+  { name: "Гранатомёт", price: 1800, note: "взрыв по площади", short: "РПГ", kind: "rocket", damage: 240, radius: 5.5, speed: 38, rate: 1.0, mag: 1, reserve: 15, reload: 1.8, recoil: 1.2,
     sound: { dur: 0.5, freq: 600, vol: 0.45 },
     model: { len: 0.7, h: 0.1, barrel: 0.1, r: 0.06, color: 0x4a5a3a, tube: true } },
-  { name: "Лазерная винтовка", short: "Лазер", damage: 45, rate: 0.14, mag: 40, reserve: 160, reload: 1.8, spread: 0, recoil: 0.2, pierce: 99, tracer: 0x33ddff, laser: true,
+  { name: "Лазерная винтовка", price: 2500, note: "прошивает всех на пути", short: "Лазер", damage: 45, rate: 0.14, mag: 40, reserve: 160, reload: 1.8, spread: 0, recoil: 0.2, pierce: 99, tracer: 0x33ddff, laser: true,
     sound: { laser: true },
     model: { len: 0.45, h: 0.13, barrel: 0.2, r: 0.022, color: 0xd8dde8, glow: 0x33ddff, stock: 0.2 } },
 ];
@@ -429,12 +576,64 @@ const ZOMBIE_TYPES = {
   walker: { name: "Зомби", hp: 60, speed: 2.2, damage: 10, scale: 1, skin: 0x5d8a4a, cloth: 0x3a3048, pants: 0x2a2a35, score: 10, minWave: 1, weight: 10 },
   runner: { name: "Бегун", hp: 35, speed: 4.8, damage: 7, scale: 0.9, skin: 0x8a9a4a, cloth: 0x6a2a2a, pants: 0x30302a, score: 15, minWave: 2, weight: 5 },
   crawler: { name: "Ползун", hp: 30, speed: 3.2, damage: 8, scale: 1, skin: 0x6a7a5a, cloth: 0x4a4a4a, pants: 0x2a2a2a, score: 15, minWave: 2, weight: 4, crawl: true },
-  spitter: { name: "Плевун", hp: 50, speed: 2.6, damage: 12, scale: 1, skin: 0x9acd32, cloth: 0x4b3b5b, pants: 0x2a2a35, score: 25, minWave: 3, weight: 3, spit: true },
+  spitter: { name: "Плевун", hp: 50, speed: 2.6, damage: 12, scale: 1, skin: 0x9acd32, cloth: 0x4b3b5b, pants: 0x2a2a35, score: 25, minWave: 3, weight: 3, spit: true, keepDist: 13, spitRate: 2.2, acid: 12 },
   exploder: { name: "Взрывун", hp: 45, speed: 2.5, damage: 45, scale: 1.1, skin: 0xc8a040, cloth: 0x7a5a2a, pants: 0x4a3a2a, score: 25, minWave: 3, weight: 3, explode: true },
   armored: { name: "Спецназ", hp: 120, speed: 2.0, damage: 14, scale: 1.05, skin: 0x5a7a5a, cloth: 0x2f3f2a, pants: 0x2f3f2a, score: 30, minWave: 4, weight: 3, armor: 0.6 },
   tank: { name: "Громила", hp: 300, speed: 1.5, damage: 25, scale: 1.6, skin: 0x3a5a4a, cloth: 0x2a2a2a, pants: 0x1f1f25, score: 40, minWave: 4, weight: 2 },
-  boss: { name: "БОСС: Мясник", hp: 2200, speed: 1.9, damage: 35, scale: 2.6, skin: 0x7a3a3a, cloth: 0x1a1a1a, pants: 0x1a1a1a, score: 500, minWave: Infinity, weight: 0, boss: true },
+  // Боссы: по одному на каждую главу сюжета
+  butcher: { name: "Мясник", hp: 2200, speed: 1.9, damage: 35, scale: 2.6, skin: 0x7a3a3a, cloth: 0x1a1a1a, pants: 0x1a1a1a, score: 500, minWave: Infinity, weight: 0, boss: true, butcher: true },
+  queen: { name: "Королева плевунов", hp: 2600, speed: 1.6, damage: 25, scale: 2.3, skin: 0x9acd32, cloth: 0x3b2b4b, pants: 0x2a2a35, score: 700, minWave: Infinity, weight: 0, boss: true, spit: true, volley: 5, spitRate: 2.4, keepDist: 18, acid: 12 },
+  general: { name: "Генерал Громов", hp: 3200, speed: 2.0, damage: 30, scale: 2.2, skin: 0x5a7a5a, cloth: 0x2f3f2a, pants: 0x2f3f2a, score: 900, minWave: Infinity, weight: 0, boss: true, armor: 0.5, charge: true },
+  patient: { name: "Нулевой пациент", hp: 5000, speed: 1.8, damage: 40, scale: 3, skin: 0xd8d8c8, cloth: 0x3a3a4a, pants: 0x2a2a35, score: 1500, minWave: Infinity, weight: 0, boss: true, volley: 3, spitRate: 3.5, acid: 15, charge: true, summon: true, patient: true },
 };
+
+// ---------- Сюжет: 4 главы по 5 волн, в конце каждой — босс ----------
+const BREAK_TIME = 25; // секунд передышки между волнами
+const STORY = [
+  {
+    chapter: "Глава 1 из 4", title: "Карантин", boss: "butcher",
+    text: [
+      "Научный городок Новоград-4. Под ним — лаборатория «Генезис», где создавали вакцину нового поколения под кодом Ч-4.",
+      "В 02:14 сработала тревога. Вакцина оказалась вирусом: за час весь персонал лаборатории превратился в заражённых.",
+      "Ты — боец охраны внешнего периметра. Связи нет, ворота заблокированы. Приказ один: держать периметр до прибытия эвакуации.",
+      "Между волнами есть время перевести дух. Трать заработанные деньги в магазине: новое оружие, аптечки и броня.",
+    ],
+  },
+  {
+    chapter: "Глава 2 из 4", title: "Кислотный дождь", boss: "queen",
+    text: [
+      "Мясник повержен, но вертолёт так и не прилетел. Вместо него ожила рация.",
+      "«Говорит доктор Вера Орлова, корпус Б. Если меня кто-то слышит: вирус мутирует. Некоторые заражённые плюются кислотой, а их матка гнездится в старом резервуаре».",
+      "Орлова знает, с чего всё началось. Чтобы добраться до неё, нужно продержаться ещё пять волн.",
+    ],
+  },
+  {
+    chapter: "Глава 3 из 4", title: "Чёрный батальон", boss: "general",
+    text: [
+      "Королева плевунов мертва. На рассвете над лесом показались огни: прибыл армейский батальон зачистки.",
+      "Через час рация батальона замолчала. Солдаты вернулись — в касках, бронежилетах и с пустыми глазами.",
+      "Орлова: «Их командиру, генералу Громову, первым ввели Ч-4. Броня делает их почти неуязвимыми. Цельтесь в лицо».",
+    ],
+  },
+  {
+    chapter: "Глава 4 из 4", title: "Нулевой пациент", boss: "patient",
+    text: [
+      "Генерал Громов пал. Орлова наконец рассказывает правду.",
+      "«Ч-4 вырастили из клеток одного человека — подопытного № 0. Он до сих пор жив и управляет заражёнными, как ульем».",
+      "«Если уничтожить Нулевого пациента, улей рассыплется. Он уже идёт к тебе. И он придёт не один».",
+    ],
+  },
+];
+const EPILOGUE = {
+  chapter: "Эпилог", title: "Рассвет", button: "БЕСКОНЕЧНЫЙ РЕЖИМ",
+  text: [
+    "Нулевой пациент рухнул, и над Новоградом-4 повисла тишина. Заражённые застыли, словно марионетки с обрезанными нитями.",
+    "Через час над периметром завис вертолёт. Доктор Орлова поднялась на борт с образцами: по ним можно создать настоящую вакцину.",
+    "Ты остаёшься прикрывать взлёт. Из леса уже доносится знакомый стон: улей потерял хозяина, но не всех своих детей.",
+    "История окончена. Дальше — бесконечный режим: сколько волн ты продержишься?",
+  ],
+};
+const BOSS_TYPES = STORY.map((c) => c.boss);
 
 // ---------- DOM ----------
 const $ = (id) => document.getElementById(id);
@@ -459,6 +658,19 @@ const ui = {
   bossName: $("boss-name"),
   bossBar: $("boss-bar"),
   fps: $("fps"),
+  money: $("money"),
+  armor: $("armor-bar"),
+  breakPanel: $("break-panel"),
+  breakTimer: $("break-timer"),
+  shop: $("shop"),
+  shopItems: $("shop-items"),
+  shopMoney: $("shop-money"),
+  shopTimer: $("shop-timer"),
+  story: $("story"),
+  storyChapter: $("story-chapter"),
+  storyTitle: $("story-title"),
+  storyText: $("story-text"),
+  storyBtn: $("story-btn"),
 };
 
 // ---------- Рендер и сцена ----------
@@ -728,6 +940,8 @@ const sfx = {
   spit: () => playTone(500, 120, 0.25, "sawtooth", 0.1),
   hurt: () => playTone(250, 60, 0.3, "sawtooth", 0.25),
   boom: () => playNoise(0.9, 350, 0.7),
+  roar: () => playTone(110, 40, 1.0, "sawtooth", 0.3),
+  buy: () => { playTone(800, 1200, 0.08, "square", 0.12); setTimeout(() => playTone(1200, 1600, 0.1, "square", 0.12), 80); },
   pickup: () => { playTone(600, 900, 0.1, "sine", 0.2); setTimeout(() => playTone(900, 1300, 0.12, "sine", 0.2), 90); },
 };
 
@@ -956,12 +1170,12 @@ function spawnRocket(from, dir, w) {
   projectiles.push({ kind: "rocket", mesh, vel: dir.clone().multiplyScalar(w.speed), life: 4, weapon: w });
 }
 
-function spawnAcid(from, target) {
+function spawnAcid(from, target, damage = 12) {
   const mesh = new THREE.Mesh(acidGeo, acidMat);
   mesh.position.copy(from);
   scene.add(mesh);
   const vel = target.clone().sub(from).normalize().multiplyScalar(15);
-  projectiles.push({ kind: "acid", mesh, vel, life: 3 });
+  projectiles.push({ kind: "acid", mesh, vel, life: 3, damage });
   sfx.spit();
 }
 
@@ -995,7 +1209,7 @@ function updateProjectiles(dt) {
       const pp = p.mesh.position;
       tmpV.set(player.pos.x, player.pos.y + 1.2, player.pos.z);
       if (pp.distanceTo(tmpV) < 0.9) {
-        hurtPlayer(12);
+        hurtPlayer(p.damage);
         done = true;
       } else if (pp.y <= 0.05 || insideObstacle(pp)) {
         done = true;
@@ -1042,6 +1256,8 @@ const bossEyeMat = new THREE.MeshBasicMaterial({ color: 0xffee00 });
 const acidEyeMat = new THREE.MeshBasicMaterial({ color: 0xaaff00 });
 const pustuleMat = new THREE.MeshBasicMaterial({ color: 0xffbb22 });
 const hitMat = new THREE.MeshBasicMaterial({ color: 0xff3030 });
+const veinMat = new THREE.MeshBasicMaterial({ color: 0xaa33ff });
+const goldMat = lambert(0xc8a030, 0x221800);
 
 function createZombie(type, x, z) {
   const t = ZOMBIE_TYPES[type];
@@ -1066,7 +1282,7 @@ function createZombie(type, x, z) {
   const headH = t.spit ? 0.52 : 0.4;
   const head = part(0.4, headH, 0.4, skin, 0, 1.55 + headH / 2, 0);
   head.userData.isHead = true;
-  const eyes = t.boss ? bossEyeMat : t.spit ? acidEyeMat : eyeMat;
+  const eyes = t.patient ? veinMat : t.spit ? acidEyeMat : t.boss ? bossEyeMat : eyeMat;
   const eyeY = 1.59 + headH * 0.55;
   part(0.08, 0.06, 0.02, eyes, -0.1, eyeY, -0.21).userData.isHead = true;
   part(0.08, 0.06, 0.02, eyes, 0.1, eyeY, -0.21).userData.isHead = true;
@@ -1082,7 +1298,23 @@ function createZombie(type, x, z) {
     }
   }
   if (t.spit) part(0.22, 0.1, 0.05, acidEyeMat, 0, 1.62, -0.21).userData.isHead = true;
-  if (t.boss) {
+  if (t.boss && t.spit) {
+    // Корона из наростов у Королевы
+    for (let k = 0; k < 5; k++) part(0.07, 0.18, 0.07, acidEyeMat, -0.16 + k * 0.08, 1.55 + headH + 0.08, 0);
+  }
+  if (t.boss && t.armor) {
+    // Погоны генерала
+    part(0.2, 0.05, 0.3, goldMat, -0.38, 1.53, 0);
+    part(0.2, 0.05, 0.3, goldMat, 0.38, 1.53, 0);
+  }
+  if (t.patient) {
+    // Светящиеся вены
+    part(0.04, 0.6, 0.02, veinMat, -0.15, 1.15, -0.21);
+    part(0.04, 0.5, 0.02, veinMat, 0.12, 1.2, -0.21);
+    part(0.3, 0.03, 0.02, veinMat, 0, 1.35, -0.21);
+    part(0.03, 0.2, 0.02, veinMat, 0.15, 1.85, -0.21).userData.isHead = true;
+  }
+  if (t.butcher) {
     part(0.12, 0.3, 0.12, lambert(0xbbbbaa), -0.42, 1.65, 0);
     part(0.12, 0.3, 0.12, lambert(0xbbbbaa), 0.42, 1.65, 0);
     part(0.7, 0.3, 0.36, lambert(0x553322), 0, 0.85, 0); // фартук
@@ -1100,6 +1332,9 @@ function createZombie(type, x, z) {
   const armR = limb(0.31 * fat + 0.09, 1.48, 0.18, 0.7, skin);
   const legL = limb(-0.15, 0.78, 0.22, 0.78, pants);
   const legR = limb(0.15, 0.78, 0.22, 0.78, pants);
+  if (t.patient) {
+    for (const arm of [armL, armR]) part(0.04, 0.5, 0.2, veinMat, 0, -0.35, 0, arm).userData.isHead = false;
+  }
 
   if (t.crawl) {
     // Ползёт на руках, ноги волочатся сзади
@@ -1120,6 +1355,9 @@ function createZombie(type, x, z) {
     radius: 0.4 * t.scale,
     attackCooldown: 0,
     spitCooldown: 1 + Math.random() * 2,
+    chargeTimer: 3 + Math.random() * 3,
+    charging: 0,
+    summonTimer: 6,
     walkPhase: Math.random() * Math.PI * 2,
     groanTimer: 2 + Math.random() * 6,
     dying: 0,
@@ -1146,11 +1384,13 @@ function killZombie(z, byPlayer, point, headshot = false) {
   spawnParticles(point, COLORS.blood, isTouch ? 10 : 20, 6);
   if (byPlayer) {
     game.kills++;
-    game.score += z.t.score * (headshot ? 2 : 1);
+    const reward = z.t.score * (headshot ? 2 : 1);
+    game.score += reward;
+    game.money += reward;
     maybeDropPickup(z.root.position, z.t.boss ? 6 : 1);
   }
   if (z.t.explode) explode(new THREE.Vector3(z.root.position.x, 1, z.root.position.z), 4.5, z.t.damage, true);
-  if (z.t.boss) showMessage("БОСС ПОВЕРЖЕН!", 2500);
+  if (z.t.boss) showMessage(`${z.t.name.toUpperCase()} ПОВЕРЖЕН!`, 2500);
   updateHud();
 }
 
@@ -1192,19 +1432,55 @@ function updateZombies(dt) {
     z.root.rotation.y += diff * Math.min(1, dt * 6);
 
     const reach = 0.7 + 0.4 * z.t.scale + CONFIG.playerRadius + (z.t.crawl ? 0.3 : 0);
-    // Плевун держит дистанцию и стреляет кислотой
-    const keepsDistance = z.t.spit && dist < 13 && dist > reach + 2;
-    if (dist > reach && !keepsDistance) {
-      z.root.position.addScaledVector(toPlayer, z.speed * dt);
-      z.walkPhase += dt * z.speed * 3;
+
+    // Рывок: босс разгоняется и несётся на игрока
+    if (z.t.charge) {
+      z.chargeTimer -= dt;
+      if (z.charging > 0) z.charging -= dt;
+      else if (z.chargeTimer <= 0 && dist > 6 && dist < 30) {
+        z.charging = 1.2;
+        z.chargeTimer = 6 + Math.random() * 2;
+        sfx.roar();
+      }
+      z.body.rotation.x = z.charging > 0 ? -0.35 : 0;
     }
-    if (keepsDistance) {
+    const speed = z.speed * (z.charging > 0 ? 3.5 : 1);
+
+    // Плевуны держат дистанцию
+    const keepsDistance = z.t.keepDist && dist < z.t.keepDist && dist > reach + 2;
+    if (dist > reach && !keepsDistance) {
+      z.root.position.addScaledVector(toPlayer, speed * dt);
+      z.walkPhase += dt * speed * 3;
+    }
+
+    // Плевок кислотой (у боссов — веером)
+    if ((z.t.spit || z.t.volley) && dist > reach + 2 && dist < 25 && z.charging <= 0) {
       z.spitCooldown -= dt;
       if (z.spitCooldown <= 0) {
-        z.spitCooldown = 2.2 + Math.random();
+        z.spitCooldown = z.t.spitRate + Math.random();
         z.head.getWorldPosition(tmpV);
-        spawnAcid(tmpV, tmpV2.set(playerPos.x, playerPos.y + 1.3, playerPos.z));
+        const n = z.t.volley || 1;
+        const side = new THREE.Vector3(-toPlayer.z, 0, toPlayer.x);
+        for (let k = 0; k < n; k++) {
+          const off = (k - (n - 1) / 2) * 1.6;
+          tmpV2.set(playerPos.x + side.x * off, playerPos.y + 1.3, playerPos.z + side.z * off);
+          spawnAcid(tmpV, tmpV2, z.t.acid);
+        }
         z.armL.rotation.x = z.armR.rotation.x = -Math.PI / 1.4;
+      }
+    }
+
+    // Призыв: Нулевой пациент зовёт бегунов
+    if (z.t.summon) {
+      z.summonTimer -= dt;
+      if (z.summonTimer <= 0) {
+        z.summonTimer = 12;
+        sfx.roar();
+        for (let k = 0; k < 3 && aliveCount() < QUALITY.maxZombies; k++) {
+          const a = Math.random() * Math.PI * 2;
+          createZombie("runner", z.root.position.x + Math.cos(a) * 3, z.root.position.z + Math.sin(a) * 3);
+        }
+        updateHud();
       }
     }
 
@@ -1252,6 +1528,7 @@ function updateZombies(dt) {
         continue;
       }
       z.attackCooldown = z.t.boss ? 1.4 : 1.1;
+      z.charging = 0;
       z.armL.rotation.x = z.armR.rotation.x = -Math.PI / 1.6;
       hurtPlayer(z.t.damage);
     }
@@ -1271,7 +1548,7 @@ function updateZombies(dt) {
 
   ui.bossWrap.classList.toggle("hidden", !boss);
   if (boss) {
-    ui.bossName.textContent = boss.t.name;
+    ui.bossName.textContent = `БОСС: ${boss.t.name}`;
     ui.bossBar.style.width = `${Math.max(0, boss.hp / boss.maxHp) * 100}%`;
   }
 }
@@ -1315,7 +1592,7 @@ function maybeDropPickup(pos, rolls = 1) {
 
 function giveAmmo(fraction) {
   WEAPONS.forEach((w, i) => {
-    if (w.reserve !== Infinity) weaponState[i].reserve += Math.ceil(w.reserve * fraction);
+    if (w.reserve !== Infinity && weaponState[i].owned) weaponState[i].reserve += Math.ceil(w.reserve * fraction);
   });
 }
 
@@ -1353,6 +1630,7 @@ const player = {
   yaw: 0,
   pitch: 0,
   health: CONFIG.maxHealth,
+  armor: 0,
   weapon: 0,
   switching: 0,
   reloading: 0,
@@ -1362,14 +1640,17 @@ const player = {
   bob: 0,
   alive: true,
 };
-const weaponState = WEAPONS.map((w) => ({ ammo: w.mag, reserve: w.reserve }));
+const weaponState = WEAPONS.map((w, i) => ({ ammo: w.mag, reserve: w.reserve, owned: i === 0 }));
 
 const keys = {};
 let mouseDown = false;
 
 function hurtPlayer(amount) {
   if (!player.alive || amount <= 0) return;
-  player.health -= amount;
+  // Броня принимает на себя 70% урона, пока не кончится
+  const absorbed = Math.min(player.armor, amount * 0.7);
+  player.armor -= absorbed;
+  player.health -= amount - absorbed;
   sfx.hurt();
   ui.damage.style.opacity = 1;
   setTimeout(() => (ui.damage.style.opacity = 0), 150);
@@ -1386,7 +1667,7 @@ function currentWeapon() {
 
 function switchWeapon(index) {
   index = (index + WEAPONS.length) % WEAPONS.length;
-  if (index === player.weapon || !player.alive) return;
+  if (index === player.weapon || !player.alive || !weaponState[index].owned) return;
   if (gunModels[player.weapon]) gunModels[player.weapon].group.visible = false;
   player.weapon = index;
   gunModels[index].group.visible = true;
@@ -1397,6 +1678,14 @@ function switchWeapon(index) {
   sfx.swap();
   updateHud();
   updateWeaponBar();
+}
+
+// Следующее купленное оружие в направлении dir
+function cycleWeapon(dir) {
+  for (let k = 1; k < WEAPONS.length; k++) {
+    const i = (player.weapon + dir * k + WEAPONS.length * k) % WEAPONS.length;
+    if (weaponState[i].owned) return switchWeapon(i);
+  }
 }
 
 function startReload() {
@@ -1448,7 +1737,7 @@ function shoot() {
 
 // Нажатие на спуск стреляет сразу, даже если отпустить до следующего кадра
 function pullTrigger() {
-  if (game.state !== "playing") return;
+  if (game.state !== "playing" || game.modal) return;
   mouseDown = true;
   if (player.fireCooldown <= 0) shoot();
 }
@@ -1594,12 +1883,16 @@ function updatePlayer(dt) {
 // ---------- Волны ----------
 const game = {
   state: "menu", // menu | playing | paused | over
+  modal: null, // null | "story" | "shop" — окно поверх игры, которое не считается паузой
   wave: 0,
   score: 0,
+  money: 0,
   kills: 0,
   toSpawn: 0,
   spawnTimer: 0,
-  waveBreak: 0,
+  inBreak: false,
+  breakTime: 0,
+  storyDone: false,
 };
 
 function showMessage(text, duration = 2000) {
@@ -1609,14 +1902,20 @@ function showMessage(text, duration = 2000) {
   showMessage.t = setTimeout(() => ui.message.classList.remove("show"), duration);
 }
 
+function chapterOf(wave) {
+  return wave <= STORY.length * 5 ? Math.ceil(wave / 5) : null;
+}
+
 function startWave() {
   game.wave++;
   game.toSpawn = 4 + game.wave * 3;
   game.spawnTimer = 0;
-  game.waveBreak = 0;
   if (game.wave % 5 === 0) {
-    spawnZombie("boss");
-    showMessage(`ВОЛНА ${game.wave}: БОСС!`, 2500);
+    // Босс главы; в бесконечном режиме — случайный
+    const chapter = chapterOf(game.wave);
+    const bossType = chapter ? STORY[chapter - 1].boss : BOSS_TYPES[Math.floor(Math.random() * BOSS_TYPES.length)];
+    spawnZombie(bossType);
+    showMessage(`ВОЛНА ${game.wave}: ${ZOMBIE_TYPES[bossType].name.toUpperCase()}!`, 2500);
   } else {
     const fresh = Object.values(ZOMBIE_TYPES).filter((t) => t.minWave === game.wave && game.wave > 1);
     showMessage(fresh.length ? `ВОЛНА ${game.wave}: ${fresh.map((t) => t.name).join(", ")}` : `ВОЛНА ${game.wave}`, 2500);
@@ -1636,7 +1935,7 @@ function pickZombieType() {
 
 function spawnZombie(type = pickZombieType()) {
   // Точка появления в 25–45 м от игрока
-  for (let attempt = 0; attempt < 20; attempt++) {
+  for (let attempt = 0; attempt < 30; attempt++) {
     const angle = Math.random() * Math.PI * 2;
     const r = 25 + Math.random() * 20;
     const x = player.pos.x + Math.cos(angle) * r;
@@ -1645,7 +1944,7 @@ function spawnZombie(type = pickZombieType()) {
     if (Math.abs(x) > lim || Math.abs(z) > lim) continue;
     const pos = new THREE.Vector3(x, 0, z);
     const before = pos.clone();
-    resolveCollisions(pos, type === "boss" ? 1.2 : 0.6);
+    resolveCollisions(pos, ZOMBIE_TYPES[type].boss ? 1.2 : 0.6);
     if (pos.distanceToSquared(before) > 0.01) continue;
     createZombie(type, x, z);
     return true;
@@ -1659,7 +1958,55 @@ function aliveCount() {
   return n;
 }
 
+function onWaveCleared() {
+  const bonus = game.wave * 50;
+  game.score += bonus;
+  game.money += bonus;
+  giveAmmo(0.2);
+  showMessage(`ВОЛНА ${game.wave} ПРОЙДЕНА! +${bonus} $`, 2500);
+  // После босса главы — следующая часть истории
+  if (game.wave === STORY.length * 5 && !game.storyDone) {
+    game.storyDone = true;
+    showStory(EPILOGUE, beginBreak);
+  } else if (game.wave % 5 === 0 && chapterOf(game.wave) && game.wave < STORY.length * 5) {
+    showStory(STORY[game.wave / 5], beginBreak);
+  } else {
+    beginBreak();
+  }
+  updateHud();
+}
+
+function beginBreak() {
+  game.inBreak = true;
+  game.breakTime = BREAK_TIME;
+  ui.breakPanel.classList.remove("hidden");
+  updateBreakTimer();
+}
+
+function endBreak() {
+  game.inBreak = false;
+  ui.breakPanel.classList.add("hidden");
+  if (game.modal === "shop") closeModal();
+  startWave();
+}
+
+function skipBreak() {
+  if (game.inBreak) game.breakTime = 0;
+}
+
+function updateBreakTimer() {
+  const text = `Следующая волна через ${Math.ceil(game.breakTime)} с`;
+  ui.breakTimer.textContent = text;
+  ui.shopTimer.textContent = text;
+}
+
 function updateWaves(dt) {
+  if (game.inBreak) {
+    game.breakTime -= dt;
+    updateBreakTimer();
+    if (game.breakTime <= 0) endBreak();
+    return;
+  }
   if (game.toSpawn > 0) {
     game.spawnTimer -= dt;
     if (game.spawnTimer <= 0 && aliveCount() < Math.min(12 + game.wave * 2, QUALITY.maxZombies)) {
@@ -1667,16 +2014,8 @@ function updateWaves(dt) {
       game.spawnTimer = Math.max(0.35, 1.6 - game.wave * 0.1);
       updateHud();
     }
-  } else if (aliveCount() === 0) {
-    if (game.waveBreak <= 0) {
-      game.waveBreak = 4;
-      game.score += game.wave * 50;
-      giveAmmo(0.2);
-      showMessage(`ВОЛНА ${game.wave} ПРОЙДЕНА!`, 2500);
-      updateHud();
-    }
-    game.waveBreak -= dt;
-    if (game.waveBreak <= 0) startWave();
+  } else if (aliveCount() === 0 && game.wave > 0) {
+    onWaveCleared();
   }
 }
 
@@ -1684,14 +2023,18 @@ function updateWaves(dt) {
 function updateHud() {
   const w = currentWeapon();
   const st = weaponState[player.weapon];
-  ui.wave.textContent = `Волна ${game.wave}`;
+  const chapter = chapterOf(game.wave);
+  ui.wave.textContent = chapter ? `Глава ${chapter} · Волна ${game.wave}` : `Волна ${game.wave}`;
   ui.score.textContent = `Очки: ${game.score}`;
+  ui.money.textContent = `$ ${game.money}`;
   ui.zombiesLeft.textContent = `Зомби: ${aliveCount() + game.toSpawn}`;
   ui.health.style.width = `${(player.health / CONFIG.maxHealth) * 100}%`;
+  ui.armor.style.width = `${player.armor}%`;
   ui.weaponName.textContent = w.name;
   const reserve = st.reserve === Infinity ? "∞" : st.reserve;
   ui.ammo.textContent = player.reloading > 0 ? "ПЕРЕЗАРЯДКА..." : `${st.ammo} / ${reserve}`;
   ui.ammo.classList.toggle("low", st.ammo <= Math.ceil(w.mag * 0.2) && player.reloading <= 0);
+  if (game.modal === "shop") renderShop();
 }
 
 const KEY_LABELS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "="];
@@ -1705,7 +2048,10 @@ WEAPONS.forEach((w, i) => {
 });
 
 function updateWeaponBar() {
-  [...ui.weaponBar.children].forEach((chip, i) => chip.classList.toggle("active", i === player.weapon));
+  [...ui.weaponBar.children].forEach((chip, i) => {
+    chip.classList.toggle("active", i === player.weapon);
+    chip.hidden = !weaponState[i].owned;
+  });
   const chip = ui.weaponBar.children[player.weapon];
   const bar = ui.weaponBar;
   // Прокручиваем панель к выбранному оружию (без scrollIntoView, чтобы не дёргать страницу)
@@ -1714,6 +2060,123 @@ function updateWeaponBar() {
     bar.scrollLeft = chip.offsetLeft + chip.offsetWidth - bar.clientWidth;
   }
 }
+
+// ---------- Магазин ----------
+const SUPPLIES = [
+  { name: "Аптечка", note: "+50 здоровья", price: 120, can: () => player.health < CONFIG.maxHealth,
+    buy: () => (player.health = Math.min(CONFIG.maxHealth, player.health + 50)) },
+  { name: "Большая аптечка", note: "Полное здоровье", price: 250, can: () => player.health < CONFIG.maxHealth,
+    buy: () => (player.health = CONFIG.maxHealth) },
+  { name: "Бронежилет", note: "+50 брони", price: 150, can: () => player.armor < 100,
+    buy: () => (player.armor = Math.min(100, player.armor + 50)) },
+  { name: "Тяжёлая броня", note: "Броня до 100", price: 300, can: () => player.armor < 100,
+    buy: () => (player.armor = 100) },
+  { name: "Ящик патронов", note: "+50% патронов ко всему купленному оружию", price: 200, can: () => true,
+    buy: () => giveAmmo(0.5) },
+];
+
+// Товары: расходники, затем оружие (покупка или пополнение патронов)
+function shopOffers() {
+  const offers = SUPPLIES.map((s) => ({ ...s, kind: "Снаряжение" }));
+  WEAPONS.forEach((w, i) => {
+    const st = weaponState[i];
+    const stats = `Урон ${w.damage}${w.pellets ? "×" + w.pellets : ""} · магазин ${w.mag}`;
+    if (!st.owned) {
+      offers.push({ name: w.name, note: `${w.note}. ${stats}`, price: w.price, kind: "Оружие", can: () => true,
+        buy: () => {
+          st.owned = true;
+          st.ammo = w.mag;
+          st.reserve = w.reserve;
+          switchWeapon(i);
+          updateWeaponBar();
+        } });
+    } else if (w.reserve !== Infinity) {
+      offers.push({ name: w.name, note: `Есть. Пополнить патроны до ${w.reserve}`, price: Math.max(50, Math.round(w.price * 0.2)),
+        kind: "Патроны", can: () => st.reserve < w.reserve, buy: () => (st.reserve = w.reserve) });
+    } else {
+      offers.push({ name: w.name, note: "Есть. Патроны бесконечные", price: null, kind: "Оружие", can: () => false });
+    }
+  });
+  return offers;
+}
+
+let currentOffers = [];
+function renderShop() {
+  currentOffers = shopOffers();
+  ui.shopMoney.textContent = `$ ${game.money}`;
+  ui.shopItems.innerHTML = currentOffers
+    .map((o, i) => {
+      const afford = o.price !== null && game.money >= o.price && o.can();
+      const label = o.price === null ? "Есть" : !o.can() ? "Не нужно" : `$ ${o.price}`;
+      return `<div class="shop-card${o.kind === "Оружие" && o.price ? " weapon" : ""}">
+        <div class="shop-kind">${o.kind}</div>
+        <div class="shop-name">${o.name}</div>
+        <div class="shop-note">${o.note}</div>
+        <button class="shop-buy" data-i="${i}" ${afford ? "" : "disabled"}>${label}</button>
+      </div>`;
+    })
+    .join("");
+}
+
+ui.shopItems.addEventListener("click", (e) => {
+  const btn = e.target.closest(".shop-buy");
+  if (!btn || btn.disabled) return;
+  const offer = currentOffers[Number(btn.dataset.i)];
+  if (!offer || game.money < offer.price || !offer.can()) return;
+  game.money -= offer.price;
+  offer.buy();
+  sfx.buy();
+  updateHud();
+  renderShop();
+});
+
+function openShop() {
+  if (!game.inBreak || game.state !== "playing" || game.modal) return;
+  renderShop();
+  openModal("shop", ui.shop);
+}
+
+// ---------- Окна поверх игры: сюжет и магазин ----------
+function openModal(kind, el) {
+  game.modal = kind;
+  el.classList.remove("hidden");
+  releaseTouchInput();
+  ui.touch.classList.add("hidden");
+  if (document.pointerLockElement) document.exitPointerLock();
+}
+
+function closeModal() {
+  ui.shop.classList.add("hidden");
+  ui.story.classList.add("hidden");
+  game.modal = null;
+  if (game.state === "playing") lockPointer();
+}
+
+let storyDone = null;
+function showStory(part, onDone) {
+  ui.storyChapter.textContent = part.chapter;
+  ui.storyTitle.textContent = part.title;
+  ui.storyText.innerHTML = part.text.map((t) => `<p>${t}</p>`).join("");
+  ui.storyBtn.textContent = part.button || "ПРОДОЛЖИТЬ";
+  ui.story.scrollTop = 0;
+  storyDone = onDone;
+  openModal("story", ui.story);
+}
+
+ui.storyBtn.addEventListener("click", () => {
+  closeModal();
+  const done = storyDone;
+  storyDone = null;
+  done?.();
+});
+
+$("btn-shop").addEventListener("click", openShop);
+$("btn-skip").addEventListener("click", skipBreak);
+$("shop-close").addEventListener("click", closeModal);
+$("shop-skip").addEventListener("click", () => {
+  closeModal();
+  skipBreak();
+});
 
 // ---------- Управление состоянием ----------
 function resetGame() {
@@ -1726,17 +2189,21 @@ function resetGame() {
   clearParticles();
 
   Object.assign(player, {
-    velY: 0, onGround: true, yaw: 0, pitch: 0, health: CONFIG.maxHealth,
+    velY: 0, onGround: true, yaw: 0, pitch: 0, health: CONFIG.maxHealth, armor: 0,
     switching: 0, reloading: 0, fireCooldown: 0, recoil: 0, shake: 0, bob: 0, alive: true,
   });
-  WEAPONS.forEach((w, i) => Object.assign(weaponState[i], { ammo: w.mag, reserve: w.reserve }));
+  WEAPONS.forEach((w, i) => Object.assign(weaponState[i], { ammo: w.mag, reserve: w.reserve, owned: i === 0 }));
   gunModels.forEach((m) => (m.group.visible = false));
   player.weapon = -1;
   player.pos.set(0, 0, 0);
-  Object.assign(game, { wave: 0, score: 0, kills: 0, toSpawn: 0, spawnTimer: 0, waveBreak: 0 });
-  switchWeapon(3); // начинаем с автомата
+  Object.assign(game, {
+    modal: null, wave: 0, score: 0, money: 0, kills: 0, toSpawn: 0, spawnTimer: 0, inBreak: false, breakTime: 0, storyDone: false,
+  });
+  ui.breakPanel.classList.add("hidden");
+  ui.shop.classList.add("hidden");
+  switchWeapon(0); // начинаем с пистолетом, остальное — в магазине
   player.switching = 0;
-  startWave();
+  updateHud();
 }
 
 function lockPointer() {
@@ -1756,7 +2223,7 @@ function lockPointer() {
 }
 
 function pauseGame() {
-  if (game.state !== "playing") return;
+  if (game.state !== "playing" || game.modal) return;
   game.state = "paused";
   mouseDown = false;
   ui.pause.classList.remove("hidden");
@@ -1766,24 +2233,35 @@ function pauseGame() {
 function gameOver() {
   player.alive = false;
   game.state = "over";
+  game.modal = null;
   mouseDown = false;
   document.exitPointerLock?.();
-  ui.finalStats.innerHTML = `Волна: <b>${game.wave}</b><br>Убито зомби: <b>${game.kills}</b><br>Очки: <b>${game.score}</b>`;
+  const chapter = chapterOf(game.wave);
+  ui.finalStats.innerHTML =
+    `${chapter ? `Глава ${chapter}: «${STORY[chapter - 1].title}»<br>` : "Бесконечный режим<br>"}` +
+    `Волна: <b>${game.wave}</b><br>Убито зомби: <b>${game.kills}</b><br>Очки: <b>${game.score}</b>`;
   ui.gameover.classList.remove("hidden");
   ui.hud.classList.add("hidden");
   ui.touch.classList.add("hidden");
+  ui.shop.classList.add("hidden");
+  ui.story.classList.add("hidden");
   releaseTouchInput();
 }
 
 function startGame() {
+  initAudio();
   ui.menu.classList.add("hidden");
   ui.gameover.classList.add("hidden");
   ui.hud.classList.remove("hidden");
   resetGame();
   game.state = "playing";
   gun.visible = true;
-  lockPointer();
+  showStory(STORY[0], startWave);
 }
+
+renderer.domElement.addEventListener("click", () => {
+  if (!isTouch && game.state === "playing" && !game.modal && !document.pointerLockElement) lockPointer();
+});
 
 $("start-btn").addEventListener("click", startGame);
 $("restart-btn").addEventListener("click", startGame);
@@ -1814,7 +2292,7 @@ document.addEventListener("mouseup", (e) => {
 });
 document.addEventListener("wheel", (e) => {
   if (game.state === "playing" && document.pointerLockElement === renderer.domElement) {
-    switchWeapon(player.weapon + Math.sign(e.deltaY));
+    cycleWeapon(Math.sign(e.deltaY) || 1);
   }
 });
 
@@ -1822,9 +2300,20 @@ document.addEventListener("keydown", (e) => {
   keys[e.code] = true;
   if (e.code === "Space") e.preventDefault();
   if (game.state !== "playing") return;
+  if (game.modal === "shop") {
+    if (e.code === "KeyB" || e.code === "Escape") closeModal();
+    if (e.code === "KeyN") {
+      closeModal();
+      skipBreak();
+    }
+    return;
+  }
+  if (game.modal) return;
+  if (e.code === "KeyB") openShop();
+  if (e.code === "KeyN") skipBreak();
   if (e.code === "KeyR") startReload();
-  if (e.code === "KeyQ") switchWeapon(player.weapon - 1);
-  if (e.code === "KeyE") switchWeapon(player.weapon + 1);
+  if (e.code === "KeyQ") cycleWeapon(-1);
+  if (e.code === "KeyE") cycleWeapon(1);
   const slot = KEY_CODES.indexOf(e.code);
   if (slot >= 0) switchWeapon(slot);
 });
@@ -1909,7 +2398,7 @@ holdButton("btn-pause", pauseGame);
 document.addEventListener("touchstart", (e) => {
   if (game.state !== "playing") return;
   for (const t of e.changedTouches) {
-    if (t.target.closest?.(".touch-btn, #joystick, #weapon-bar")) continue;
+    if (t.target.closest?.(".touch-btn, #joystick, #weapon-bar, #break-panel")) continue;
     if (lookTouchId === null) {
       lookTouchId = t.identifier;
       lookLast = { x: t.clientX, y: t.clientY };
@@ -1918,7 +2407,7 @@ document.addEventListener("touchstart", (e) => {
 }, { passive: true });
 
 document.addEventListener("touchmove", (e) => {
-  if (game.state !== "playing") return;
+  if (game.state !== "playing" || game.modal) return; // в окнах — обычная прокрутка
   if (e.target.closest?.("#weapon-bar")) return; // даём прокрутить панель оружия
   e.preventDefault();
   const jt = joystick.id !== null && findTouch(e.changedTouches, joystick.id);
@@ -1979,7 +2468,7 @@ function loop(now) {
   const dt = Math.min(rawDt, 0.05);
   trackFps(rawDt);
 
-  if (game.state === "playing") {
+  if (game.state === "playing" && game.modal !== "story") {
     updatePlayer(dt);
     updateZombies(dt);
     updateProjectiles(dt);
