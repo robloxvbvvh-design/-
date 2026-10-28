@@ -4,18 +4,24 @@ import os
 import random
 
 from aiogram import Bot, Dispatcher, F
+from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 
 
-def load_token() -> str:
-    token = os.getenv("BOT_TOKEN")
-    if not token and os.path.exists(".env"):
-        with open(".env", encoding="utf-8") as f:
+def load_env() -> None:
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
             for line in f:
                 key, _, value = line.strip().partition("=")
-                if key == "BOT_TOKEN":
-                    token = value.strip()
+                if key and value:
+                    os.environ.setdefault(key, value.strip())
+
+
+def load_token() -> str:
+    load_env()
+    token = os.getenv("BOT_TOKEN")
     if not token:
         raise SystemExit("Нет BOT_TOKEN: задай переменную окружения или файл .env")
     return token
@@ -127,7 +133,10 @@ async def other(message: Message) -> None:
 
 async def main() -> None:
     logging.basicConfig(level=logging.INFO)
-    bot = Bot(load_token())
+    token = load_token()
+    # На PythonAnywhere (бесплатный тариф) нужен PROXY=http://proxy.server:3128
+    proxy = os.getenv("PROXY")
+    bot = Bot(token, session=AiohttpSession(proxy=proxy) if proxy else None)
     await dp.start_polling(bot)
 
 
