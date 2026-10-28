@@ -41,8 +41,15 @@
         <button id="btn-skip">НАЧАТЬ ВОЛНУ <span class="desktop-key">(N)</span></button>
       </div>
     </div>
+    <div id="travel-hint" class="hidden">
+      <div id="travel-arrow">▲</div>
+      <div id="travel-text">Лодка: 0 м</div>
+      <button id="btn-shop-travel">МАГАЗИН <span class="desktop-key">(B)</span></button>
+    </div>
     <div id="weapon-bar"></div>
   </div>
+
+  <div id="fade"></div>
 
   <div id="shop" class="overlay panel hidden">
     <div class="shop-head">
@@ -76,8 +83,9 @@
 
   <div id="menu" class="overlay">
     <h1>ЗОМБИ-ШУТЕР 3D</h1>
-    <p class="subtitle">Сюжет из 4 глав, 4 босса и бесконечный режим</p>
+    <p class="subtitle">4 острова, 4 главы сюжета, 4 босса и бесконечный режим</p>
     <button id="start-btn">ИГРАТЬ</button>
+    <div id="island-select"></div>
     <div class="controls touch-only">
       <div><b>Джойстик слева</b> — движение</div>
       <div><b>Свайп справа</b> — прицел</div>
@@ -110,7 +118,10 @@
   <div id="gameover" class="overlay hidden">
     <h1>ВЫ ПОГИБЛИ</h1>
     <p id="final-stats"></p>
-    <button id="restart-btn">ЗАНОВО</button>
+    <div class="gameover-actions">
+      <button id="restart-btn">ЗАНОВО С ОСТРОВА</button>
+      <button id="menu-btn">В МЕНЮ</button>
+    </div>
   </div>
 
   <script type="importmap">

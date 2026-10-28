@@ -392,6 +392,78 @@ body.touch .desktop-key { display: none; }
   #break-timer { font-size: 16px; }
   #break-panel { padding: 8px 12px; gap: 6px; }
 }
+
+/* ---------- Острова: переправа и выбор в меню ---------- */
+#travel-hint {
+  position: absolute;
+  top: 58%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-shadow: 2px 2px 0 #000;
+}
+#travel-arrow { font-size: 34px; color: #ffdd44; line-height: 1; }
+#travel-text { font-size: 18px; font-weight: bold; color: #ffdd44; }
+#btn-shop-travel {
+  margin-top: 4px;
+  font: bold 14px "Segoe UI", Arial, sans-serif;
+  padding: 8px 14px;
+  color: #fff;
+  background: #8b0000;
+  border: 2px solid #ff4444;
+  border-radius: 6px;
+  pointer-events: auto;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#fade {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s;
+}
+#fade.show { opacity: 1; }
+
+#island-select {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  width: min(720px, 100%);
+}
+#menu .island-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  font: 13px "Segoe UI", Arial, sans-serif;
+  letter-spacing: 0;
+  text-align: left;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 90, 90, 0.5);
+  border-radius: 6px;
+}
+#menu .island-btn:hover:not(:disabled) { transform: none; background: rgba(180, 0, 0, 0.45); }
+#menu .island-btn:disabled { opacity: 0.4; cursor: default; border-color: rgba(255, 255, 255, 0.2); }
+.island-num { font-size: 11px; color: #ff8080; text-transform: uppercase; letter-spacing: 1px; }
+.island-name { font-weight: bold; font-size: 14px; }
+.island-note { font-size: 11px; color: #bbb; }
+.gameover-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+#menu-btn { background: rgba(0, 0, 0, 0.5); border-color: rgba(255, 255, 255, 0.4); }
+
+@media (max-width: 640px), (max-height: 500px) {
+  #island-select { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #menu { gap: 10px; overflow-y: auto; justify-content: flex-start; }
+  #menu h1 { font-size: 34px; }
+  #menu #start-btn { font-size: 20px; padding: 10px 40px; }
+}
 </style>
 </head>
 <body>
@@ -429,8 +501,15 @@ body.touch .desktop-key { display: none; }
         <button id="btn-skip">НАЧАТЬ ВОЛНУ <span class="desktop-key">(N)</span></button>
       </div>
     </div>
+    <div id="travel-hint" class="hidden">
+      <div id="travel-arrow">▲</div>
+      <div id="travel-text">Лодка: 0 м</div>
+      <button id="btn-shop-travel">МАГАЗИН <span class="desktop-key">(B)</span></button>
+    </div>
     <div id="weapon-bar"></div>
   </div>
+
+  <div id="fade"></div>
 
   <div id="shop" class="overlay panel hidden">
     <div class="shop-head">
@@ -464,8 +543,9 @@ body.touch .desktop-key { display: none; }
 
   <div id="menu" class="overlay">
     <h1>ЗОМБИ-ШУТЕР 3D</h1>
-    <p class="subtitle">Сюжет из 4 глав, 4 босса и бесконечный режим</p>
+    <p class="subtitle">4 острова, 4 главы сюжета, 4 босса и бесконечный режим</p>
     <button id="start-btn">ИГРАТЬ</button>
+    <div id="island-select"></div>
     <div class="controls touch-only">
       <div><b>Джойстик слева</b> — движение</div>
       <div><b>Свайп справа</b> — прицел</div>
@@ -498,7 +578,10 @@ body.touch .desktop-key { display: none; }
   <div id="gameover" class="overlay hidden">
     <h1>ВЫ ПОГИБЛИ</h1>
     <p id="final-stats"></p>
-    <button id="restart-btn">ЗАНОВО</button>
+    <div class="gameover-actions">
+      <button id="restart-btn">ЗАНОВО С ОСТРОВА</button>
+      <button id="menu-btn">В МЕНЮ</button>
+    </div>
   </div>
 
   <script type="importmap">
@@ -520,7 +603,6 @@ const QUALITY = isTouch
 
 // ---------- Настройки ----------
 const CONFIG = {
-  mapSize: 90,
   playerHeight: 1.7,
   playerRadius: 0.5,
   walkSpeed: 6,
@@ -593,25 +675,26 @@ const STORY = [
   {
     chapter: "Глава 1 из 4", title: "Карантин", boss: "butcher",
     text: [
-      "Научный городок Новоград-4. Под ним — лаборатория «Генезис», где создавали вакцину нового поколения под кодом Ч-4.",
+      "Архипелаг Новоград-4. На первом острове — лаборатория «Генезис», где создавали вакцину нового поколения под кодом Ч-4.",
       "В 02:14 сработала тревога. Вакцина оказалась вирусом: за час весь персонал лаборатории превратился в заражённых.",
       "Ты — боец охраны внешнего периметра. Связи нет, ворота заблокированы. Приказ один: держать периметр до прибытия эвакуации.",
       "Между волнами есть время перевести дух. Трать заработанные деньги в магазине: новое оружие, аптечки и броня.",
+      "Когда остров зачищен, на берегу ждёт лодка — добеги до неё, чтобы отправиться на следующий остров.",
     ],
   },
   {
     chapter: "Глава 2 из 4", title: "Кислотный дождь", boss: "queen",
     text: [
       "Мясник повержен, но вертолёт так и не прилетел. Вместо него ожила рация.",
-      "«Говорит доктор Вера Орлова, корпус Б. Если меня кто-то слышит: вирус мутирует. Некоторые заражённые плюются кислотой, а их матка гнездится в старом резервуаре».",
-      "Орлова знает, с чего всё началось. Чтобы добраться до неё, нужно продержаться ещё пять волн.",
+      "«Говорит доктор Вера Орлова. Я на Болотном острове, в старой насосной станции. Вирус мутирует: некоторые заражённые плюются кислотой, а их матка гнездится где-то в трясине».",
+      "Лодка причалила к Болотному острову. Орлова знает, с чего всё началось. Чтобы добраться до неё, нужно продержаться ещё пять волн.",
     ],
   },
   {
     chapter: "Глава 3 из 4", title: "Чёрный батальон", boss: "general",
     text: [
-      "Королева плевунов мертва. На рассвете над лесом показались огни: прибыл армейский батальон зачистки.",
-      "Через час рация батальона замолчала. Солдаты вернулись — в касках, бронежилетах и с пустыми глазами.",
+      "Королева плевунов мертва, Орлова спасена. На соседнем острове армия развернула базу батальона зачистки — туда и лежит путь.",
+      "Но рация батальона молчит уже час. На пристани тебя встречают солдаты — в касках, бронежилетах и с пустыми глазами.",
       "Орлова: «Их командиру, генералу Громову, первым ввели Ч-4. Броня делает их почти неуязвимыми. Цельтесь в лицо».",
     ],
   },
@@ -619,7 +702,7 @@ const STORY = [
     chapter: "Глава 4 из 4", title: "Нулевой пациент", boss: "patient",
     text: [
       "Генерал Громов пал. Орлова наконец рассказывает правду.",
-      "«Ч-4 вырастили из клеток одного человека — подопытного № 0. Он до сих пор жив и управляет заражёнными, как ульем».",
+      "«Ч-4 вырастили из клеток одного человека — подопытного № 0. Его держали в главном корпусе „Генезиса“ — под вулканом на последнем острове архипелага. Он до сих пор жив и управляет заражёнными, как ульем».",
       "«Если уничтожить Нулевого пациента, улей рассыплется. Он уже идёт к тебе. И он придёт не один».",
     ],
   },
@@ -671,6 +754,11 @@ const ui = {
   storyTitle: $("story-title"),
   storyText: $("story-text"),
   storyBtn: $("story-btn"),
+  travel: $("travel-hint"),
+  travelArrow: $("travel-arrow"),
+  travelText: $("travel-text"),
+  fade: $("fade"),
+  islands: $("island-select"),
 };
 
 // ---------- Рендер и сцена ----------
@@ -689,13 +777,14 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 camera.rotation.order = "YXZ";
 scene.add(camera);
 
-scene.add(new THREE.HemisphereLight(0x8899bb, 0x332211, 1.1));
+const hemi = new THREE.HemisphereLight(0x8899bb, 0x332211, 1.1);
+scene.add(hemi);
 const moon = new THREE.DirectionalLight(0xaabbff, 1.0);
 moon.position.set(30, 50, 20);
 if (QUALITY.shadows) {
   moon.castShadow = true;
   moon.shadow.mapSize.set(1024, 1024);
-  Object.assign(moon.shadow.camera, { left: -50, right: 50, top: 50, bottom: -50, near: 1, far: 150 });
+  Object.assign(moon.shadow.camera, { left: -72, right: 72, top: 72, bottom: -72, near: 1, far: 160 });
 }
 scene.add(moon);
 
@@ -708,149 +797,306 @@ function lambert(color, emissive = 0x000000) {
 }
 const BOX = new THREE.BoxGeometry(1, 1, 1);
 
-// ---------- Мир ----------
-function makeGroundTexture() {
-  const c = document.createElement("canvas");
-  c.width = c.height = 256;
-  const g = c.getContext("2d");
-  g.fillStyle = "#2f3a26";
-  g.fillRect(0, 0, 256, 256);
-  for (let i = 0; i < 3000; i++) {
-    const v = 30 + Math.random() * 40;
-    g.fillStyle = `rgb(${v},${v + 15},${v - 5})`;
-    g.fillRect(Math.random() * 256, Math.random() * 256, 2, 2);
-  }
-  const tex = new THREE.CanvasTexture(c);
-  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-  tex.repeat.set(40, 40);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
-}
-
-const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(CONFIG.mapSize * 2 + 40, CONFIG.mapSize * 2 + 40),
-  new THREE.MeshLambertMaterial({ map: makeGroundTexture() })
-);
-ground.rotation.x = -Math.PI / 2;
-ground.receiveShadow = QUALITY.shadows;
-scene.add(ground);
+// ---------- Острова (уровни) ----------
+// Каждая глава сюжета проходит на своём острове; между островами игрок плывёт на лодке
+const LEVELS = [
+  { name: "Остров Генезис", radius: 62, sky: 0x1a1d24, fog: [12, 65], hemi: [0x8899bb, 0x332211, 1.1], moon: 0xaabbff,
+    ground: "#2f3a26", speck: [30, 45, 25], sand: 0x5e5848, water: 0x16303d, lamp: 0xffcc88, theme: "lab" },
+  { name: "Болотный остров", radius: 58, sky: 0x1b2216, fog: [8, 50], hemi: [0x99aa77, 0x222211, 1.0], moon: 0xccddaa,
+    ground: "#33331f", speck: [40, 38, 20], sand: 0x4a4630, water: 0x22301a, lamp: 0xccff88, theme: "swamp" },
+  { name: "Остров Батальона", radius: 66, sky: 0x1c1f26, fog: [14, 70], hemi: [0x9999aa, 0x332a1a, 1.15], moon: 0xbbc4ff,
+    ground: "#4a4434", speck: [60, 55, 40], sand: 0x7a6c50, water: 0x142838, lamp: 0xffeeaa, theme: "base" },
+  { name: "Вулканический остров", radius: 60, sky: 0x1e0c0a, fog: [10, 60], hemi: [0xbb7766, 0x2a0e08, 1.35], moon: 0xff9977,
+    ground: "#2a2321", speck: [35, 28, 26], sand: 0x1a1414, water: 0x8a2008, lamp: 0xff7733, lava: true, theme: "volcano" },
+];
 
 // Препятствия для коллизий: { minX, maxX, minZ, maxZ, height }
 const obstacles = [];
 // Меши, в которые попадают пули (instanced-меши статичного мира)
 const obstacleMeshes = [];
+let level = LEVELS[0];
+let levelIndex = 0;
+let levelGroup = null;
+let ground = null;
+let water = null;
+let boat = null;
 
-// Весь статичный мир собирается в несколько InstancedMesh — это несколько вызовов отрисовки вместо сотен
-function buildWorld() {
-  const S = CONFIG.mapSize;
-  const boxes = [];
-  const addBox = (x, z, w, h, d, color, rotated = false) => {
-    const bw = rotated ? d : w;
-    const bd = rotated ? w : d;
-    boxes.push({ x, y: h / 2, z, w: bw, h, d: bd, color });
-    obstacles.push({ minX: x - bw / 2, maxX: x + bw / 2, minZ: z - bd / 2, maxZ: z + bd / 2, height: h });
+function makeGroundTexture(base, [r, g, b]) {
+  const c = document.createElement("canvas");
+  c.width = c.height = 256;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = base;
+  ctx.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 3000; i++) {
+    const v = Math.random() * 40 - 10;
+    ctx.fillStyle = `rgb(${r + v},${g + v},${b + v})`;
+    ctx.fillRect(Math.random() * 256, Math.random() * 256, 2, 2);
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(30, 30);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function makeGlowTexture() {
+  const c = document.createElement("canvas");
+  c.width = c.height = 64;
+  const g = c.getContext("2d");
+  const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0, "rgba(255,255,255,0.55)");
+  grad.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
+}
+const glowTex = makeGlowTexture();
+
+function disposeGroup(group) {
+  group.traverse((o) => {
+    if (o.geometry && o.geometry !== BOX) o.geometry.dispose();
+    if (o.material?.map && o.material.map !== glowTex) o.material.map.dispose();
+  });
+}
+
+function buildLevel(index) {
+  if (levelGroup) {
+    scene.remove(levelGroup);
+    disposeGroup(levelGroup);
+  }
+  levelIndex = index;
+  level = LEVELS[index];
+  levelGroup = new THREE.Group();
+  scene.add(levelGroup);
+  obstacles.length = 0;
+  obstacleMeshes.length = 0;
+
+  scene.background.setHex(level.sky);
+  scene.fog.color.setHex(level.sky);
+  [scene.fog.near, scene.fog.far] = level.fog;
+  hemi.color.setHex(level.hemi[0]);
+  hemi.groundColor.setHex(level.hemi[1]);
+  hemi.intensity = level.hemi[2];
+  moon.color.setHex(level.moon);
+
+  const R = level.radius;
+  // Остров, пляж и море (на вулкане — лава)
+  ground = new THREE.Mesh(
+    new THREE.CircleGeometry(R, 64).rotateX(-Math.PI / 2),
+    new THREE.MeshLambertMaterial({ map: makeGroundTexture(level.ground, level.speck) })
+  );
+  ground.receiveShadow = QUALITY.shadows;
+  const beach = new THREE.Mesh(new THREE.RingGeometry(R, R + 6, 64).rotateX(-Math.PI / 2), lambert(level.sand));
+  beach.position.y = -0.01;
+  water = new THREE.Mesh(
+    new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2),
+    level.lava ? new THREE.MeshBasicMaterial({ color: level.water }) : lambert(level.water, 0x050a10)
+  );
+  water.position.y = -0.3;
+  levelGroup.add(ground, beach, water);
+
+  let seed = 1337 + index * 7919;
+  const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  // Случайная точка на острове, не ближе 9 м к центру (там появляется игрок)
+  const spot = (margin = 6) => {
+    const a = rnd() * Math.PI * 2;
+    const r = 9 + Math.sqrt(rnd()) * (R - margin - 9);
+    return [Math.cos(a) * r, Math.sin(a) * r];
   };
 
-  const wallColor = 0x3d3d40;
-  addBox(0, -S - 1, S * 2 + 4, 4, 2, wallColor);
-  addBox(0, S + 1, S * 2 + 4, 4, 2, wallColor);
-  addBox(-S - 1, 0, 2, 4, S * 2 + 4, wallColor);
-  addBox(S + 1, 0, 2, 4, S * 2 + 4, wallColor);
+  const boxes = [];
+  const cones = [];
+  const decals = [];
+  const trees = [];
+  const lamps = [];
+  const glows = [];
+  const addBox = (x, z, w, h, d, color, rotY = 0, collide = true, y = h / 2) => {
+    boxes.push({ x, y, z, w, h, d, color, rotY });
+    if (!collide) return;
+    const c = Math.abs(Math.cos(rotY));
+    const s = Math.abs(Math.sin(rotY));
+    const hw = (w * c + d * s) / 2;
+    const hd = (w * s + d * c) / 2;
+    obstacles.push({ minX: x - hw, maxX: x + hw, minZ: z - hd, maxZ: z + hd, height: y + h / 2 });
+  };
+  const addCone = (x, z, r, h, color, collide = true) => {
+    cones.push({ x, z, r, h, color });
+    if (collide) obstacles.push({ minX: x - r * 0.6, maxX: x + r * 0.6, minZ: z - r * 0.6, maxZ: z + r * 0.6, height: h });
+  };
+  const addDecal = (x, z, w, d, color, rotY = 0) => decals.push({ x, z, w, d, color, rotY });
+  const addTree = (x, z, h) => {
+    trees.push({ x, z, h });
+    obstacles.push({ minX: x - 0.3, maxX: x + 0.3, minZ: z - 0.3, maxZ: z + 0.3, height: h });
+  };
+  const right = () => (rnd() < 0.5 ? 0 : Math.PI / 2);
 
-  let seed = 1337;
-  const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-  for (let i = 0; i < 70; i++) {
-    const x = (rnd() * 2 - 1) * (S - 6);
-    const z = (rnd() * 2 - 1) * (S - 6);
-    if (Math.hypot(x, z) < 8) continue;
-    const kind = rnd();
-    if (kind < 0.5) {
-      const s = 1 + rnd() * 1.5;
-      addBox(x, z, s, s, s, 0x6b4a2b);
-    } else if (kind < 0.8) {
-      const len = 4 + rnd() * 8;
-      addBox(x, z, len, 1.5 + rnd() * 2.5, 0.6, 0x555560, rnd() < 0.5);
-    } else {
-      addBox(x, z, 4.2, 1.4, 2, [0x5a1f1f, 0x1f3a5a, 0x4a4a4a][Math.floor(rnd() * 3)]);
+  if (level.theme === "lab") {
+    addBox(0, -38, 26, 8, 12, 0x4a4a52); // корпус лаборатории
+    addBox(0, -31.9, 22, 1.2, 0.2, 0x335577, 0, false, 5); // окна
+    addBox(-8, -31, 4, 3, 2, 0x3a3a42);
+    for (let i = 0; i < 28; i++) { const [x, z] = spot(); const s = 1 + rnd() * 1.5; addBox(x, z, s, s, s, 0x6b4a2b); }
+    for (let i = 0; i < 12; i++) { const [x, z] = spot(); addBox(x, z, 4 + rnd() * 8, 1.5 + rnd() * 2.5, 0.6, 0x555560, right()); }
+    for (let i = 0; i < 7; i++) { const [x, z] = spot(); addBox(x, z, 4.2, 1.4, 2, [0x5a1f1f, 0x1f3a5a, 0x4a4a4a][i % 3], right()); }
+    for (let i = 0; i < 26; i++) { const [x, z] = spot(4); addTree(x, z, 4 + rnd() * 4); }
+    for (let i = 0; i < 8; i++) lamps.push(spot(10));
+  } else if (level.theme === "swamp") {
+    addBox(22, 24, 10, 5, 8, 0x5a3a2a); // насосная станция
+    addBox(22, 24, 2, 9, 2, 0x4a3022);
+    for (let i = 0; i < 18; i++) { const [x, z] = spot(); addDecal(x, z, 4 + rnd() * 7, 3 + rnd() * 6, 0x15200e, rnd() * Math.PI); }
+    for (let i = 0; i < 45; i++) { const [x, z] = spot(3); addTree(x, z, 5 + rnd() * 5); }
+    for (let i = 0; i < 14; i++) { const [x, z] = spot(); addBox(x, z, 5 + rnd() * 3, 0.7, 0.7, 0x3a2a1a, rnd() * Math.PI); }
+    for (let i = 0; i < 10; i++) { const [x, z] = spot(); const s = 1 + rnd(); addBox(x, z, s, s, s, 0x4a3a22); }
+    for (let i = 0; i < 30; i++) { const [x, z] = spot(); addCone(x, z, 0.25, 1.4 + rnd(), 0x4a5a2a, false); } // камыш
+    for (let i = 0; i < 6; i++) lamps.push(spot(10));
+  } else if (level.theme === "base") {
+    addDecal(0, 28, 14, 14, 0x3a3a3a); // вертолётная площадка
+    addDecal(0, 28, 1.2, 7, 0xbbaa33);
+    addDecal(-2.2, 28, 0.8, 7, 0xbbaa33);
+    addDecal(2.2, 28, 0.8, 7, 0xbbaa33);
+    const containerColors = [0x6a2a1a, 0x2a4a6a, 0x4a5a2a, 0x7a6a2a];
+    for (let i = 0; i < 16; i++) { const [x, z] = spot(); if (Math.hypot(x, z - 28) < 10) continue; addBox(x, z, 6, 2.6, 2.5, containerColors[i % 4], right()); }
+    for (let i = 0; i < 22; i++) { const [x, z] = spot(); addBox(x, z, 3, 1, 0.8, 0x8a7a5a, right()); } // мешки с песком
+    for (let i = 0; i < 6; i++) { const [x, z] = spot(); addCone(x, z, 3, 3, 0x4a5a3a); } // палатки
+    for (let i = 0; i < 4; i++) {
+      // Вышки
+      const [x, z] = spot(10);
+      for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) addBox(x + dx, z + dz, 0.3, 5, 0.3, 0x3a3020);
+      addBox(x, z, 3, 0.3, 3, 0x4a3a2a, 0, false, 5);
+      addBox(x, z, 3, 1, 0.2, 0x4a3a2a, 0, false, 5.6);
     }
+    for (let i = 0; i < 18; i++) { const [x, z] = spot(); const s = 1 + rnd(); addBox(x, z, s, s, s, 0x5a4a2b); }
+    for (let i = 0; i < 10; i++) { const [x, z] = spot(4); addTree(x, z, 4 + rnd() * 3); }
+    for (let i = 0; i < 10; i++) lamps.push(spot(10));
+  } else {
+    // Вулкан: скалы, обсидиановые шпили и трещины с лавой
+    for (let i = 0; i < 45; i++) { const [x, z] = spot(); const s = 1.5 + rnd() * 3; addBox(x, z, s, s * (0.6 + rnd()), s * (0.7 + rnd() * 0.6), [0x2a2a2a, 0x3a3330, 0x231f1d][i % 3], rnd() * Math.PI); }
+    for (let i = 0; i < 14; i++) { const [x, z] = spot(); addCone(x, z, 1.5 + rnd() * 1.5, 6 + rnd() * 8, 0x161212); }
+    for (let i = 0; i < 26; i++) {
+      const [x, z] = spot();
+      addDecal(x, z, 1, 5 + rnd() * 6, 0xff5511, rnd() * Math.PI);
+      glows.push([x, z]);
+    }
+    for (let i = 0; i < 8; i++) { const [x, z] = spot(4); addTree(x, z, 3 + rnd() * 3); }
   }
 
+  // Сборка в instanced-меши: несколько вызовов отрисовки на весь остров
   const m = new THREE.Matrix4();
   const q = new THREE.Quaternion();
+  const e = new THREE.Euler();
   const color = new THREE.Color();
-  const boxMesh = new THREE.InstancedMesh(BOX, new THREE.MeshLambertMaterial(), boxes.length);
-  boxes.forEach((b, i) => {
-    m.compose(new THREE.Vector3(b.x, b.y, b.z), q, new THREE.Vector3(b.w, b.h, b.d));
-    boxMesh.setMatrixAt(i, m);
-    boxMesh.setColorAt(i, color.setHex(b.color));
-  });
-  boxMesh.castShadow = boxMesh.receiveShadow = QUALITY.shadows;
-  scene.add(boxMesh);
-  obstacleMeshes.push(boxMesh);
-
-  // Мёртвые деревья
-  const trunks = [];
-  const branches = [];
-  for (let i = 0; i < 40; i++) {
-    const x = (rnd() * 2 - 1) * (S - 4);
-    const z = (rnd() * 2 - 1) * (S - 4);
-    if (Math.hypot(x, z) < 8) continue;
-    const h = 4 + rnd() * 4;
-    trunks.push({ x, z, h });
-    obstacles.push({ minX: x - 0.3, maxX: x + 0.3, minZ: z - 0.3, maxZ: z + 0.3, height: h });
-    for (let b = 0; b < 3; b++) {
-      const obj = new THREE.Object3D();
-      obj.position.set(x, h * (0.55 + b * 0.15), z);
-      obj.rotation.set(rnd() - 0.5 + 0.8, rnd() * Math.PI * 2, 0, "YXZ");
-      obj.translateY(0.8);
-      obj.updateMatrix();
-      branches.push(obj.matrix.clone());
-    }
+  const v = (x, y, z) => new THREE.Vector3(x, y, z);
+  if (boxes.length) {
+    const mesh = new THREE.InstancedMesh(BOX, new THREE.MeshLambertMaterial(), boxes.length);
+    boxes.forEach((b, i) => {
+      m.compose(v(b.x, b.y, b.z), q.setFromEuler(e.set(0, b.rotY, 0)), v(b.w, b.h, b.d));
+      mesh.setMatrixAt(i, m);
+      mesh.setColorAt(i, color.setHex(b.color));
+    });
+    mesh.castShadow = mesh.receiveShadow = QUALITY.shadows;
+    levelGroup.add(mesh);
+    obstacleMeshes.push(mesh);
   }
-  const trunkMat = lambert(0x2b1d14);
-  const trunkMesh = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.15, 0.35, 1, 6), trunkMat, trunks.length);
-  trunks.forEach((t, i) => {
-    m.compose(new THREE.Vector3(t.x, t.h / 2, t.z), q, new THREE.Vector3(1, t.h, 1));
-    trunkMesh.setMatrixAt(i, m);
-  });
-  trunkMesh.castShadow = QUALITY.shadows;
-  scene.add(trunkMesh);
-  obstacleMeshes.push(trunkMesh);
-  const branchMesh = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.05, 0.1, 1.8, 5), trunkMat, branches.length);
-  branches.forEach((mat, i) => branchMesh.setMatrixAt(i, mat));
-  scene.add(branchMesh);
+  if (cones.length) {
+    const mesh = new THREE.InstancedMesh(new THREE.ConeGeometry(1, 1, 8), new THREE.MeshLambertMaterial(), cones.length);
+    cones.forEach((c, i) => {
+      m.compose(v(c.x, c.h / 2, c.z), q.identity(), v(c.r, c.h, c.r));
+      mesh.setMatrixAt(i, m);
+      mesh.setColorAt(i, color.setHex(c.color));
+    });
+    mesh.castShadow = QUALITY.shadows;
+    levelGroup.add(mesh);
+    obstacleMeshes.push(mesh);
+  }
+  if (decals.length) {
+    const mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial(), decals.length);
+    decals.forEach((d, i) => {
+      m.compose(v(d.x, 0.02 + i * 0.0005, d.z), q.setFromEuler(e.set(0, d.rotY, 0)), v(d.w, 1, d.d));
+      mesh.setMatrixAt(i, m);
+      mesh.setColorAt(i, color.setHex(d.color));
+    });
+    levelGroup.add(mesh);
+  }
+  if (trees.length) {
+    const trunkMat = lambert(0x2b1d14);
+    const trunks = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.15, 0.35, 1, 6), trunkMat, trees.length);
+    const branches = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.05, 0.1, 1.8, 5), trunkMat, trees.length * 3);
+    const obj = new THREE.Object3D();
+    trees.forEach((t, i) => {
+      m.compose(v(t.x, t.h / 2, t.z), q.identity(), v(1, t.h, 1));
+      trunks.setMatrixAt(i, m);
+      for (let b = 0; b < 3; b++) {
+        obj.position.set(t.x, t.h * (0.55 + b * 0.15), t.z);
+        obj.rotation.set(rnd() - 0.5 + 0.8, rnd() * Math.PI * 2, 0, "YXZ");
+        obj.translateY(0.8);
+        obj.updateMatrix();
+        branches.setMatrixAt(i * 3 + b, obj.matrix);
+      }
+    });
+    trunks.castShadow = QUALITY.shadows;
+    levelGroup.add(trunks, branches);
+    obstacleMeshes.push(trunks);
+  }
+  // Фонари: светящиеся плафоны и «пятна света» на земле вместо дорогих источников света
+  const glowSpots = [...lamps.map(([x, z]) => [x, z, 14]), ...glows.map(([x, z]) => [x, z, 7])];
+  if (lamps.length) {
+    const poles = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.08, 0.08, 4, 6), lambert(0x222222), lamps.length);
+    const bulbs = new THREE.InstancedMesh(new THREE.SphereGeometry(0.22, 8, 6), new THREE.MeshBasicMaterial({ color: level.lamp }), lamps.length);
+    lamps.forEach(([x, z], i) => {
+      poles.setMatrixAt(i, m.makeTranslation(x, 2, z));
+      bulbs.setMatrixAt(i, m.makeTranslation(x, 4.1, z));
+      obstacles.push({ minX: x - 0.15, maxX: x + 0.15, minZ: z - 0.15, maxZ: z + 0.15, height: 4 });
+    });
+    levelGroup.add(poles, bulbs);
+  }
+  if (glowSpots.length) {
+    const pools = new THREE.InstancedMesh(
+      new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2),
+      new THREE.MeshBasicMaterial({ map: glowTex, color: level.lamp, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+      glowSpots.length
+    );
+    glowSpots.forEach(([x, z, s], i) => pools.setMatrixAt(i, m.compose(v(x, 0.03, z), q.identity(), v(s, 1, s))));
+    levelGroup.add(pools);
+  }
 
-  // Фонари: вместо дорогих источников света — светящиеся плафоны и «пятна света» на земле
-  const lamps = [[20, 20], [-25, 15], [10, -30], [-30, -30], [40, -10], [-5, 45], [55, 40], [-50, -5], [30, -55], [-45, 55]];
-  const poles = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.08, 0.08, 4, 6), lambert(0x222222), lamps.length);
-  const bulbs = new THREE.InstancedMesh(new THREE.SphereGeometry(0.22, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffcc88 }), lamps.length);
-  const glowTex = (() => {
-    const c = document.createElement("canvas");
-    c.width = c.height = 64;
-    const g = c.getContext("2d");
-    const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
-    grad.addColorStop(0, "rgba(255,170,90,0.55)");
-    grad.addColorStop(1, "rgba(255,170,90,0)");
-    g.fillStyle = grad;
-    g.fillRect(0, 0, 64, 64);
-    return new THREE.CanvasTexture(c);
-  })();
-  const pools = new THREE.InstancedMesh(
-    new THREE.PlaneGeometry(14, 14).rotateX(-Math.PI / 2),
-    new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }),
-    lamps.length
+  // Лодка для перехода на следующий остров: появляется, когда остров зачищен
+  boat = new THREE.Group();
+  const hull = new THREE.Mesh(BOX, lambert(0x5a3a20));
+  hull.scale.set(2.4, 0.8, 5.5);
+  hull.position.y = 0.2;
+  const cabin = new THREE.Mesh(BOX, lambert(0xdddddd));
+  cabin.scale.set(1.8, 1.2, 1.8);
+  cabin.position.set(0, 1.2, 0.8);
+  const beacon = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.7, 0.7, 60, 12, 1, true),
+    new THREE.MeshBasicMaterial({ color: 0xffdd44, transparent: true, opacity: 0.35, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide })
   );
-  lamps.forEach(([x, z], i) => {
-    m.makeTranslation(x, 2, z);
-    poles.setMatrixAt(i, m);
-    m.makeTranslation(x, 4.1, z);
-    bulbs.setMatrixAt(i, m);
-    m.makeTranslation(x, 0.02, z);
-    pools.setMatrixAt(i, m);
-  });
-  scene.add(poles, bulbs, pools);
+  beacon.position.y = 30;
+  boat.add(hull, cabin, beacon);
+  const a = Math.PI * 0.75;
+  boat.position.set(Math.cos(a) * (R + 2.5), 0, Math.sin(a) * (R + 2.5));
+  boat.rotation.y = -a + Math.PI / 2;
+  boat.visible = false;
+  levelGroup.add(boat);
+  // Причал от берега к лодке
+  for (let k = 0; k < 4; k++) {
+    const plank = new THREE.Mesh(BOX, lambert(0x4a3018));
+    const r = R - 4 + k * 1.6;
+    plank.scale.set(1.5, 0.15, 1.6);
+    plank.position.set(Math.cos(a) * r, 0.08, Math.sin(a) * r);
+    plank.rotation.y = -a + Math.PI / 2;
+    levelGroup.add(plank);
+  }
 }
-buildWorld();
+
+// Не даём уйти с острова в море
+function clampToIsland(pos, radius) {
+  const max = level.radius + 4 - radius;
+  const d = Math.hypot(pos.x, pos.z);
+  if (d > max) {
+    pos.x *= max / d;
+    pos.z *= max / d;
+  }
+}
 
 // Выталкивание круга из AABB-препятствий
 function resolveCollisions(pos, radius) {
@@ -1498,6 +1744,7 @@ function updateZombies(dt) {
       }
     }
     resolveCollisions(z.root.position, z.radius);
+    clampToIsland(z.root.position, z.radius);
 
     // Анимация
     const swing = Math.sin(z.walkPhase) * 0.6;
@@ -1822,6 +2069,7 @@ function updatePlayer(dt) {
     if (player.onGround) player.bob += dt * speed * 1.6;
   }
   resolveCollisions(player.pos, CONFIG.playerRadius);
+  clampToIsland(player.pos, CONFIG.playerRadius);
 
   // Прыжок и гравитация
   if ((keys.Space || touchJump) && player.onGround) {
@@ -1893,7 +2141,22 @@ const game = {
   inBreak: false,
   breakTime: 0,
   storyDone: false,
+  traveling: false, // остров зачищен, игрок идёт к лодке
 };
+
+// Открытые острова сохраняются в браузере, чтобы начинать с них из меню
+function loadUnlocked() {
+  try {
+    return Math.min(LEVELS.length - 1, Number(localStorage.getItem("zs-unlocked")) || 0);
+  } catch {
+    return 0;
+  }
+}
+function saveUnlocked(index) {
+  try {
+    if (index > loadUnlocked()) localStorage.setItem("zs-unlocked", String(index));
+  } catch {}
+}
 
 function showMessage(text, duration = 2000) {
   ui.message.textContent = text;
@@ -1934,14 +2197,14 @@ function pickZombieType() {
 }
 
 function spawnZombie(type = pickZombieType()) {
-  // Точка появления в 25–45 м от игрока
-  for (let attempt = 0; attempt < 30; attempt++) {
+  // Точка на острове в 20–50 м от игрока
+  for (let attempt = 0; attempt < 40; attempt++) {
     const angle = Math.random() * Math.PI * 2;
-    const r = 25 + Math.random() * 20;
-    const x = player.pos.x + Math.cos(angle) * r;
-    const z = player.pos.z + Math.sin(angle) * r;
-    const lim = CONFIG.mapSize - 3;
-    if (Math.abs(x) > lim || Math.abs(z) > lim) continue;
+    const r = Math.sqrt(Math.random()) * (level.radius - 3);
+    const x = Math.cos(angle) * r;
+    const z = Math.sin(angle) * r;
+    const dp = Math.hypot(x - player.pos.x, z - player.pos.z);
+    if (dp < 20 || dp > 50) continue;
     const pos = new THREE.Vector3(x, 0, z);
     const before = pos.clone();
     resolveCollisions(pos, ZOMBIE_TYPES[type].boss ? 1.2 : 0.6);
@@ -1964,16 +2227,67 @@ function onWaveCleared() {
   game.money += bonus;
   giveAmmo(0.2);
   showMessage(`ВОЛНА ${game.wave} ПРОЙДЕНА! +${bonus} $`, 2500);
-  // После босса главы — следующая часть истории
   if (game.wave === STORY.length * 5 && !game.storyDone) {
+    // Финал истории; дальше — бесконечный режим
     game.storyDone = true;
-    showStory(EPILOGUE, beginBreak);
-  } else if (game.wave % 5 === 0 && chapterOf(game.wave) && game.wave < STORY.length * 5) {
-    showStory(STORY[game.wave / 5], beginBreak);
+    showStory(EPILOGUE, startTravelObjective);
+  } else if (game.wave % 5 === 0) {
+    // Остров зачищен — пора плыть на следующий
+    startTravelObjective();
   } else {
     beginBreak();
   }
   updateHud();
+}
+
+// ---------- Переход между островами ----------
+function startTravelObjective() {
+  game.traveling = true;
+  boat.visible = true;
+  ui.travel.classList.remove("hidden");
+  showMessage("ОСТРОВ ЗАЧИЩЕН!", 3000);
+}
+
+function updateTravel() {
+  const dx = boat.position.x - player.pos.x;
+  const dz = boat.position.z - player.pos.z;
+  const dist = Math.hypot(dx, dz);
+  // Стрелка показывает, куда повернуть к лодке
+  const bearing = Math.atan2(-dx, -dz);
+  const rel = Math.atan2(Math.sin(bearing - player.yaw), Math.cos(bearing - player.yaw));
+  ui.travelArrow.style.transform = `rotate(${-rel}rad)`;
+  ui.travelText.textContent = `Лодка: ${Math.round(dist)} м`;
+  boat.children[2].material.opacity = 0.25 + Math.sin(performance.now() * 0.004) * 0.1;
+  if (dist < 4.5) sailToNextIsland();
+}
+
+function sailToNextIsland() {
+  game.traveling = false;
+  ui.travel.classList.add("hidden");
+  if (game.modal === "shop") closeModal();
+  game.modal = "travel";
+  releaseTouchInput();
+  ui.fade.classList.add("show");
+  sfx.boom();
+  setTimeout(() => {
+    const next = (levelIndex + 1) % LEVELS.length;
+    clearWorldEntities();
+    buildLevel(next);
+    saveUnlocked(next);
+    player.pos.set(0, 0, 0);
+    player.yaw = 0;
+    player.pitch = 0;
+    ui.fade.classList.remove("show");
+    game.modal = null;
+    const chapter = chapterOf(game.wave + 1);
+    if (chapter && !game.storyDone) {
+      showStory(STORY[chapter - 1], beginBreak);
+    } else {
+      showMessage(level.name.toUpperCase(), 3000);
+      beginBreak();
+    }
+    updateHud();
+  }, 900);
 }
 
 function beginBreak() {
@@ -2001,6 +2315,10 @@ function updateBreakTimer() {
 }
 
 function updateWaves(dt) {
+  if (game.traveling) {
+    updateTravel();
+    return;
+  }
   if (game.inBreak) {
     game.breakTime -= dt;
     updateBreakTimer();
@@ -2023,8 +2341,7 @@ function updateWaves(dt) {
 function updateHud() {
   const w = currentWeapon();
   const st = weaponState[player.weapon];
-  const chapter = chapterOf(game.wave);
-  ui.wave.textContent = chapter ? `Глава ${chapter} · Волна ${game.wave}` : `Волна ${game.wave}`;
+  ui.wave.textContent = `${level.name} · Волна ${game.wave}`;
   ui.score.textContent = `Очки: ${game.score}`;
   ui.money.textContent = `$ ${game.money}`;
   ui.zombiesLeft.textContent = `Зомби: ${aliveCount() + game.toSpawn}`;
@@ -2131,7 +2448,8 @@ ui.shopItems.addEventListener("click", (e) => {
 });
 
 function openShop() {
-  if (!game.inBreak || game.state !== "playing" || game.modal) return;
+  if (!(game.inBreak || game.traveling) || game.state !== "playing" || game.modal) return;
+  if (game.traveling) ui.shopTimer.textContent = "Лодка ждёт на берегу";
   renderShop();
   openModal("shop", ui.shop);
 }
@@ -2172,6 +2490,7 @@ ui.storyBtn.addEventListener("click", () => {
 
 $("btn-shop").addEventListener("click", openShop);
 $("btn-skip").addEventListener("click", skipBreak);
+$("btn-shop-travel").addEventListener("click", openShop);
 $("shop-close").addEventListener("click", closeModal);
 $("shop-skip").addEventListener("click", () => {
   closeModal();
@@ -2179,7 +2498,7 @@ $("shop-skip").addEventListener("click", () => {
 });
 
 // ---------- Управление состоянием ----------
-function resetGame() {
+function clearWorldEntities() {
   for (const z of zombies) scene.remove(z.root);
   zombies.length = 0;
   for (const p of pickups) scene.remove(p.group);
@@ -2187,6 +2506,12 @@ function resetGame() {
   for (const p of projectiles) scene.remove(p.mesh);
   projectiles.length = 0;
   clearParticles();
+}
+
+// island — с какого острова начать (0 — с самого начала истории)
+function resetGame(island = 0) {
+  clearWorldEntities();
+  buildLevel(island);
 
   Object.assign(player, {
     velY: 0, onGround: true, yaw: 0, pitch: 0, health: CONFIG.maxHealth, armor: 0,
@@ -2197,9 +2522,11 @@ function resetGame() {
   player.weapon = -1;
   player.pos.set(0, 0, 0);
   Object.assign(game, {
-    modal: null, wave: 0, score: 0, money: 0, kills: 0, toSpawn: 0, spawnTimer: 0, inBreak: false, breakTime: 0, storyDone: false,
+    modal: null, wave: island * 5, score: 0, money: island * 800, kills: 0, toSpawn: 0, spawnTimer: 0,
+    inBreak: false, breakTime: 0, storyDone: false, traveling: false,
   });
   ui.breakPanel.classList.add("hidden");
+  ui.travel.classList.add("hidden");
   ui.shop.classList.add("hidden");
   switchWeapon(0); // начинаем с пистолетом, остальное — в магазине
   player.switching = 0;
@@ -2238,34 +2565,66 @@ function gameOver() {
   document.exitPointerLock?.();
   const chapter = chapterOf(game.wave);
   ui.finalStats.innerHTML =
-    `${chapter ? `Глава ${chapter}: «${STORY[chapter - 1].title}»<br>` : "Бесконечный режим<br>"}` +
+    `${level.name}${chapter ? ` — глава ${chapter}: «${STORY[chapter - 1].title}»` : ", бесконечный режим"}<br>` +
     `Волна: <b>${game.wave}</b><br>Убито зомби: <b>${game.kills}</b><br>Очки: <b>${game.score}</b>`;
   ui.gameover.classList.remove("hidden");
   ui.hud.classList.add("hidden");
   ui.touch.classList.add("hidden");
   ui.shop.classList.add("hidden");
   ui.story.classList.add("hidden");
+  ui.travel.classList.add("hidden");
+  ui.breakPanel.classList.add("hidden");
   releaseTouchInput();
 }
 
-function startGame() {
+function startGame(island = 0) {
   initAudio();
   ui.menu.classList.add("hidden");
   ui.gameover.classList.add("hidden");
   ui.hud.classList.remove("hidden");
-  resetGame();
+  resetGame(island);
   game.state = "playing";
   gun.visible = true;
-  showStory(STORY[0], startWave);
+  // С первого острова — сразу в бой; с поздних — сначала перерыв, чтобы закупиться на стартовые деньги
+  showStory(STORY[island], island === 0 ? startWave : beginBreak);
 }
+
+function showMenu() {
+  game.state = "menu";
+  gun.visible = false;
+  ui.gameover.classList.add("hidden");
+  ui.hud.classList.add("hidden");
+  ui.menu.classList.remove("hidden");
+  clearWorldEntities();
+  buildLevel(0);
+  renderIslandSelect();
+}
+
+// Выбор острова в меню: открываются по мере прохождения
+function renderIslandSelect() {
+  const unlocked = loadUnlocked();
+  ui.islands.innerHTML = LEVELS.map(
+    (l, i) => `<button class="island-btn" data-i="${i}" ${i > unlocked ? "disabled" : ""}>
+      <span class="island-num">Остров ${i + 1}</span>
+      <span class="island-name">${l.name}</span>
+      <span class="island-note">${i > unlocked ? "закрыт" : i === 0 ? "начало истории" : `старт с $ ${i * 800}`}</span>
+    </button>`
+  ).join("");
+}
+ui.islands.addEventListener("click", (e) => {
+  const btn = e.target.closest(".island-btn");
+  if (btn && !btn.disabled) startGame(Number(btn.dataset.i));
+});
+
+$("start-btn").addEventListener("click", () => startGame(0));
+// «Заново» — с начала острова, на котором погиб игрок
+$("restart-btn").addEventListener("click", () => startGame(game.wave <= STORY.length * 5 ? levelIndex : 0));
+$("menu-btn").addEventListener("click", showMenu);
+$("resume-btn").addEventListener("click", lockPointer);
 
 renderer.domElement.addEventListener("click", () => {
   if (!isTouch && game.state === "playing" && !game.modal && !document.pointerLockElement) lockPointer();
 });
-
-$("start-btn").addEventListener("click", startGame);
-$("restart-btn").addEventListener("click", startGame);
-$("resume-btn").addEventListener("click", lockPointer);
 
 document.addEventListener("pointerlockchange", () => {
   const locked = document.pointerLockElement === renderer.domElement;
@@ -2398,7 +2757,7 @@ holdButton("btn-pause", pauseGame);
 document.addEventListener("touchstart", (e) => {
   if (game.state !== "playing") return;
   for (const t of e.changedTouches) {
-    if (t.target.closest?.(".touch-btn, #joystick, #weapon-bar, #break-panel")) continue;
+    if (t.target.closest?.(".touch-btn, #joystick, #weapon-bar, #break-panel, #travel-hint")) continue;
     if (lookTouchId === null) {
       lookTouchId = t.identifier;
       lookLast = { x: t.clientX, y: t.clientY };
@@ -2457,6 +2816,9 @@ function trackFps(dt) {
   }
 }
 
+buildLevel(0);
+renderIslandSelect();
+
 // ---------- Главный цикл ----------
 let lastTime = performance.now();
 let menuAngle = 0;
@@ -2468,7 +2830,8 @@ function loop(now) {
   const dt = Math.min(rawDt, 0.05);
   trackFps(rawDt);
 
-  if (game.state === "playing" && game.modal !== "story") {
+  if (water) water.position.y = -0.3 + Math.sin(now * 0.0012) * 0.06;
+  if (game.state === "playing" && game.modal !== "story" && game.modal !== "travel") {
     updatePlayer(dt);
     updateZombies(dt);
     updateProjectiles(dt);
