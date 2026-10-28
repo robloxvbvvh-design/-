@@ -2,11 +2,12 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Зомби-шутер 3D</title>
   <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+html, body { height: 100%; }
 body {
   overflow: hidden;
   background: #000;
@@ -183,7 +184,7 @@ body.touch .bar { height: 14px; width: min(200px, 40vw); }
 
 #joystick {
   position: absolute;
-  left: 24px; bottom: 24px;
+  left: calc(24px + env(safe-area-inset-left, 0px)); bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   width: 130px; height: 130px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.12);
@@ -211,10 +212,10 @@ body.touch .bar { height: 14px; width: min(200px, 40vw); }
 }
 .touch-btn.active { background: rgba(255, 80, 80, 0.5); }
 
-#btn-fire { right: 24px; bottom: 40px; width: 96px; height: 96px; font-size: 16px; background: rgba(200, 30, 30, 0.35); }
-#btn-jump { right: 136px; bottom: 24px; width: 62px; height: 62px; font-size: 26px; }
-#btn-reload { right: 40px; bottom: 150px; width: 62px; height: 62px; font-size: 22px; }
-#btn-pause { right: 16px; top: 84px; width: 44px; height: 44px; font-size: 14px; }
+#btn-fire { right: calc(24px + env(safe-area-inset-right, 0px)); bottom: calc(40px + env(safe-area-inset-bottom, 0px)); width: 96px; height: 96px; font-size: 16px; background: rgba(200, 30, 30, 0.35); }
+#btn-jump { right: calc(136px + env(safe-area-inset-right, 0px)); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); width: 62px; height: 62px; font-size: 26px; }
+#btn-reload { right: calc(40px + env(safe-area-inset-right, 0px)); bottom: calc(150px + env(safe-area-inset-bottom, 0px)); width: 62px; height: 62px; font-size: 22px; }
+#btn-pause { right: calc(16px + env(safe-area-inset-right, 0px)); top: calc(84px + env(safe-area-inset-top, 0px)); width: 44px; height: 44px; font-size: 14px; }
 </style>
 </head>
 <body>
@@ -1110,7 +1111,10 @@ function lockPointer() {
     document.documentElement.requestFullscreen?.().catch(() => {});
     return;
   }
-  renderer.domElement.requestPointerLock();
+  // Захват курсора может быть запрещён (например, во встроенном окне) — игра всё равно продолжится
+  try {
+    renderer.domElement.requestPointerLock()?.catch?.(() => {});
+  } catch {}
 }
 
 function pauseGame() {

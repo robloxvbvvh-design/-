@@ -825,7 +825,10 @@ function lockPointer() {
     document.documentElement.requestFullscreen?.().catch(() => {});
     return;
   }
-  renderer.domElement.requestPointerLock();
+  // Захват курсора может быть запрещён (например, во встроенном окне) — игра всё равно продолжится
+  try {
+    renderer.domElement.requestPointerLock()?.catch?.(() => {});
+  } catch {}
 }
 
 function pauseGame() {
