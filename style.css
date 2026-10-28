@@ -107,7 +107,9 @@ canvas { display: block; }
 
 .hud-top {
   position: absolute;
-  top: 16px; left: 16px; right: 16px;
+  top: calc(16px + env(safe-area-inset-top, 0px));
+  left: max(16px, env(safe-area-inset-left, 0px));
+  right: max(16px, env(safe-area-inset-right, 0px));
   display: flex;
   justify-content: space-between;
   font-size: 22px;
@@ -139,6 +141,8 @@ canvas { display: block; }
   transition: width 0.2s;
 }
 
+.ammo-wrap { text-align: right; }
+#weapon-name { font-size: 16px; color: #ffb3b3; text-shadow: 1px 1px 0 #000; }
 #ammo {
   font-size: 36px;
   font-weight: bold;
@@ -169,7 +173,7 @@ body.touch .desktop-only { display: none !important; }
 
 /* На телефоне здоровье и патроны — сверху, чтобы не мешали джойстику и кнопкам */
 body.touch .hud-top { font-size: 16px; }
-body.touch .hud-bottom { top: 46px; bottom: auto; align-items: center; }
+body.touch .hud-bottom { top: calc(46px + env(safe-area-inset-top, 0px)); bottom: auto; align-items: center; }
 body.touch #ammo { font-size: 22px; }
 body.touch .bar { height: 14px; width: min(200px, 40vw); }
 
@@ -209,3 +213,62 @@ body.touch .bar { height: 14px; width: min(200px, 40vw); }
 #btn-jump { right: calc(136px + env(safe-area-inset-right, 0px)); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); width: 62px; height: 62px; font-size: 26px; }
 #btn-reload { right: calc(40px + env(safe-area-inset-right, 0px)); bottom: calc(150px + env(safe-area-inset-bottom, 0px)); width: 62px; height: 62px; font-size: 22px; }
 #btn-pause { right: calc(16px + env(safe-area-inset-right, 0px)); top: calc(84px + env(safe-area-inset-top, 0px)); width: 44px; height: 44px; font-size: 14px; }
+
+/* ---------- Оружие, босс, FPS ---------- */
+#weapon-bar {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  max-width: calc(100% - 32px);
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  pointer-events: auto;
+  touch-action: pan-x;
+  scrollbar-width: none;
+}
+#weapon-bar::-webkit-scrollbar { display: none; }
+.weapon-chip {
+  flex: none;
+  font: bold 12px "Segoe UI", Arial, sans-serif;
+  color: #ddd;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  -webkit-tap-highlight-color: transparent;
+}
+.weapon-chip .key { color: #ff8080; margin-right: 4px; }
+.weapon-chip.active { background: rgba(170, 0, 0, 0.75); border-color: #ff5050; color: #fff; }
+
+body.touch #weapon-bar {
+  left: calc(170px + env(safe-area-inset-left, 0px));
+  right: calc(210px + env(safe-area-inset-right, 0px));
+  bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  transform: none;
+  max-width: none;
+}
+body.touch #weapon-name { font-size: 12px; }
+body.touch .weapon-chip { padding: 8px 8px; }
+
+#boss-wrap {
+  position: absolute;
+  top: calc(84px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  width: min(420px, 60vw);
+}
+#boss-name { font-weight: bold; color: #ff5050; text-shadow: 2px 2px 0 #000; letter-spacing: 2px; }
+.boss-bar { height: 12px; border: 2px solid #fff; background: rgba(0, 0, 0, 0.6); border-radius: 3px; overflow: hidden; }
+#boss-bar { height: 100%; width: 100%; background: linear-gradient(90deg, #600, #e22); }
+
+#fps {
+  position: absolute;
+  top: calc(2px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  opacity: 0.6;
+}

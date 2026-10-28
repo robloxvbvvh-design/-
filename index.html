@@ -11,6 +11,11 @@
     <div id="crosshair"></div>
     <div id="hit-marker"></div>
     <div id="damage-overlay"></div>
+    <div id="fps"></div>
+    <div id="boss-wrap" class="hidden">
+      <div id="boss-name">БОСС</div>
+      <div class="boss-bar"><div id="boss-bar"></div></div>
+    </div>
     <div class="hud-top">
       <div id="wave">Волна 1</div>
       <div id="score">Очки: 0</div>
@@ -21,9 +26,13 @@
         <div class="label">ЗДОРОВЬЕ</div>
         <div class="bar"><div id="health-bar"></div></div>
       </div>
-      <div id="ammo">30 / 90</div>
+      <div class="ammo-wrap">
+        <div id="weapon-name">Пистолет</div>
+        <div id="ammo">12 / ∞</div>
+      </div>
     </div>
     <div id="message"></div>
+    <div id="weapon-bar"></div>
   </div>
 
   <div id="touch-controls" class="hidden">
@@ -45,6 +54,7 @@
       <div><b>R</b> — перезарядка</div>
       <div><b>⤒</b> — прыжок</div>
       <div><b>❚❚</b> — пауза</div>
+      <div><b>Панель внизу</b> — выбор оружия</div>
     </div>
     <div class="controls desktop-only">
       <div><b>WASD</b> — движение</div>
@@ -54,6 +64,7 @@
       <div><b>Shift</b> — бег</div>
       <div><b>Пробел</b> — прыжок</div>
       <div><b>Esc</b> — пауза</div>
+      <div><b>1–0, -, =</b> / <b>колесо</b> — оружие</div>
     </div>
   </div>
 
