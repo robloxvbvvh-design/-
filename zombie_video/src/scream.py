@@ -2,7 +2,7 @@ import sys, numpy as np, soundfile as sf
 sr = 44100
 voice, vsr = sf.read(sys.argv[1], dtype="float32")
 assert vsr == sr
-start, dur, total = 34.7, 2.6, 38.6
+start, dur, total = (float(sys.argv[3]), 2.6, float(sys.argv[4])) if len(sys.argv) > 4 else (34.7, 2.6, 38.6)
 t = np.arange(int(dur * sr)) / sr
 f0 = 520 + 260 * np.minimum(t / 0.4, 1) - 120 * np.maximum(t - 1.6, 0) + 25 * np.sin(2 * np.pi * 6.5 * t)
 ph = 2 * np.pi * np.cumsum(f0) / sr
