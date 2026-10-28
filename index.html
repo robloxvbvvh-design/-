@@ -1,0 +1,513 @@
+<title>Дядя Олег против монстра</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one cartoon stage with a narrator subtitle bar and play controls underneath. Single dark look. */
+:root {
+  --bg: #15121c;
+  --stage: #221d2c;
+  --fg: #f3ece0;
+  --muted: #a99fb8;
+  --accent: #ffcf3a;
+  --danger: #ff4a3d;
+  --display: "Russo One", "Arial Black", Impact, sans-serif;
+  --body: "PT Sans", "Segoe UI", Roboto, sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--body);
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  padding-block: 20px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  box-sizing: border-box;
+}
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(20px, 4vw, 32px); margin: 0; text-wrap: balance; text-align: center; letter-spacing: .02em; }
+h1 span { color: var(--accent); }
+.wrap { width: 100%; max-width: 960px; display: flex; flex-direction: column; gap: 10px; }
+.stage { position: relative; width: 100%; max-width: 100%; aspect-ratio: 16 / 9; background: var(--stage); border-radius: 6px; overflow: hidden; }
+canvas { display: block; width: 100%; height: 100%; }
+.sub {
+  min-height: 3.2em; font-size: clamp(15px, 2.4vw, 20px); line-height: 1.4;
+  display: flex; align-items: center; gap: 10px;
+}
+.sub b { font-family: var(--display); font-weight: 400; color: var(--accent); font-size: .8em; letter-spacing: .08em; text-transform: uppercase; flex: none; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+button {
+  font: inherit; font-family: var(--display); font-size: 15px; letter-spacing: .04em;
+  background: var(--accent); color: var(--bg); border: 0; border-radius: 4px; padding: 10px 18px; cursor: pointer;
+}
+button.ghost { background: transparent; color: var(--fg); outline: 1px solid var(--muted); }
+button:focus-visible { outline: 3px solid var(--fg); outline-offset: 2px; }
+.note { color: var(--muted); font-size: 13px; }
+.overlay {
+  position: absolute; inset: 0; display: flex; flex-direction: column; gap: 14px; align-items: center; justify-content: center;
+  background: rgba(21, 18, 28, .72); text-align: center; padding: 16px;
+}
+.overlay[hidden] { display: none; }
+.overlay p { margin: 0; color: var(--muted); max-width: 40ch; }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&family=Russo+One&display=swap">
+
+<h1>Три реакции на <span>опасность</span></h1>
+<div class="wrap">
+  <div class="stage">
+    <canvas id="cv" width="960" height="540"></canvas>
+    <div class="overlay" id="overlay">
+      <button id="start">▶ Смотреть со звуком</button>
+      <p>Диктор озвучивает каждую сцену голосом браузера. Включите звук.</p>
+    </div>
+  </div>
+  <div class="sub" id="sub"><b>Диктор</b><span id="subText">Нажмите «Смотреть», чтобы начать.</span></div>
+  <div class="controls">
+    <button class="ghost" id="restart">↺ Сначала</button>
+    <button class="ghost" id="mute">🔊 Звук вкл</button>
+    <span class="note" id="voiceNote"></span>
+  </div>
+</div>
+
+<script>
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+const W = 960, H = 540, GROUND = 430;
+const subText = document.getElementById('subText');
+const voiceNote = document.getElementById('voiceNote');
+
+/* ---------- speech ---------- */
+let muted = false, voice = null;
+const synth = window.speechSynthesis;
+function pickVoice() {
+  if (!synth) return;
+  const vs = synth.getVoices();
+  voice = vs.find(v => /^ru/i.test(v.lang) && /google|male|dmitr|pavel|yuri/i.test(v.name)) || vs.find(v => /^ru/i.test(v.lang)) || null;
+  voiceNote.textContent = voice ? 'Голос: ' + voice.name : (vs.length ? 'Русский голос не найден, читаю тем, что есть' : '');
+}
+if (synth) { pickVoice(); synth.onvoiceschanged = pickVoice; }
+else voiceNote.textContent = 'Браузер не умеет озвучивать текст: смотрите с субтитрами.';
+
+function speak(text, onEnd) {
+  if (!synth || muted) { onEnd(); return; }
+  synth.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'ru-RU'; if (voice) u.voice = voice;
+  u.rate = 1.0; u.pitch = 0.85;
+  u.onend = onEnd; u.onerror = onEnd;
+  synth.speak(u);
+}
+
+/* ---------- drawing helpers ---------- */
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const ease = p => p < 0 ? 0 : p > 1 ? 1 : 1 - Math.pow(1 - p, 3);
+
+function sky(top, bottom) {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, top); g.addColorStop(1, bottom);
+  ctx.fillStyle = g; ctx.fillRect(-50, -50, W + 100, H + 100);
+}
+function ground(color, offset = 0) {
+  ctx.fillStyle = color; ctx.fillRect(-50, GROUND, W + 100, H);
+  ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 4;
+  for (let x = -((offset % 80) + 80); x < W + 80; x += 80) {
+    ctx.beginPath(); ctx.moveTo(x, GROUND + 30); ctx.lineTo(x + 40, GROUND + 30); ctx.stroke();
+  }
+}
+function caption(text, color = '#ffcf3a', y = 70, size = 44) {
+  ctx.save();
+  ctx.font = `${size}px "Russo One", "Arial Black", sans-serif`;
+  ctx.textAlign = 'center'; ctx.lineWidth = 8; ctx.strokeStyle = '#15121c';
+  ctx.strokeText(text, W / 2, y); ctx.fillStyle = color; ctx.fillText(text, W / 2, y);
+  ctx.restore();
+}
+function label(text, x, y, color = '#fff', size = 26) {
+  ctx.save();
+  ctx.font = `${size}px "Russo One", "Arial Black", sans-serif`;
+  ctx.textAlign = 'center'; ctx.lineWidth = 6; ctx.strokeStyle = '#15121c';
+  ctx.strokeText(text, x, y); ctx.fillStyle = color; ctx.fillText(text, x, y);
+  ctx.restore();
+}
+function circle(x, y, r, fill) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = fill; ctx.fill(); }
+function line(x1, y1, x2, y2) { ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
+
+// stick person. pose: run | stand | lie | hold
+function person(x, y, o = {}) {
+  ctx.save(); ctx.translate(x, y);
+  if (o.rot) ctx.rotate(o.rot);
+  ctx.strokeStyle = '#f3ece0'; ctx.lineWidth = 7; ctx.lineCap = 'round';
+  const ph = o.phase || 0, run = o.pose === 'run';
+  const sw = run ? Math.sin(ph) * 0.9 : 0;
+  // legs
+  line(0, -50, Math.sin(sw) * 34, -50 + Math.cos(sw) * 50);
+  line(0, -50, Math.sin(-sw) * 34, -50 + Math.cos(-sw) * 50);
+  // body
+  line(0, -50, run ? 8 : 0, -110);
+  // arms
+  const bx = run ? 8 : 0;
+  if (o.pose === 'hold') { line(bx, -100, 34, -120); line(bx, -100, -26, -70); }
+  else { line(bx, -100, bx + Math.sin(-sw) * 36, -100 + 34); line(bx, -100, bx + Math.sin(sw) * 36, -100 + 34); }
+  // head
+  circle(bx + (run ? 4 : 0), -130, 20, '#f3ece0');
+  ctx.fillStyle = '#15121c';
+  if (o.dead) { ctx.lineWidth = 3; ctx.strokeStyle = '#15121c'; for (const ex of [-7, 7]) { line(bx + ex - 4, -134, bx + ex + 4, -126); line(bx + ex + 4, -134, bx + ex - 4, -126); } }
+  else { circle(bx + 10, -134, 3, '#15121c'); if (run) { ctx.beginPath(); ctx.arc(bx + 10, -120, 6, 0, Math.PI); ctx.fill(); } }
+  ctx.restore();
+}
+
+// monster. look: -1..1 eye direction; headOff: {x,y,r} detached head
+function monster(x, y, s = 1, o = {}) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  const bob = o.bob || 0;
+  ctx.fillStyle = o.color || '#4fb35a';
+  // legs
+  ctx.fillRect(-45, -40, 30, 40); ctx.fillRect(15, -40, 30, 40);
+  // body
+  ctx.beginPath(); ctx.ellipse(0, -100 + bob, 75, 70, 0, 0, Math.PI * 2); ctx.fill();
+  // arms
+  ctx.lineWidth = 18; ctx.lineCap = 'round'; ctx.strokeStyle = o.color || '#4fb35a';
+  const a = o.armUp ? -60 : 0;
+  line(-65, -110 + bob, -110, -70 + a + bob); line(65, -110 + bob, 110, -70 + a + bob);
+  ctx.restore();
+  if (!o.headless) monsterHead(x, y + (-180 + bob) * s, s, o.look || 0, o.color);
+  else {
+    // stump
+    ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+    ctx.fillStyle = '#2e7a36'; ctx.beginPath(); ctx.ellipse(0, -165 + bob, 34, 10, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+}
+function monsterHead(x, y, s = 1, look = 0, color = '#4fb35a', rot = 0) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.rotate(rot);
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.ellipse(0, 0, 50, 42, 0, 0, Math.PI * 2); ctx.fill();
+  // horns
+  ctx.fillStyle = '#e8dcc0';
+  ctx.beginPath(); ctx.moveTo(-36, -24); ctx.lineTo(-50, -66); ctx.lineTo(-18, -34); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(36, -24); ctx.lineTo(50, -66); ctx.lineTo(18, -34); ctx.fill();
+  // eyes
+  for (const ex of [-18, 18]) { circle(ex, -8, 13, '#fff'); circle(ex + look * 6, -8, 6, '#15121c'); }
+  // mouth
+  ctx.fillStyle = '#15121c'; ctx.beginPath(); ctx.ellipse(0, 20, 26, 11, 0, 0, Math.PI); ctx.fill();
+  ctx.fillStyle = '#fff';
+  for (let i = -20; i <= 14; i += 11) { ctx.beginPath(); ctx.moveTo(i, 20); ctx.lineTo(i + 6, 29); ctx.lineTo(i + 11, 20); ctx.fill(); }
+  ctx.restore();
+}
+
+function bottle(x, y, s = 1, rot = 0) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.rotate(rot);
+  ctx.fillStyle = 'rgba(210,235,255,.85)';
+  ctx.fillRect(-11, -40, 22, 44); ctx.fillRect(-5, -60, 10, 22);
+  ctx.fillStyle = '#d33'; ctx.fillRect(-6, -66, 12, 8);
+  ctx.fillStyle = '#fff'; ctx.fillRect(-11, -26, 22, 16);
+  ctx.fillStyle = '#c22'; ctx.font = 'bold 8px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('ВОДКА', 0, -15);
+  ctx.restore();
+}
+
+// uncle Oleg. m = muscle factor (1..3), eyes: 'laser' adds beams handled outside
+function oleg(x, y, s = 1, o = {}) {
+  const m = o.m || 1;
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  const coat = '#6b5a45', skin = '#e9b98f';
+  // legs
+  ctx.fillStyle = '#3d3a46'; ctx.fillRect(-28 * m * .7, -70, 22 * m * .7, 70); ctx.fillRect(6 * m * .7, -70, 22 * m * .7, 70);
+  // torso
+  ctx.fillStyle = m > 1.4 ? skin : coat;
+  ctx.beginPath(); ctx.moveTo(-34 * m, -170); ctx.lineTo(34 * m, -170); ctx.lineTo(24 * m * .8, -70); ctx.lineTo(-24 * m * .8, -70); ctx.closePath(); ctx.fill();
+  if (m > 1.4) { // abs + torn coat bits
+    ctx.strokeStyle = 'rgba(120,60,30,.5)'; ctx.lineWidth = 3;
+    line(0, -160, 0, -80); for (let yy = -140; yy < -80; yy += 20) line(-14 * m * .6, yy, 14 * m * .6, yy);
+    ctx.fillStyle = coat; ctx.fillRect(-36 * m, -175, 14, 40); ctx.fillRect(36 * m - 14, -175, 14, 40);
+  }
+  // arms with biceps
+  const punch = o.punch || 0; // 0..1 right arm extension
+  ctx.fillStyle = m > 1.4 ? skin : coat;
+  circle(-44 * m, -140, 16 * m, ctx.fillStyle);
+  circle(-50 * m, -100, 13 * m, ctx.fillStyle);
+  circle(-50 * m, -70, 10 * Math.sqrt(m), skin);
+  if (o.flex) { circle(44 * m, -160, 16 * m, ctx.fillStyle); circle(52 * m, -195, 11 * m, ctx.fillStyle); circle(48 * m, -220, 10 * Math.sqrt(m), skin); }
+  else {
+    circle(44 * m + punch * 40, -140, 16 * m, ctx.fillStyle);
+    circle(50 * m + punch * 90, -130 + punch * 10, 13 * m, ctx.fillStyle);
+    circle(50 * m + punch * 140, -110 - punch * 10 + (punch ? 0 : 40), 11 * Math.sqrt(m), skin);
+    if (o.bottle) bottle(50 * m + 4, -80, 0.8, 0);
+  }
+  // head
+  circle(0, -200, 30, skin);
+  // beard
+  ctx.fillStyle = '#9a9188'; ctx.beginPath(); ctx.ellipse(0, -182, 30, 24, 0, 0, Math.PI); ctx.fill();
+  // red nose
+  circle(0, -198, 7, '#d65a4a');
+  // eyes
+  if (o.laser) { circle(-11, -210, 6, '#ff3020'); circle(11, -210, 6, '#ff3020'); }
+  else { circle(-11, -210, 4, '#15121c'); circle(11, -210, 4, '#15121c'); }
+  // eyebrows angry if m > 1.4
+  ctx.strokeStyle = '#3a2e28'; ctx.lineWidth = 4;
+  if (m > 1.4) { line(-20, -224, -4, -217); line(20, -224, 4, -217); }
+  // hat (ushanka)
+  ctx.fillStyle = '#4b3b2e'; ctx.beginPath(); ctx.ellipse(0, -228, 34, 16, 0, Math.PI, 0); ctx.fill();
+  ctx.fillRect(-34, -232, 68, 10);
+  ctx.fillRect(-38, -225, 10, 26); ctx.fillRect(28, -225, 10, 26);
+  ctx.restore();
+}
+// eye positions in world coords
+const olegEyes = (x, y, s) => [[x - 11 * s, y - 210 * s], [x + 11 * s, y - 210 * s]];
+
+function boom(x, y, r, t) {
+  // t 0..1
+  if (t < 0 || t > 1) return;
+  const rr = r * ease(t);
+  ctx.save(); ctx.globalAlpha = 1 - t;
+  circle(x, y, rr, '#ff7a1a'); circle(x, y, rr * .65, '#ffcf3a'); circle(x, y, rr * .3, '#fff');
+  ctx.restore();
+}
+function stars(n, seed, color = '#fff') {
+  let s = seed;
+  const r = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+  ctx.fillStyle = color;
+  for (let i = 0; i < n; i++) ctx.fillRect(r() * W, r() * H, r() * 2.5 + .5, r() * 2.5 + .5);
+}
+function building(x, w, h, color, sink = 0, tilt = 0) {
+  ctx.save(); ctx.translate(x + w / 2, GROUND + sink); ctx.rotate(tilt);
+  ctx.fillStyle = color; ctx.fillRect(-w / 2, -h, w, h);
+  ctx.fillStyle = '#ffd96a';
+  for (let yy = -h + 14; yy < -14; yy += 28) for (let xx = -w / 2 + 10; xx < w / 2 - 14; xx += 22) ctx.fillRect(xx, yy, 10, 14);
+  ctx.restore();
+}
+function devil(x, y, s = 1, rot = 0) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.rotate(rot);
+  ctx.fillStyle = '#c4161c';
+  ctx.fillRect(-26, -60, 18, 60); ctx.fillRect(8, -60, 18, 60);
+  ctx.beginPath(); ctx.ellipse(0, -110, 44, 58, 0, 0, Math.PI * 2); ctx.fill();
+  circle(0, -190, 34, '#c4161c');
+  // horns
+  ctx.fillStyle = '#222';
+  ctx.beginPath(); ctx.moveTo(-26, -212); ctx.quadraticCurveTo(-46, -250, -20, -262); ctx.lineTo(-14, -218); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(26, -212); ctx.quadraticCurveTo(46, -250, 20, -262); ctx.lineTo(14, -218); ctx.fill();
+  // face
+  circle(-12, -196, 6, '#ffcf3a'); circle(12, -196, 6, '#ffcf3a');
+  ctx.strokeStyle = '#15121c'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, -180, 14, 0.2, Math.PI - 0.2); ctx.stroke();
+  // tail
+  ctx.strokeStyle = '#c4161c'; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(-30, -80); ctx.quadraticCurveTo(-100, -40, -80, -130); ctx.stroke();
+  ctx.fillStyle = '#c4161c'; ctx.beginPath(); ctx.moveTo(-80, -130); ctx.lineTo(-92, -112); ctx.lineTo(-68, -116); ctx.fill();
+  // trident
+  ctx.strokeStyle = '#ddd'; ctx.lineWidth = 6; line(50, -40, 50, -230);
+  line(32, -230, 68, -230); line(32, -230, 32, -255); line(50, -230, 50, -265); line(68, -230, 68, -255);
+  ctx.strokeStyle = '#c4161c'; ctx.lineWidth = 14; line(36, -120, 50, -140);
+  ctx.restore();
+}
+function flames(t) {
+  for (let i = 0; i < 24; i++) {
+    const x = i * 42, h = 60 + Math.sin(t * 8 + i * 1.7) * 25 + (i % 3) * 18;
+    ctx.fillStyle = i % 2 ? '#ff7a1a' : '#ffcf3a';
+    ctx.beginPath(); ctx.moveTo(x - 24, H); ctx.quadraticCurveTo(x, H - h * 2, x + 24, H); ctx.fill();
+  }
+}
+
+/* ---------- scenes ---------- */
+// each: tag (sub label), say (narration), dur (min seconds), draw(t)
+const scenes = [
+  { tag: 'Вступление', say: 'Есть три реакции на опасность.', dur: 3.5, draw(t) {
+    sky('#2b2340', '#4a3a5e'); ground('#2f2a3a');
+    caption('ТРИ РЕАКЦИИ', '#ffcf3a', 200, 64);
+    caption('НА ОПАСНОСТЬ', '#ff4a3d', 280, 64);
+    monster(820, GROUND, 0.7, { bob: Math.sin(t * 4) * 5, look: -1 });
+    person(140, GROUND, { pose: 'stand' });
+  }},
+  { tag: 'Реакция 1', say: 'Первая — бежать! Человек со всех ног удирает от монстра.', dur: 5, draw(t) {
+    sky('#7fb6e6', '#cfe6f5'); ground('#5c8f3e', t * 500);
+    // clouds moving
+    ctx.fillStyle = 'rgba(255,255,255,.8)';
+    for (let i = 0; i < 4; i++) { const cx = ((i * 300 - t * 120) % 1200 + 1200) % 1200 - 120; circle(cx, 90 + i * 12, 30, ctx.fillStyle); circle(cx + 30, 80 + i * 12, 38, ctx.fillStyle); circle(cx + 65, 92 + i * 12, 28, ctx.fillStyle); }
+    caption('1. БЕЖАТЬ');
+    const gap = 330 + Math.sin(t * 1.5) * 40;
+    person(620 + Math.sin(t * 3) * 20, GROUND, { pose: 'run', phase: t * 16 });
+    monster(620 - gap, GROUND, 0.9, { bob: Math.abs(Math.sin(t * 8)) * -12, look: 1, armUp: true });
+    // sweat drops
+    ctx.fillStyle = '#9fd3ff'; circle(600 - (t * 200 % 60), GROUND - 150 + (t * 200 % 60) / 2, 5, '#9fd3ff');
+    label('А-А-А-А!', 680, GROUND - 180, '#fff', 22);
+  }},
+  { tag: 'Реакция 2', say: 'Вторая — притвориться мёртвым. Человек падает. А монстр оглядывается: куда он делся?', dur: 6.5, draw(t) {
+    sky('#3c4f6b', '#8297b3'); ground('#4a6a3a');
+    caption('2. ПРИТВОРИТЬСЯ МЁРТВЫМ');
+    const fall = ease((t - 0.4) / 0.6);
+    person(560, GROUND - fall * 10, { pose: 'stand', rot: fall * Math.PI / 2, dead: fall > 0.5 });
+    const mx = 120 + ease((t - 1) / 2) * 220;
+    const look = t > 3 ? Math.sin((t - 3) * 3) : 1;
+    monster(mx, GROUND, 0.9, { bob: t < 3 ? Math.abs(Math.sin(t * 6)) * -8 : 0, look });
+    if (t > 3.2) label('?', mx + (look > 0 ? 70 : -70), GROUND - 260, '#ffcf3a', 60);
+    if (fall >= 1 && t > 1.2) label('Z z z', 620, GROUND - 60 - (t * 10 % 20), '#cfe6f5', 20);
+  }},
+  { tag: 'Реакция 3', say: 'Третья — человек берёт водку. И сверху появляется дядя бомж Олег!', dur: 6.5, draw(t) {
+    sky('#3a2a20', '#7a5a3a'); ground('#4b3b2e');
+    caption('3. ВЗЯТЬ ВОДКУ');
+    // trash bins backdrop
+    ctx.fillStyle = '#566'; ctx.fillRect(760, GROUND - 90, 70, 90); ctx.fillRect(840, GROUND - 70, 60, 70);
+    const pick = ease((t - 0.8) / 0.8);
+    person(260, GROUND, { pose: pick > 0.5 ? 'hold' : 'stand' });
+    bottle(260 + 60 - pick * 26, GROUND - pick * 120, 1, -pick * 0.6);
+    monster(860, GROUND, 0.6, { look: -1 });
+    // Oleg descending
+    const d = ease((t - 2.2) / 1.6);
+    if (t > 2.2) {
+      ctx.save(); ctx.globalAlpha = 0.35 + 0.15 * Math.sin(t * 6);
+      const g = ctx.createRadialGradient(520, 260, 10, 520, 260, 260);
+      g.addColorStop(0, '#fff6c0'); g.addColorStop(1, 'rgba(255,246,192,0)');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.restore();
+      oleg(520, -120 + d * (GROUND + 120), 1, { bottle: true });
+      label('ДЯДЯ БОМЖ ОЛЕГ', 520, 130, '#ffcf3a', 34);
+    }
+  }},
+  { tag: 'Мускулы', say: 'Олег делает глоток… и начинает раздуваться! Мускулы! Всё вокруг трясётся!', dur: 6, shake: t => clamp(t - 1, 0, 4) * 4, draw(t) {
+    sky('#4a1f2a', '#8a3a3a'); ground('#3a2a2a');
+    const m = 1 + ease((t - 1) / 3.5) * 1.3;
+    oleg(480, GROUND, 1, { m, flex: t > 1.5, bottle: t <= 1.5 });
+    if (t > 1.5 && Math.floor(t * 4) % 2) caption('МУСКУЛЫ!', '#ffcf3a', 80, 60);
+    // shock lines
+    ctx.strokeStyle = 'rgba(255,207,58,.7)'; ctx.lineWidth = 4;
+    if (t > 1.5) for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2 + t; line(480 + Math.cos(a) * 200, 260 + Math.sin(a) * 160, 480 + Math.cos(a) * 250, 260 + Math.sin(a) * 200); }
+  }},
+  { tag: 'Бой', say: 'Олег разносит этого монстра и отрывает ему голову!', dur: 6, shake: t => (t > 1 && t < 1.4) || (t > 2.5 && t < 3.2) ? 14 : 0, draw(t) {
+    sky('#2a2f4a', '#5a5f8a'); ground('#3a3f4a');
+    caption('ВЖУХ!', '#ff4a3d');
+    const p1 = t > 0.6 && t < 1.4 ? Math.sin((t - 0.6) / 0.8 * Math.PI) : 0;
+    const p2 = t > 2.1 && t < 2.9 ? Math.sin((t - 2.1) / 0.8 * Math.PI) : 0;
+    oleg(300, GROUND, 1, { m: 2.3, punch: Math.max(p1, p2) });
+    const hit = t > 1 ? 30 : 0;
+    const headOff = t > 2.6;
+    monster(640 + hit, GROUND, 1, { look: -1, headless: headOff, bob: t > 1 && t < 1.4 ? -10 : 0 });
+    boom(560, 280, 90, (t - 1) / 0.5);
+    if (headOff) {
+      const ht = t - 2.6;
+      monsterHead(670 + ht * 260, GROUND - 180 - ht * 420 + ht * ht * 260, 1, 0, '#4fb35a', ht * 9);
+      label('БАЦ!', 640, 170, '#ffcf3a', 56);
+    }
+  }},
+  { tag: 'Первое', say: 'Первое. Олег уничтожает город.', dur: 5, shake: t => t > 0.8 ? 8 : 0, draw(t) {
+    sky('#ff8a3a', '#5a2a1a'); ground('#3a2a22');
+    caption('1. УНИЧТОЖАЕТ ГОРОД');
+    const bs = [[40, 90, 220, '#5a6a8a'], [150, 80, 300, '#6a5a7a'], [250, 100, 180, '#4a5a6a'], [600, 90, 260, '#6a5a7a'], [710, 110, 320, '#5a6a8a'], [840, 90, 200, '#4a5a6a']];
+    bs.forEach(([x, w, h, c], i) => {
+      const k = clamp((t - 1 - i * 0.35) / 1, 0, 1);
+      building(x, w, h, c, k * h * 0.9, (i % 2 ? 1 : -1) * k * 0.4);
+      if (k > 0 && k < 1) boom(x + w / 2, GROUND - h * (1 - k), 80, k);
+    });
+    const step = Math.abs(Math.sin(t * 3));
+    oleg(480, GROUND, 1.5, { m: 2.3, punch: step > .7 ? step : 0 });
+  }},
+  { tag: 'Второе', say: 'Второе. Он стреляет лазером из глаз!', dur: 5, shake: t => t > 0.8 ? 6 : 0, draw(t) {
+    sky('#1a1020', '#3a1a2a'); ground('#2a1a1a');
+    caption('2. ЛАЗЕР ИЗ ГЛАЗ', '#ff4a3d');
+    const ox = 220, oy = GROUND, s = 1.3;
+    oleg(ox, oy, s, { m: 2.3, laser: t > 0.7, flex: true });
+    if (t > 0.8) {
+      const tx = 400 + ((t - 0.8) * 260) % 560, ty = GROUND;
+      ctx.save(); ctx.lineCap = 'round';
+      for (const [ex, ey] of olegEyes(ox, oy, s)) {
+        ctx.strokeStyle = 'rgba(255,40,30,.5)'; ctx.lineWidth = 18; line(ex, ey, tx, ty);
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 4; line(ex, ey, tx, ty);
+      }
+      ctx.restore();
+      boom(tx, ty, 70 + rand(0, 15), 0.3);
+      // scorched marks
+      ctx.fillStyle = '#111';
+      for (let x = 400; x < tx; x += 30) ctx.fillRect(x, GROUND, 18, 6);
+    }
+  }},
+  { tag: 'Третье', say: 'Третье. Он уничтожает всех монстров!', dur: 5.5, shake: t => t > 0.8 ? 5 : 0, draw(t) {
+    sky('#203a2a', '#4a7a5a'); ground('#2a3a2a');
+    caption('3. УНИЧТОЖАЕТ МОНСТРОВ');
+    oleg(160, GROUND, 1.1, { m: 2.3, laser: true, flex: true });
+    const colors = ['#4fb35a', '#7a5ac8', '#d88a2a', '#3ab0c0', '#c84a8a'];
+    for (let i = 0; i < 5; i++) {
+      const x = 380 + i * 115, die = 1 + i * 0.7;
+      if (t < die) monster(x, GROUND, 0.5, { color: colors[i], bob: Math.sin(t * 6 + i) * 6, look: -1 });
+      else if (t < die + 0.7) boom(x, GROUND - 80, 110, (t - die) / 0.7);
+      else label('ПУФ', x, GROUND - 40, '#ffcf3a', 20);
+      if (t > die - 0.25 && t < die) {
+        ctx.strokeStyle = '#ff3020'; ctx.lineWidth = 6;
+        for (const [ex, ey] of olegEyes(160, GROUND, 1.1)) line(ex, ey, x, GROUND - 90);
+      }
+    }
+  }},
+  { tag: 'Четвёртое', say: 'Четвёртое. Он уничтожает вселенную!', dur: 6, shake: t => t > 3 && t < 4.5 ? 18 : 3, draw(t) {
+    ctx.fillStyle = '#05030a'; ctx.fillRect(-50, -50, W + 100, H + 100);
+    stars(220, 7);
+    // galaxy
+    const crack = clamp((t - 3) / 1.2, 0, 1);
+    ctx.save(); ctx.translate(650, 260); ctx.rotate(t * 0.4);
+    for (let i = 0; i < 400; i++) {
+      const a = i * 0.13, r = i * 0.45, arm = i % 2 ? Math.PI : 0;
+      const spread = 1 + crack * 4;
+      ctx.fillStyle = i % 3 ? '#b8a0ff' : '#ffd6f0';
+      ctx.fillRect(Math.cos(a + arm) * r * spread, Math.sin(a + arm) * r * 0.6 * spread, 3, 3);
+    }
+    circle(0, 0, 26 * (1 - crack), '#fff6c0');
+    ctx.restore();
+    caption('4. УНИЧТОЖАЕТ ВСЕЛЕННУЮ', '#b8a0ff');
+    const fly = ease(t / 2.5);
+    oleg(80 + fly * 300, GROUND + 40 - Math.sin(t * 2) * 10, 1.2, { m: 2.3, punch: t > 2.6 && t < 3.4 ? 1 : 0 });
+    if (t > 3) { ctx.save(); ctx.globalAlpha = clamp(1 - (t - 3) / 2, 0, 1); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H); ctx.restore(); }
+    if (t > 4.2) label('ВСЁ. ВСЕЛЕННОЙ НЕТ.', W / 2, 470, '#fff', 30);
+  }},
+  { tag: 'Пятое', say: 'Пятое. И напоследок он уничтожает самого дьявола!', dur: 6.5, shake: t => t > 2.4 && t < 3.2 ? 16 : 2, draw(t) {
+    sky('#3a0508', '#8a1a10'); flames(t);
+    caption('5. УНИЧТОЖАЕТ ДЬЯВОЛА', '#ffcf3a');
+    const hitT = 2.4;
+    const p = t > 1.8 && t < 2.6 ? Math.sin((t - 1.8) / 0.8 * Math.PI) : 0;
+    oleg(280, GROUND, 1.2, { m: 2.3, punch: p });
+    if (t < hitT) devil(680 + Math.sin(t * 5) * 6, GROUND, 1, 0);
+    else {
+      const k = t - hitT;
+      devil(680 + k * 420, GROUND - k * 380, Math.max(0.15, 1 - k * 0.3), k * 10);
+      boom(600, 250, 120, k / 0.6);
+      if (t > 3.6) caption('K.O.', '#fff', 300, 120);
+    }
+  }},
+  { tag: 'Финал', say: 'Так что, если встретите опасность… зовите дядю Олега. Конец.', dur: 5, draw(t) {
+    sky('#2b2340', '#4a3a5e'); ground('#2f2a3a');
+    oleg(480, GROUND, 1, { m: 2.3, flex: true });
+    caption('КОНЕЦ', '#ffcf3a', 110, 72);
+    stars(40, 3 + Math.floor(t * 3), '#ffcf3a');
+  }},
+];
+
+/* ---------- player ---------- */
+let idx = 0, sceneStart = 0, speechDone = true, playing = false, raf = 0;
+function startScene(i) {
+  idx = i; sceneStart = performance.now(); speechDone = false;
+  const sc = scenes[i];
+  subText.textContent = sc.say;
+  document.querySelector('#sub b').textContent = sc.tag;
+  const token = i;
+  speak(sc.say, () => { if (idx === token) speechDone = true; });
+}
+function frame(now) {
+  const sc = scenes[idx];
+  const t = (now - sceneStart) / 1000;
+  ctx.save();
+  const sh = sc.shake ? sc.shake(t) : 0;
+  if (sh) ctx.translate(rand(-sh, sh), rand(-sh, sh));
+  sc.draw(t);
+  ctx.restore();
+  // progress bar
+  ctx.fillStyle = 'rgba(255,255,255,.15)'; ctx.fillRect(0, H - 6, W, 6);
+  ctx.fillStyle = '#ffcf3a'; ctx.fillRect(0, H - 6, W * (idx + clamp(t / sc.dur, 0, 1)) / scenes.length, 6);
+  if (playing && t >= sc.dur && (speechDone || t > sc.dur + 10)) {
+    if (idx < scenes.length - 1) startScene(idx + 1);
+    else { playing = false; }
+  }
+  raf = requestAnimationFrame(frame);
+}
+function play() {
+  document.getElementById('overlay').hidden = true;
+  playing = true; startScene(0);
+}
+document.getElementById('start').onclick = play;
+document.getElementById('restart').onclick = () => { if (synth) synth.cancel(); play(); };
+document.getElementById('mute').onclick = e => {
+  muted = !muted; e.currentTarget.textContent = muted ? '🔇 Звук выкл' : '🔊 Звук вкл';
+  if (muted && synth) { synth.cancel(); speechDone = true; }
+};
+// still frame at rest: the title scene
+sceneStart = performance.now() - 1000;
+raf = requestAnimationFrame(frame);
+</script>
