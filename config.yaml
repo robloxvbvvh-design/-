@@ -1,0 +1,25 @@
+# Настройки ночного агента. Меняй под свою нишу.
+
+# Ниша и поисковые запросы, по которым ищем залетевшие видео
+niche: "лайфхаки и интересные факты"
+search_queries:
+  - "лайфхаки"
+  - "интересные факты"
+  - "челлендж"
+
+region: "RU"          # страна для трендов YouTube
+language: "ru"        # язык видео и сценариев
+lookback_days: 3      # искать видео, опубликованные за последние N дней
+shorts_only: true     # true = только короткие видео (до 60 сек)
+top_videos: 15        # сколько лучших видео отдать на разбор
+
+ideas_per_night: 3    # сколько сценариев делать за ночь
+target_duration_sec: 45
+
+# Модель Claude
+model: "claude-opus-5-5"
+effort: "high"
+
+# Голос озвучки (edge-tts). Варианты: ru-RU-DmitryNeural, ru-RU-SvetlanaNeural
+voice: "ru-RU-DmitryNeural"
+voice_rate: "+8%"
