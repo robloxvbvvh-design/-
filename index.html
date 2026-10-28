@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Claude Code Видео</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="viewport">
+    <div id="stage">
+
+      <!-- Сцена 1: студия монтажа — «Это видео не я создавал» -->
+      <section class="scene" id="s1">
+        <div class="rec"><span class="rec-dot"></span>МОНТАЖНАЯ</div>
+        <div class="monitor m1">
+          <div class="screen">
+            <div class="viewer"><div class="viewer-frame"></div><div class="viewer-sun"></div><div class="viewer-hill"></div></div>
+            <div class="timeline" id="tl1"><div class="playhead"></div></div>
+          </div>
+        </div>
+        <div class="monitor m2">
+          <div class="screen">
+            <div class="timeline tall" id="tl2"><div class="playhead"></div></div>
+          </div>
+        </div>
+        <div class="desk-edge"></div>
+        <div class="person p1"><div class="head"></div><div class="headphones"></div><div class="shoulders"></div></div>
+        <div class="person p2"><div class="head"></div><div class="headphones"></div><div class="shoulders"></div></div>
+        <div class="stamp" id="stamp">НЕ Я</div>
+      </section>
+
+      <!-- Сцена 2: текст перекрывает всё — «Это Claude Code» -->
+      <section class="scene" id="cover">
+        <div class="cover-small" id="coverSmall">ЭТО</div>
+        <div class="cover-big" id="coverBig"></div>
+        <div class="cover-sub" id="coverSub">&gt;_ claude</div>
+      </section>
+
+      <!-- Сцена 3: персонаж + субтитры / картинки / персонажи -->
+      <section class="scene" id="s3">
+        <div class="glow"></div>
+        <div class="mascot big" id="m3"></div>
+        <div class="card" id="c1"><div class="icon icon-cc">CC</div><span>Субтитры</span></div>
+        <div class="card" id="c2"><div class="icon icon-pic"><i></i><b></b></div><span>Картинки</span></div>
+        <div class="card" id="c3"><div class="icon icon-char"><div class="mascot tiny"></div></div><span>Персонажи</span></div>
+        <div class="badge" id="b3">делает всё сам</div>
+        <div class="sparks" id="sparks3"></div>
+      </section>
+
+      <!-- Сцена 4: персонаж за компьютером создаёт кадры и субтитры -->
+      <section class="scene" id="s4">
+        <div class="wall"></div>
+        <div class="pc">
+          <div class="pc-screen">
+            <div class="pc-bar"><i></i><i></i><i></i><span>project / video</span></div>
+            <div class="inputs">
+              <div class="chip" id="chipVoice"><span class="chip-ico">🎙</span>голос.mp3<div class="wave"></div></div>
+              <div class="chip" id="chipText"><span class="chip-ico">📝</span>текст.txt</div>
+            </div>
+            <div class="preview" id="preview">
+              <div class="preview-scene"><div class="mascot tiny"></div></div>
+              <div class="preview-sub" id="previewSub">…и <b>создал</b></div>
+            </div>
+            <div class="strip">
+              <div class="frame f1"></div><div class="frame f2"></div><div class="frame f3"></div><div class="frame f4"></div>
+            </div>
+            <div class="done" id="done">✓ Видео готово</div>
+          </div>
+          <div class="pc-neck"></div>
+          <div class="pc-foot"></div>
+        </div>
+        <div class="table"></div>
+        <div class="keyboard"></div>
+        <div class="chair"><div class="chair-back"></div><div class="chair-leg"></div></div>
+        <div class="mascot sitter" id="m4"></div>
+      </section>
+
+      <!-- Сцена 5–6: окно ввода Opus 5.5 → загрузка файла -->
+      <section class="scene" id="s5">
+        <div class="window" id="win">
+          <div class="win-top"><i></i><i></i><i></i><span>Claude Code</span></div>
+          <div class="win-body">
+            <div class="hello"><div class="mascot tiny"></div><div><b>С возвращением!</b><br><small>Что создадим сегодня?</small></div></div>
+            <div class="model" id="model"><span class="spark">✳</span> Opus 5.5 <span class="caret">▾</span></div>
+            <div class="prompt">
+              <div class="prompt-text"><span id="typed"></span><span class="cursor-bar" id="bar"></span><span class="placeholder" id="ph">Опишите задачу…</span></div>
+              <div class="file" id="file"><span class="file-ico">♫</span><div><b>voice.mp3</b><small>0:16 · 258 КБ</small></div><div class="wave small"></div></div>
+              <div class="prompt-actions">
+                <div class="upload" id="upload"><span>⇪</span> Загрузите файл</div>
+                <div class="send" id="send">↑</div>
+              </div>
+            </div>
+            <div class="progress" id="progress">
+              <div class="progress-label"><span id="progLabel">Отправка…</span><span id="progPct">0%</span></div>
+              <div class="progress-track"><div class="progress-fill" id="progFill"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="ripple" id="ripple"></div>
+        <div class="pointer" id="pointer"><svg viewBox="0 0 24 24"><path d="M3 2l7.5 19 2.6-7.9L21 10.5z"/></svg></div>
+      </section>
+
+      <!-- Караоке-субтитры -->
+      <div id="subs"></div>
+    </div>
+
+    <button id="play" aria-label="Смотреть"><span>▶</span> Смотреть</button>
+  </div>
+
+  <audio id="voice" src="assets/voice.mp3" preload="auto"></audio>
+  <script src="script.js"></script>
+</body>
+</html>
