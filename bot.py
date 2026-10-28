@@ -1,30 +1,36 @@
-import asyncio
-import logging
+# Злой бот для Telegram. Работает без установки библиотек.
+# Вставь токен в кавычки ниже и запусти файл.
+TOKEN = ""
+
+import json
 import os
 import random
-
-from aiogram import Bot, Dispatcher, F
-from aiogram.client.session.aiohttp import AiohttpSession
-from aiogram.filters import CommandStart
-from aiogram.types import Message
+import time
+import urllib.error
+import urllib.request
 
 
-def load_env() -> None:
+def load_token() -> str:
+    if TOKEN:
+        return TOKEN.strip()
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
     if os.path.exists(path):
         with open(path, encoding="utf-8") as f:
             for line in f:
                 key, _, value = line.strip().partition("=")
-                if key and value:
-                    os.environ.setdefault(key, value.strip())
+                if key == "BOT_TOKEN" and value:
+                    return value.strip()
+    return os.getenv("BOT_TOKEN", "").strip()
 
 
-def load_token() -> str:
-    load_env()
-    token = os.getenv("BOT_TOKEN")
-    if not token:
-        raise SystemExit("Нет BOT_TOKEN: задай переменную окружения или файл .env")
-    return token
+API = ""
+
+
+def call(method: str, **params):
+    data = json.dumps(params).encode()
+    req = urllib.request.Request(API + method, data, {"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=40) as resp:
+        return json.load(resp)["result"]
 
 
 START_TEXT = "Хуй блять, смотри как твой человек разозлится 😡\nНу давай, напиши что-нибудь, сука."
@@ -103,42 +109,61 @@ def angry_text(text: str) -> str:
     return " ".join(parts)
 
 
-dp = Dispatcher()
+def reply_for(msg: dict) -> str:
+    text = msg.get("text")
+    if text is not None:
+        if text.startswith("/start"):
+            return START_TEXT
+        return angry_text(text)
+    if "photo" in msg:
+        return f"{random.choice(PHOTO_REPLIES)} {random.choice(CLOSERS)}"
+    if "video" in msg or "video_note" in msg or "animation" in msg:
+        return f"{random.choice(VIDEO_REPLIES)} {random.choice(CLOSERS)}"
+    return random.choice(OTHER_REPLIES)
 
 
-@dp.message(CommandStart())
-async def start(message: Message) -> None:
-    await message.answer(START_TEXT)
-
-
-@dp.message(F.photo)
-async def photo(message: Message) -> None:
-    await message.reply(f"{random.choice(PHOTO_REPLIES)} {random.choice(CLOSERS)}")
-
-
-@dp.message(F.video | F.video_note | F.animation)
-async def video(message: Message) -> None:
-    await message.reply(f"{random.choice(VIDEO_REPLIES)} {random.choice(CLOSERS)}")
-
-
-@dp.message(F.text)
-async def text(message: Message) -> None:
-    await message.reply(angry_text(message.text))
-
-
-@dp.message()
-async def other(message: Message) -> None:
-    await message.reply(random.choice(OTHER_REPLIES))
-
-
-async def main() -> None:
-    logging.basicConfig(level=logging.INFO)
+def main() -> None:
+    global API
     token = load_token()
-    # На PythonAnywhere (бесплатный тариф) нужен PROXY=http://proxy.server:3128
-    proxy = os.getenv("PROXY")
-    bot = Bot(token, session=AiohttpSession(proxy=proxy) if proxy else None)
-    await dp.start_polling(bot)
+    if not token:
+        print("ОШИБКА: нет токена. Вставь его в строку TOKEN = \"...\" в начале файла.")
+        return
+    API = f"https://api.telegram.org/bot{token}/"
+
+    try:
+        me = call("getMe")
+    except urllib.error.HTTPError as e:
+        print(f"ОШИБКА: Telegram не принял токен (код {e.code}). Проверь токен в @BotFather.")
+        return
+    except Exception as e:
+        print(f"ОШИБКА: нет связи с Telegram: {e}")
+        return
+
+    call("deleteWebhook")
+    print(f"Бот @{me['username']} запущен! Иди в Telegram и нажми /start.")
+    print("Не закрывай это окно, иначе бот выключится.")
+
+    offset = 0
+    while True:
+        try:
+            updates = call("getUpdates", offset=offset, timeout=30)
+        except Exception as e:
+            print(f"Связь пропала ({e}), пробую снова...")
+            time.sleep(3)
+            continue
+        for upd in updates:
+            offset = upd["update_id"] + 1
+            msg = upd.get("message")
+            if not msg:
+                continue
+            answer = reply_for(msg)
+            print(f"Пришло сообщение, отвечаю: {answer}")
+            try:
+                call("sendMessage", chat_id=msg["chat"]["id"], text=answer,
+                     reply_to_message_id=msg["message_id"])
+            except Exception as e:
+                print(f"Не смог ответить: {e}")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
