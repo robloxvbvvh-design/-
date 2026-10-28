@@ -1,0 +1,98 @@
+{
+  "title": "Жора и Макс | Глава 3: Уволили с работы",
+  "scenes": [
+    {
+      "bg": "split", "duration": 3.2,
+      "characters": [
+        {"who": "zhora", "mood": "neutral", "pose": "idle", "x": 210, "y": 120, "scale": 0.72},
+        {"who": "max", "mood": "neutral", "pose": "idle", "x": 210, "y": 760, "scale": 0.72}
+      ],
+      "labels": [
+        {"text": "ЖОРА", "x": 530, "y": 290, "size": 72},
+        {"text": "МАКС", "x": 530, "y": 930, "size": 72}
+      ],
+      "caption": "Жору и *Макса* уволили в один день.", "caption_y": 1080
+    },
+    {
+      "bg": "orange", "duration": 3.4,
+      "badge": {"letter": "М", "label": "ПОДУШКА", "value": "СЧИТАЕТ", "color": "orange", "value_color": "green"},
+      "characters": [{"who": "max", "mood": "happy", "pose": "laptop", "prop": "laptop", "x": 500, "y": 330, "scale": 0.95}],
+      "props": [
+        {"type": "table", "text": "РАСХОДЫ", "x": 190, "y": 480, "w": 330},
+        {"type": "shield", "x": 195, "y": 820, "w": 180}
+      ],
+      "labels": [
+        {"text": "СЧИТАЕТ", "x": 190, "y": 660, "size": 58, "color": "green"},
+        {"text": "ПОДУШКА БЕЗОПАСНОСТИ", "x": 230, "y": 965, "size": 30, "rot": 0}
+      ],
+      "caption": "Макс садится и считает свои *расходы* и запас подушки *безопасности.*"
+    },
+    {
+      "bg": "blue", "duration": 3.2,
+      "badge": {"letter": "Ж", "label": "ЗАПАС ДЕНЕГ", "value": "11 ДНЕЙ", "color": "blue"},
+      "characters": [{"who": "zhora", "mood": "happy", "pose": "phone", "prop": "phone", "x": 260, "y": 330}],
+      "props": [{"type": "food", "x": 545, "y": 560, "w": 170, "rot": 6}],
+      "labels": [{"text": "−2 000 ₽", "x": 545, "y": 340, "size": 58, "color": "red"}],
+      "caption": "Жора расстроился и заказал еду домой, *чтобы* отвлечься."
+    },
+    {
+      "bg": "blue", "duration": 3.4,
+      "badge": {"letter": "Ж", "label": "ЗАПАС ДЕНЕГ", "value": "КРЕДИТКА", "color": "blue"},
+      "characters": [{"who": "zhora", "mood": "angry", "pose": "fists", "x": 250, "y": 370}],
+      "props": [{"type": "doc_x", "text": "ПОИСКИ", "x": 535, "y": 420, "w": 190, "rot": -4}],
+      "caption": "Он берёт кредитку и откладывает *поиски* работы на потом."
+    },
+    {
+      "bg": "blue", "duration": 3.4,
+      "badge": {"letter": "Ж", "label": "ЗАПАС ДЕНЕГ", "value": "ДОЛГ", "color": "blue"},
+      "characters": [{"who": "zhora", "mood": "sad", "pose": "idle", "x": 230, "y": 360}],
+      "props": [
+        {"type": "card", "text": "ДОЛГ", "x": 530, "y": 450, "w": 300, "rot": -3},
+        {"type": "cloud", "x": 540, "y": 700, "w": 210}
+      ],
+      "labels": [
+        {"text": "+ПРОЦЕНТЫ", "x": 530, "y": 265, "size": 54, "color": "red", "rot": 0},
+        {"text": "ПАНИКА", "x": 520, "y": 830, "size": 60, "color": "pink"}
+      ],
+      "caption": "Через два месяца у Жоры долг по карте и *паника.*"
+    },
+    {
+      "bg": "orange", "duration": 3.4,
+      "badge": {"letter": "М", "label": "ПОДУШКА", "value": "3,7 МЕСЯЦА", "color": "orange", "value_color": "green"},
+      "characters": [{"who": "max", "mood": "happy", "pose": "passport", "prop": "passport", "x": 250, "y": 330}],
+      "props": [
+        {"type": "briefcase", "text": "ЛУЧШИЙ", "x": 530, "y": 470, "w": 250},
+        {"type": "arrow_up", "x": 530, "y": 740, "w": 140}
+      ],
+      "caption": "А Макс спокойно ищет работу и выбирает лучшее, с *зарплатой* выше прежней."
+    },
+    {
+      "bg": "green", "duration": 3.6,
+      "badge": {"letter": "М", "label": "СОВЕТ МАКСА", "value": "10% С ЗАРПЛАТЫ", "color": "green", "value_color": "yellow"},
+      "characters": [{"who": "max", "mood": "happy", "pose": "point", "prop": null, "x": 210, "y": 340}],
+      "props": [
+        {"type": "piggy", "x": 540, "y": 520, "w": 240},
+        {"type": "coins", "x": 545, "y": 790, "w": 170}
+      ],
+      "labels": [{"text": "КАЖДЫЙ МЕСЯЦ", "x": 520, "y": 330, "size": 40, "color": "white"}],
+      "caption": "Секрет простой: откладывай *10%* с каждой зарплаты — сразу, а не что останется."
+    },
+    {
+      "bg": "split", "duration": 3.8,
+      "characters": [
+        {"who": "zhora", "mood": "sad", "pose": "idle", "x": 200, "y": 120, "scale": 0.72},
+        {"who": "max", "mood": "happy", "pose": "wave", "x": 200, "y": 760, "scale": 0.72}
+      ],
+      "props": [
+        {"type": "arrow_down", "x": 545, "y": 400, "w": 110},
+        {"type": "calendar", "text": "3–6", "x": 545, "y": 1000, "w": 150}
+      ],
+      "labels": [
+        {"text": "ДОЛГ", "x": 545, "y": 220, "size": 60, "color": "red"},
+        {"text": "МЕСЯЦЕВ", "x": 545, "y": 860, "size": 50, "color": "green"}
+      ],
+      "caption": "Будь как *Макс:* подушка на 3–6 месяцев. Подпишись — дальше Глава 4!",
+      "caption_y": 640, "caption_size": 40
+    }
+  ]
+}
