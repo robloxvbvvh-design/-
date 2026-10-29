@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Кофе за 1 минуту</title>
+  <meta name="description" content="Научись готовить кофе за 1 минуту. Курсы: Обычный, Бармен, Дегустатор.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="nav">
+    <div class="nav__inner">
+      <a href="#" class="nav__logo">☕ Coffee</a>
+      <nav class="nav__links">
+        <a href="#plans">Курсы</a>
+        <a href="#privacy">Конфиденциальность</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero__text reveal">
+      <p class="hero__eyebrow">Coffee School</p>
+      <h1>Научись готовить кофе<br>за&nbsp;1&nbsp;минуту.</h1>
+      <p class="hero__sub">Просто. Быстро. Вкусно.</p>
+      <a href="#plans" class="btn">Выбрать курс</a>
+    </div>
+    <div class="hero__image reveal">
+      <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1600&q=80"
+           alt="Чашка кофе" onerror="this.remove()">
+    </div>
+  </section>
+
+  <section class="plans" id="plans">
+    <h2 class="section-title reveal">Выбери свой уровень.</h2>
+    <div class="cards">
+      <article class="card reveal">
+        <p class="card__label">Начало</p>
+        <h3>Обыкновенная</h3>
+        <p class="card__desc">Базовые рецепты: эспрессо, американо и капучино дома.</p>
+        <ul>
+          <li>5 коротких уроков</li>
+          <li>Рецепты за 1 минуту</li>
+          <li>Подбор зёрен</li>
+        </ul>
+        <p class="card__price">Бесплатно</p>
+        <button class="btn btn--outline">Начать</button>
+      </article>
+
+      <article class="card card--main reveal">
+        <p class="card__label">Главная</p>
+        <h3>Бармен</h3>
+        <p class="card__desc">Профессиональная техника: молоко, латте-арт и работа с кофемашиной.</p>
+        <ul>
+          <li>20 видеоуроков</li>
+          <li>Латте-арт</li>
+          <li>Сертификат бармена</li>
+        </ul>
+        <p class="card__price">990 ₽</p>
+        <button class="btn">Начать</button>
+      </article>
+
+      <article class="card reveal">
+        <p class="card__label">Эксперт</p>
+        <h3>Дегустатор</h3>
+        <p class="card__desc">Каппинг, вкусовые ноты и сорта кофе со всего мира.</p>
+        <ul>
+          <li>Профессиональный каппинг</li>
+          <li>Колесо вкусов</li>
+          <li>Сорта и обжарка</li>
+        </ul>
+        <p class="card__price">1 990 ₽</p>
+        <button class="btn btn--outline">Начать</button>
+      </article>
+    </div>
+  </section>
+
+  <footer class="privacy" id="privacy">
+    <div class="privacy__inner">
+      <h2>Политика конфиденциальности</h2>
+      <div class="privacy__text">
+        <p>Настоящая Политика конфиденциальности описывает, каким образом сайт «Coffee School» (далее — «Сайт») собирает, использует и защищает информацию, которую вы предоставляете при использовании Сайта.</p>
+
+        <h4>1. Какую информацию мы собираем</h4>
+        <p>Мы можем собирать следующие данные: имя, адрес электронной почты, номер телефона, а также технические данные — IP-адрес, тип браузера, сведения о посещённых страницах и файлы cookie.</p>
+
+        <h4>2. Как мы используем информацию</h4>
+        <p>Собранные данные используются для предоставления доступа к курсам, связи с вами, улучшения работы Сайта, а также для отправки уведомлений, на которые вы дали согласие.</p>
+
+        <h4>3. Файлы cookie</h4>
+        <p>Сайт использует файлы cookie для запоминания ваших настроек и анализа посещаемости. Вы можете отключить cookie в настройках браузера, однако некоторые функции Сайта могут стать недоступны.</p>
+
+        <h4>4. Передача данных третьим лицам</h4>
+        <p>Мы не продаём и не передаём ваши персональные данные третьим лицам, за исключением случаев, предусмотренных законодательством Российской Федерации.</p>
+
+        <h4>5. Защита информации</h4>
+        <p>Мы принимаем необходимые организационные и технические меры для защиты персональных данных от неправомерного доступа, изменения, раскрытия или уничтожения.</p>
+
+        <h4>6. Ваши права</h4>
+        <p>Вы вправе запросить доступ к своим данным, их исправление или удаление, а также отозвать согласие на обработку персональных данных, написав нам на электронную почту.</p>
+
+        <h4>7. Изменения политики</h4>
+        <p>Мы можем обновлять настоящую Политику. Новая редакция вступает в силу с момента её публикации на Сайте.</p>
+      </div>
+
+      <div class="consent" id="consent">
+        <p>Вы согласны с политикой конфиденциальности?</p>
+        <button class="btn" id="consent-yes">Да</button>
+      </div>
+
+      <p class="copy">© 2026 Coffee School. Все права защищены.</p>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast">Спасибо! Ваше согласие принято ☕</div>
+
+  <script src="script.js"></script>
+</body>
+</html>
