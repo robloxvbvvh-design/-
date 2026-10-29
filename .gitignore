@@ -4,3 +4,13 @@
 *.ptx
 *.cubin
 *.fatbin
+
+# Android / Gradle
+.gradle/
+build/
+local.properties
+*.iml
+.idea/
+captures/
+*.apk
+*.aab
