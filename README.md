@@ -21,8 +21,9 @@ Java-версия Minecraft — это настольная программа: 
 
 ## Сборка APK
 
-Готовый APK собирается автоматически в GitHub Actions при каждом пуше:
-вкладка **Actions → Build APK → Artifacts → MobileCraftLauncher-debug**.
+Готовый APK собирается автоматически в GitHub Actions при каждом пуше и выкладывается в релиз `latest`:
+
+**[Скачать MobileCraftLauncher.apk](https://github.com/robloxvbvvh-design/-/releases/download/latest/MobileCraftLauncher.apk)**
 
 Локально (нужны JDK 17 и Android SDK):
 
