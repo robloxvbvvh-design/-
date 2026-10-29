@@ -1,18 +1,20 @@
-// Рендер anim.html покадрово в MP4 со звуком: node render.js [out.mp4] [fps]
+// Рендер серии покадрово в MP4 со звуком: node render.js [page.html] [voice.mp3] [out.mp4] [fps]
 const { chromium } = require('playwright');
 const { spawn } = require('child_process');
 const path = require('path');
-const out = process.argv[2] || path.join(__dirname, 'dima_zombie.mp4');
-const fps = +(process.argv[3] || 30);
+const html = path.resolve(__dirname, process.argv[2] || 'anim.html');
+const voice = path.resolve(__dirname, process.argv[3] || 'voice.mp3');
+const out = path.resolve(__dirname, process.argv[4] || 'dima_zombie.mp4');
+const fps = +(process.argv[5] || 30);
 (async () => {
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   page.on('pageerror', e => { console.error(e); process.exit(1); });
-  await page.goto('file://' + path.join(__dirname, 'anim.html') + '?render');
+  await page.goto('file://' + html + '?render');
   await page.evaluate(() => document.fonts.ready);
   const dur = await page.evaluate(() => window.DURATION);
   const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-i', '-',
-    '-i', path.join(__dirname, 'voice.mp3'), '-af', 'apad', '-t', String(dur),
+    '-i', voice, '-af', 'apad', '-t', String(dur),
     '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p',
     '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', out], { stdio: ['pipe', 'inherit', 'inherit'] });
   const n = Math.round(dur * fps);
