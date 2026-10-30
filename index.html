@@ -10,6 +10,17 @@
 </head>
 <body>
 <canvas id="scene"></canvas>
+<div id="fatal" style="display:none;position:fixed;inset:0;z-index:99;background:#fffdf6;color:#2b2a33;padding:24px;font:16px/1.5 sans-serif;overflow:auto"></div>
+<script>
+  // Если что-то сломалось при запуске — показываем причину вместо пустого экрана
+  window.__fatal = function (msg) {
+    var f = document.getElementById('fatal');
+    f.style.display = 'block';
+    f.innerHTML = '<h2>😕 Игра не запустилась</h2><p>' + String(msg).replace(/</g, '&lt;') +
+      '</p><p>Откройте файл в браузере Chrome, Edge, Firefox или Safari (не во встроенном просмотрщике файлов). Нужна поддержка WebGL.</p>';
+  };
+  window.addEventListener('error', function (e) { if (!window.__started) window.__fatal(e.message || 'Ошибка загрузки'); });
+</script>
 
 <!-- HUD -->
 <div id="hud" class="hidden">

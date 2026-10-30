@@ -84,7 +84,10 @@
   // ======================================================================
   THREE.ColorManagement.legacyMode = false;
   const canvas = $('#scene');
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  if (typeof THREE === 'undefined') { window.__fatal('Не загрузилась библиотека 3D-графики (three.min.js).'); return; }
+  let renderer;
+  try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true }); }
+  catch (e) { window.__fatal('Браузер не поддерживает WebGL (3D-графику).'); return; }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;
@@ -1575,6 +1578,7 @@
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
+  window.__started = true;
 
   // для отладки и автотестов
   window.__game = { get S() { return S; }, students: () => students, teacher, camTo, yearEnd };

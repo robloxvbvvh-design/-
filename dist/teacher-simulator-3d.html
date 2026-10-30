@@ -229,6 +229,17 @@ h1 { font-size: 34px; } h1 span { color: var(--accent); }
 </head>
 <body>
 <canvas id="scene"></canvas>
+<div id="fatal" style="display:none;position:fixed;inset:0;z-index:99;background:#fffdf6;color:#2b2a33;padding:24px;font:16px/1.5 sans-serif;overflow:auto"></div>
+<script>
+  // Если что-то сломалось при запуске — показываем причину вместо пустого экрана
+  window.__fatal = function (msg) {
+    var f = document.getElementById('fatal');
+    f.style.display = 'block';
+    f.innerHTML = '<h2>😕 Игра не запустилась</h2><p>' + String(msg).replace(/</g, '&lt;') +
+      '</p><p>Откройте файл в браузере Chrome, Edge, Firefox или Safari (не во встроенном просмотрщике файлов). Нужна поддержка WebGL.</p>';
+  };
+  window.addEventListener('error', function (e) { if (!window.__started) window.__fatal(e.message || 'Ошибка загрузки'); });
+</script>
 
 <!-- HUD -->
 <div id="hud" class="hidden">
@@ -893,7 +904,10 @@ const RANKS = [
   // ======================================================================
   THREE.ColorManagement.legacyMode = false;
   const canvas = $('#scene');
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  if (typeof THREE === 'undefined') { window.__fatal('Не загрузилась библиотека 3D-графики (three.min.js).'); return; }
+  let renderer;
+  try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true }); }
+  catch (e) { window.__fatal('Браузер не поддерживает WebGL (3D-графику).'); return; }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;
@@ -2384,6 +2398,7 @@ const RANKS = [
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
+  window.__started = true;
 
   // для отладки и автотестов
   window.__game = { get S() { return S; }, students: () => students, teacher, camTo, yearEnd };
