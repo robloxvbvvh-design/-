@@ -642,7 +642,7 @@
   function headPos(st) { const v = V3(); st.head.getWorldPosition(v); return v; }
   function studentShot(st) {
     const h = headPos(st);
-    return [V3(h.x + (h.x > 0 ? -0.45 : 0.45), h.y + 0.3, h.z - 1.55), V3(h.x, h.y - 0.05, h.z)];
+    return [V3(h.x + (h.x > 0 ? -0.45 : 0.45), h.y + 0.55, h.z - 1.5), V3(h.x, h.y - 0.05, h.z)];
   }
   function updateCamera(dt, t) {
     if (cam.orbit) {
@@ -1019,12 +1019,6 @@
   // Ход урока
   // ======================================================================
   const lowerFirst = s => (s.length > 1 && s[1] === s[1].toLowerCase() ? s[0].toLowerCase() + s.slice(1) : s);
-  function askPhrase(q) {
-    if (q.includes('___')) return `какое слово вставить: «${q}»?`;
-    if (/=\s*\?\s*$/.test(q)) return `сколько будет ${q.replace(/\s*=\s*\?\s*$/, '')}?`;
-    if (/[?…]$/.test(q)) return `а ${lowerFirst(q)}`.replace(/…$/, '…?');
-    return `подскажите: ${q}?`;
-  }
   function solvedLine(it) {
     if (/\?/.test(it.q) && /=\s*\?/.test(it.q)) return it.q.replace(/\?/, it.a);
     return `${it.q.replace(/\?$/, '')} — ${it.a}`;
@@ -1051,7 +1045,7 @@
     $('#hud').classList.remove('hidden');
     resetClass();
     const g = S.grade;
-    const deck = makeDeck(subj, g, 10);
+    const deck = makeDeck(subj, g, 11);
     const topic = topicFor(subj, g);
     lessonStats = { rep: 0, qOk: 0, qRude: 0, oralFair: 0, hwFair: 0, finds: 0, falseMarks: 0, missed: 0 };
     const L = lessonStats;
@@ -1086,7 +1080,7 @@
     await teacherWalk([[0.2, -6.25]]);
     teacherFace(Math.PI);
     camTo('board');
-    const ex = deck[9];
+    const ex = deck[10];
     const lines = [
       { text: dateRu(), x: 1240, y: 60, size: 44, align: 'right' },
       { text: 'Классная работа', x: 640, y: 125, size: 60, align: 'center' },
@@ -1105,51 +1099,59 @@
     await teacherWalk([[-1.6, -4.9]]);
     teacherFace(0);
 
-    // ---- Этап 1: вопросы учеников ----
+    // ---- Этап 1: ученики спрашивают — учитель проверяет их ответы ----
     camTo('class');
     const used = new Set();
-    for (let i = 0; i < 3; i++) {
-      setPhase(`❓ Вопросы учеников ${i + 1}/3`);
+    const QN = 4;
+    for (let i = 0; i < QN; i++) {
+      setPhase(`✅ Проверь ответ ученика ${i + 1}/${QN}`);
       const st = pick(students.filter(s => !used.has(s.i)));
       used.add(st.i);
       const it = deck[i];
+      const right = Math.random() < 0.5;
+      const ans = right ? it.a : pick(it.w);
       await sleep(500);
       st.handT = 1; SFX.pop();
       await sleep(900);
       lookAtStudent(st);
       camTo(studentShot(st));
-      const qb = await speak(st, `${S.teacher}, ${askPhrase(it.q)}`, 200, true);
-      const opts = shuffle([
-        { label: `«${it.a}»`, kind: 'ok', text: it.a },
-        { label: `«${it.w[0]}»`, kind: 'bad', text: it.w[0] },
-        { label: `😠 ${pick(RUDE)}`, kind: 'rude' },
-      ]);
-      const ci = await choose(`Что ответить ученику? <i>(${esc(st.data.name)} спрашивает)</i>`, opts.map(o => ({ label: o.label, cls: o.kind === 'rude' ? 'alt' : 'blue' })));
+      // «7 + 4 = ?» превращается в «7 + 4 = 11», остальное — «вопрос → ответ»
+      const work = /\?/.test(it.q) && /=\s*\?/.test(it.q) ? it.q.replace(/\?/, ans) : `${it.q} → ${ans}`;
+      const qb = await speak(st, `${S.teacher}, проверьте, пожалуйста! У меня получилось: ${work}. Правильно?`, 200, true);
+      const opts = [
+        { label: '✅ Правильно!', kind: 'yes', cls: 'green' },
+        { label: '❌ Неправильно!', kind: 'no', cls: '' },
+        { label: `😠 ${pick(RUDE)}`, kind: 'rude', cls: 'alt' },
+      ];
+      const ci = await choose(`Проверьте ответ ученика: <b>${esc(work)}</b>`, opts);
       qb.remove();
       const o = opts[ci];
       st.handT = 0;
       if (o.kind === 'rude') {
         await speak('teacher', o.label.slice(3), 700);
         st.sadT = 1;
-        await speak(st, 'Эх… я просто хотел(а) понять… 😢', 700);
+        await speak(st, 'Эх… я просто хотел(а) узнать… 😢', 700);
         addRep(-7, 'Грубость с учеником');
         L.qRude++;
         st.data.skill = clamp(st.data.skill - 0.03, 0.05, 0.98);
       } else {
-        await speak('teacher', `Правильный ответ: ${o.text}.`, 700);
-        if (o.kind === 'ok') {
-          st.jumpT = 0.8; burst(headPos(st), 'heart'); SFX.good();
-          await speak(st, pick(['Спасибо, теперь понятно! 😊', 'Ура, понял(а)!', 'Точно! Спасибо!']), 700);
-          addRep(5, 'Верный ответ');
+        const saidYes = o.kind === 'yes';
+        await speak('teacher', saidYes ? 'Правильно, молодец!' : `Неправильно. Верный ответ: ${it.a}.`, 700);
+        if (saidYes === right) {
+          if (right) { st.jumpT = 0.8; burst(headPos(st), 'heart'); }
+          else st.sadT = 0.5;
+          SFX.good();
+          await speak(st, right ? pick(['Ура, я так и думал(а)! 😊', 'Йес! Спасибо!']) : pick(['Понял(а), исправлю! Спасибо!', 'А, точно! Спасибо!']), 700);
+          addRep(5, 'Верно проверили');
           L.qOk++;
           st.data.skill = clamp(st.data.skill + 0.04, 0.05, 0.98);
         } else {
           SFX.bad();
           const nerd = pick(students.filter(s => s !== st));
           nerd.handT = 1;
-          await speak(nerd, `А в учебнике написано «${it.a}»… 🤓`, 900);
+          await speak(nerd, right ? `Но ведь «${ans}» — это правильно! 🤓` : `А в учебнике написано «${it.a}»… 🤓`, 900);
           nerd.handT = 0;
-          addRep(-5, 'Неверный ответ ученику');
+          addRep(-5, 'Ошиблись при проверке');
         }
       }
       st.sadT = 0;
@@ -1162,7 +1164,7 @@
     for (let i = 0; i < 3; i++) {
       setPhase(`🧑‍🏫 Опрос ${i + 1}/3`);
       camTo('class');
-      const it = deck[3 + i];
+      const it = deck[4 + i];
       const st = await pickStudent('Кого спросим? <b>Нажмите на ученика</b> в классе', called);
       called.add(st.i);
       teacher.pointing = 1;
@@ -1216,7 +1218,7 @@
     setPhase('📝 Проверка домашки');
     camTo('class');
     await speak('teacher', 'А теперь сдаём домашнее задание на листочках!', 600);
-    const hw = deck.slice(6, 9);
+    const hw = deck.slice(7, 10);
     const writers = shuffle(students).slice(0, 3);
     camTo('wide');
     await Promise.all(writers.map((st, i) => sleep(i * 350).then(() => flySheet(st, i))));
@@ -1350,7 +1352,7 @@
       <h2 class="center">${subj.icon} Анализ урока: ${esc(subj.name)}</h2>
       <div class="big-rep ${cls}">${L.rep >= 0 ? '+' : '−'}${Math.abs(L.rep)} ⭐</div>
       <table class="result-table">
-        <tr><td>❓ Верные ответы на вопросы</td><td>${L.qOk} из 3</td></tr>
+        <tr><td>✅ Верно проверенные ответы учеников</td><td>${L.qOk} из 4</td></tr>
         <tr><td>😠 Грубость</td><td>${L.qRude}</td></tr>
         <tr><td>🧑‍🏫 Честные оценки у доски</td><td>${L.oralFair} из 3</td></tr>
         <tr><td>📝 Честные оценки за домашку</td><td>${L.hwFair} из 3</td></tr>
