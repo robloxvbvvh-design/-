@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Симулятор Учителя 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="scene"></canvas>
+
+<!-- HUD -->
+<div id="hud" class="hidden">
+  <div class="hud-left">
+    <div class="hud-teacher"><span id="hudName">Марья Ивановна</span> · <b id="hudRank">Практикант</b></div>
+    <div class="rep">
+      <span>⭐ Репутация</span>
+      <div class="rep-bar"><div id="repFill"></div></div>
+      <b id="repVal">50</b>
+    </div>
+  </div>
+  <div class="hud-center">
+    <div id="hudGrade">1 класс</div>
+    <div id="hudPhase"></div>
+  </div>
+  <div class="hud-right">
+    <button id="btnJournal" class="icon-btn" title="Журнал">📒</button>
+    <button id="btnSound" class="icon-btn" title="Звук">🔊</button>
+  </div>
+</div>
+
+<div id="bubbles"></div>
+<div id="toasts"></div>
+<div id="flash"></div>
+
+<!-- Нижняя панель с выбором -->
+<div id="panel" class="hidden">
+  <div id="panelText"></div>
+  <div id="panelBtns"></div>
+</div>
+
+<!-- Главное меню -->
+<div id="menu" class="screen">
+  <div class="card menu-card">
+    <div class="logo">🍎</div>
+    <h1>Симулятор Учителя <span>3D</span></h1>
+    <p class="sub">Проведи свой класс с 1-го по 11-й! Отвечай на вопросы учеников, ставь
+      <b class="g5">5+</b> или <b class="g1">1−</b>, проверяй домашку и зарабатывай репутацию.</p>
+    <label class="field">Как вас зовут ученики?
+      <input id="teacherName" maxlength="28" value="Марья Ивановна">
+    </label>
+    <div class="row">
+      <button id="btnNew" class="btn big">Новая игра</button>
+      <button id="btnContinue" class="btn big alt hidden">Продолжить</button>
+    </div>
+    <ul class="howto">
+      <li>❓ Ученики поднимают руку и задают вопросы — выбери правильный ответ.</li>
+      <li>🧑‍🏫 Вызывай к доске, анализируй ответ и ставь честную оценку.</li>
+      <li>📝 Проверяй домашку на листочках: обводи ошибки красной ручкой.</li>
+      <li>🎓 3 урока в году — и класс переходит дальше. Доведи их до выпускного!</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Выбор урока -->
+<div id="select" class="screen hidden">
+  <div class="card select-card">
+    <h2 id="selTitle">1 класс — расписание</h2>
+    <p id="selInfo" class="sub"></p>
+    <div id="subjects"></div>
+    <div class="row">
+      <button id="btnJournal2" class="btn alt">📒 Журнал</button>
+      <button id="btnToMenu" class="btn alt">🏠 Меню</button>
+    </div>
+  </div>
+</div>
+
+<!-- Листок с домашкой -->
+<div id="sheetWrap" class="screen hidden">
+  <div id="sheet">
+    <div class="sheet-head">
+      <div id="sheetName">Домашняя работа</div>
+      <div id="sheetMark"></div>
+    </div>
+    <div id="sheetTasks"></div>
+    <div id="sheetHint">Нажми на строку, чтобы отметить ошибку красной ручкой ✗</div>
+    <div id="sheetBtns"></div>
+  </div>
+</div>
+
+<!-- Итоги / сообщения -->
+<div id="modal" class="screen hidden">
+  <div class="card" id="modalCard"></div>
+</div>
+
+<div id="journal" class="screen hidden">
+  <div class="card journal-card">
+    <h2>📒 Классный журнал</h2>
+    <div id="journalBody"></div>
+    <div class="row"><button id="btnCloseJournal" class="btn">Закрыть</button></div>
+  </div>
+</div>
+
+<script src="lib/three.min.js"></script>
+<script src="js/content.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
