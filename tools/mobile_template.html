@@ -1,0 +1,175 @@
+<title>Block Royale 3D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Russo+One&family=Rubik:wght@400;500;600&display=swap">
+<style>
+  /* Layout: full-height 3D stage on top, thumb-reachable control deck at the bottom */
+  :root {
+    --bg: #121519; --deck: #1b1f26; --chip: #262b34; --chip-on: #ffb020; --chip-on-fg: #17130a;
+    --fg: #eef0f4; --muted: #8e96a6; --line: #2c323c;
+    --display: "Russo One", "Arial Black", system-ui, sans-serif;
+    --body: "Rubik", system-ui, -apple-system, "Segoe UI", sans-serif;
+    color-scheme: dark;
+  }
+  html, body { height: 100%; }
+  body { background: var(--bg); color: var(--fg); font: 15px/1.4 var(--body); display: flex; flex-direction: column; overflow: hidden; }
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-block: 10px 6px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  h1 { font: 20px/1.1 var(--display); margin: 0; letter-spacing: .02em; }
+  h1 span { color: var(--chip-on); }
+  #count { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  #stage { position: relative; flex: 1; min-height: 0; touch-action: none; }
+  #stage canvas { display: block; width: 100%; height: 100%; }
+  #info { position: absolute; left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); top: 8px; pointer-events: none; }
+  #info b { font: 22px/1.15 var(--display); display: block; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+  #info small { color: #dfe4ec; text-shadow: 0 1px 3px rgba(0,0,0,.7); font-size: 13px; display: block; max-width: 34em; }
+  #loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); }
+  #hint { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); bottom: 8px; color: #e8ecf2; font-size: 12px;
+    background: rgba(18,21,25,.55); padding: 3px 8px; border-radius: 10px; pointer-events: none; }
+  .deck { background: var(--deck); border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; padding-block: 10px 12px; }
+  .row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .row::-webkit-scrollbar { display: none; }
+  .label { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); padding-left: max(16px, env(safe-area-inset-left, 0px)); }
+  button { flex: none; font: 500 14px var(--body); color: var(--fg); background: var(--chip); border: 0; border-radius: 999px; padding: 9px 14px; cursor: pointer; }
+  button:focus-visible { outline: 2px solid var(--chip-on); outline-offset: 2px; }
+  button.on { background: var(--chip-on); color: var(--chip-on-fg); }
+  .tabs button { font: 15px var(--display); background: none; padding: 6px 10px; color: var(--muted); border-radius: 8px; }
+  .tabs button.on { color: var(--fg); background: var(--chip); }
+</style>
+
+<header><h1>Block <span>Royale</span> 3D</h1><div id="count"></div></header>
+<div id="stage"><div id="loading">Загружаю 3D…</div><div id="info"></div><div id="hint">Вращай пальцем · щипок — зум</div></div>
+<div class="deck">
+  <div class="row tabs" id="tabs"></div>
+  <div class="row" id="models"></div>
+  <div class="label">Анимации</div>
+  <div class="row" id="anims"></div>
+</div>
+
+<script>window.MODELS = /*MODELS*/;</script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const GROUPS = { characters: 'Персонажи', weapons: 'Оружие', vehicles: 'Техника', props: 'Предметы' };
+const NAMES = {
+  Ranger: 'Рейнджер', BoltRobot: 'Робот Болт', ShadowNinja: 'Ниндзя Тень', Astronaut: 'Космонавтка',
+  SMG_Uzi: 'УЗИ', AssaultRifle: 'Автомат', SniperRifle: 'Снайперка', PumpShotgun: 'Дробовик', Pistol: 'Пистолет',
+  RocketLauncher: 'Ракетница', Grenade: 'Граната', Tank: 'Танк', Chest: 'Сундук', ChestRare: 'Редкий сундук',
+  AmmoBox: 'Ящик патронов', SupplyDrop: 'Сброс с парашютом', Medkit: 'Аптечка', Bandage: 'Бинт', ShieldPotion: 'Зелье щита',
+  BuildWall: 'Стена', BuildFloor: 'Пол', BuildRamp: 'Пандус', PineTree: 'Ель', OakTree: 'Дуб', Rock: 'Камень', Bush: 'Куст'
+};
+const ANIMS = {
+  Idle: 'Стойка', Walk: 'Шаг', Run: 'Бег', Jump: 'Прыжок', Crouch: 'Присед', Aim: 'Прицел', Dance: 'Танец', Wave: 'Привет',
+  Death: 'Падение', AntennaBlink: 'Антенна', ScarfFlutter: 'Повязка', Fire: 'Выстрел', Reload: 'Перезарядка', BoltCycle: 'Затвор',
+  PullPin: 'Чека', Drive: 'Езда', TurretRotate: 'Башня', HatchOpen: 'Люк', Open: 'Открыть', Descend: 'Спуск', Beacon: 'Маяк',
+  Float: 'Парение', Build: 'Постройка', Sway: 'Ветер', Rustle: 'Шорох'
+};
+const ONCE = /Death|Open|Descend|Build|HatchOpen/;
+
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+stage.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#87b8e6');
+scene.fog = new THREE.Fog('#87b8e6', 30, 90);
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 500);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+scene.add(new THREE.HemisphereLight('#dfefff', '#4a5a3a', 1.4));
+const sun = new THREE.DirectionalLight('#fff4e0', 2.2);
+sun.position.set(6, 10, 7); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
+scene.add(sun);
+const ground = new THREE.Mesh(new THREE.CircleGeometry(60, 48), new THREE.MeshStandardMaterial({ color: '#6fa04f', roughness: 1 }));
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true;
+scene.add(ground);
+
+function resize() {
+  const w = stage.clientWidth, h = stage.clientHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(stage);
+
+const loader = new GLTFLoader();
+const cache = {};
+function bytes(b64) { const s = atob(b64), a = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) a[i] = s.charCodeAt(i); return a.buffer; }
+const parse = m => cache[m.name] ??= new Promise((ok, err) => loader.parse(bytes(m.data), '', ok, err));
+
+let current = null, mixer = null, action = null, group = 'characters', token = 0;
+const clock = new THREE.Clock();
+
+async function show(m) {
+  const my = ++token;
+  document.querySelectorAll('#models button').forEach(b => b.classList.toggle('on', b.dataset.name === m.name));
+  const gltf = await parse(m);
+  if (my !== token) return;
+  document.getElementById('loading')?.remove();
+  if (current) scene.remove(current);
+  current = gltf.scene;
+  current.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  scene.add(current);
+  mixer = new THREE.AnimationMixer(current); action = null;
+  const box = new THREE.Box3().setFromObject(current);
+  const size = Math.max(box.getSize(new THREE.Vector3()).length(), 0.9);
+  const c = box.getCenter(new THREE.Vector3());
+  controls.target.copy(c);
+  const portrait = stage.clientHeight > stage.clientWidth ? 1.35 : 1;
+  camera.position.copy(c).add(new THREE.Vector3(0.75, 0.45, 0.9).multiplyScalar(size * 1.05 * portrait));
+  camera.near = size / 100; camera.updateProjectionMatrix();
+  document.getElementById('info').innerHTML = `<b>${NAMES[m.name] || m.name}</b><small>${m.doc || ''}</small>`;
+  const row = document.getElementById('anims'); row.innerHTML = '';
+  const add = (label, clip) => {
+    const b = document.createElement('button'); b.textContent = label;
+    b.onclick = () => {
+      if (action) action.stop();
+      if (!clip) mixer.stopAllAction();
+      action = clip ? mixer.clipAction(clip).reset().play() : null;
+      if (clip && ONCE.test(clip.name)) { action.setLoop(THREE.LoopOnce); action.clampWhenFinished = true; }
+      row.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+    };
+    row.append(b); return b;
+  };
+  const rest = add('Покой', null);
+  const btns = gltf.animations.map(clip => add(ANIMS[clip.name] || clip.name, clip));
+  const first = gltf.animations.findIndex(a => !ONCE.test(a.name));
+  (first >= 0 ? btns[first] : rest).click();
+  row.scrollLeft = 0;
+}
+
+function renderTabs() {
+  const tabs = document.getElementById('tabs'); tabs.innerHTML = '';
+  for (const [g, t] of Object.entries(GROUPS)) {
+    const b = document.createElement('button'); b.textContent = t; b.classList.toggle('on', g === group);
+    b.onclick = () => { group = g; renderTabs(); renderModels(true); };
+    tabs.append(b);
+  }
+}
+function renderModels(pickFirst) {
+  const row = document.getElementById('models'); row.innerHTML = ''; row.scrollLeft = 0;
+  const list = MODELS.filter(m => m.group === group);
+  for (const m of list) {
+    const b = document.createElement('button'); b.textContent = NAMES[m.name] || m.name; b.dataset.name = m.name;
+    b.onclick = () => show(m); row.append(b);
+  }
+  if (pickFirst) show(list[0]);
+}
+document.getElementById('count').textContent = MODELS.length + ' моделей';
+renderTabs(); renderModels(true);
+
+renderer.setAnimationLoop(() => {
+  const dt = clock.getDelta();
+  if (mixer) mixer.update(dt);
+  controls.update();
+  renderer.render(scene, camera);
+});
+</script>
