@@ -1,0 +1,35 @@
+newmtl Wood
+Kd 0.6039 0.3569 0.1725
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl WoodDark
+Kd 0.2902 0.1765 0.0863
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Trim
+Kd 0.9098 0.7255 0.1373
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Glow
+Kd 1.0000 0.8784 0.4000
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+Ke 1.0000 0.8784 0.4000
+
+newmtl Keyhole
+Kd 0.0667 0.0667 0.0667
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2

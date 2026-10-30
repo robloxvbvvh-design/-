@@ -1,0 +1,13 @@
+newmtl Wood
+Kd 0.6902 0.4784 0.2627
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Beam
+Kd 0.4314 0.2667 0.1333
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2

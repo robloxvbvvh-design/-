@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Block Royale — 3D модели</title>
+<style>
+  :root { --bg:#14161c; --panel:#1d2029; --text:#e8eaf0; --muted:#8b91a1; --accent:#ffb020; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.4 system-ui, sans-serif; display:flex; height:100vh; overflow:hidden; }
+  aside { width:260px; background:var(--panel); overflow:auto; padding:12px; flex-shrink:0; }
+  h1 { font-size:16px; margin:4px 0 12px; }
+  h2 { font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin:16px 0 6px; }
+  button { display:block; width:100%; text-align:left; background:none; border:0; color:var(--text); padding:6px 8px; border-radius:6px; cursor:pointer; font:inherit; }
+  button:hover { background:#2a2e3a; }
+  button.on { background:var(--accent); color:#111; }
+  main { flex:1; position:relative; }
+  canvas { display:block; width:100%; height:100%; }
+  #hud { position:absolute; left:12px; right:12px; bottom:12px; display:flex; flex-wrap:wrap; gap:6px; }
+  #hud button { width:auto; background:#2a2e3a; }
+  #hud button.on { background:var(--accent); }
+  #info { position:absolute; left:12px; top:12px; color:var(--muted); max-width:60%; }
+  #info b { color:var(--text); font-size:18px; display:block; }
+  @media (max-width:700px) { body { flex-direction:column; } aside { width:100%; height:38vh; } }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<aside><h1>Block Royale · модели</h1><div id="list"></div></aside>
+<main><div id="info"></div><div id="hud"></div></main>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const GROUPS = { characters:'Персонажи', weapons:'Оружие', vehicles:'Техника', props:'Предметы и мир' };
+const main = document.querySelector('main');
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setPixelRatio(devicePixelRatio);
+renderer.shadowMap.enabled = true;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+main.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#87b8e6');
+scene.fog = new THREE.Fog('#87b8e6', 30, 90);
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 500);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+scene.add(new THREE.HemisphereLight('#dfefff', '#4a5a3a', 1.4));
+const sun = new THREE.DirectionalLight('#fff4e0', 2.2);
+sun.position.set(6, 10, 7); sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+scene.add(sun);
+const ground = new THREE.Mesh(new THREE.CircleGeometry(60, 48), new THREE.MeshStandardMaterial({ color:'#6fa04f', roughness:1 }));
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true;
+scene.add(ground);
+
+const loader = new GLTFLoader();
+const params = new URLSearchParams(location.search);
+const clock = new THREE.Clock();
+let current = null, mixer = null, action = null;
+
+function resize() {
+  const w = main.clientWidth, h = main.clientHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+
+async function show(entry, btn) {
+  document.querySelectorAll('aside button').forEach(b => b.classList.toggle('on', b === btn));
+  const gltf = await loader.loadAsync('../models/' + entry.file);
+  if (current) scene.remove(current);
+  current = gltf.scene;
+  current.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  scene.add(current);
+  mixer = new THREE.AnimationMixer(current);
+  const clip0 = gltf.animations.find(c => !/Descend|Death|Build/.test(c.name));
+  if (clip0) { mixer.clipAction(clip0).play(); mixer.update(0); mixer.stopAllAction(); current.updateMatrixWorld(true); }
+  const box = new THREE.Box3().setFromObject(current);
+  const size = Math.max(box.getSize(new THREE.Vector3()).length(), 0.9);
+  const center = box.getCenter(new THREE.Vector3());
+  controls.target.copy(center);
+  camera.position.copy(center).add(new THREE.Vector3(0.75, 0.45, 0.9).multiplyScalar(size * 1.05));
+  camera.near = size / 100; camera.updateProjectionMatrix();
+  document.getElementById('info').innerHTML = `<b>${entry.name}</b>${entry.doc || ''}<br>${entry.triangles} треугольников`;
+  const hud = document.getElementById('hud'); hud.innerHTML = '';
+  const play = (clip, b) => {
+    if (action) action.stop();
+    action = clip ? mixer.clipAction(clip).reset().play() : null;
+    if (clip && /Death|Open|Descend|Build/.test(clip.name)) { action.setLoop(THREE.LoopOnce); action.clampWhenFinished = true; }
+    hud.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  };
+  const stop = document.createElement('button'); stop.textContent = '■ Поза покоя';
+  stop.onclick = () => { mixer.stopAllAction(); play(null, stop); };
+  hud.append(stop);
+  gltf.animations.forEach((clip, i) => {
+    const b = document.createElement('button'); b.textContent = '▶ ' + clip.name;
+    b.onclick = () => play(clip, b); hud.append(b);
+    if (clip.name === (params.get('a') || gltf.animations[0].name)) play(clip, b);
+  });
+}
+
+const manifest = await (await fetch('../models/manifest.json')).json();
+const list = document.getElementById('list');
+let first = null;
+for (const [g, title] of Object.entries(GROUPS)) {
+  const h = document.createElement('h2'); h.textContent = title; list.append(h);
+  for (const e of manifest.filter(m => m.group === g)) {
+    const b = document.createElement('button'); b.textContent = e.name;
+    b.onclick = () => show(e, b); list.append(b);
+    first ??= [e, b];
+  }
+}
+resize();
+const want = params.get('m');
+const pick = [...list.querySelectorAll('button')].find(b => b.textContent === want);
+if (pick) pick.click(); else show(...first);
+
+renderer.setAnimationLoop(() => {
+  const dt = clock.getDelta();
+  if (mixer) mixer.update(dt);
+  controls.update();
+  renderer.render(scene, camera);
+});
+</script>
+</body>
+</html>

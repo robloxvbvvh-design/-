@@ -1,0 +1,28 @@
+newmtl Chrome
+Kd 0.7882 0.8196 0.8588
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Plate
+Kd 1.0000 0.4784 0.1020
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Dark
+Kd 0.1882 0.2039 0.2314
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Glow
+Kd 0.3725 0.9647 1.0000
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+Ke 0.2118 0.9059 1.0000

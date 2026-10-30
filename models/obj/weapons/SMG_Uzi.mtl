@@ -1,0 +1,35 @@
+newmtl Metal
+Kd 0.1686 0.1843 0.2118
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl MetalLight
+Kd 0.4196 0.4471 0.5020
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Polymer
+Kd 0.1098 0.1137 0.1294
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Accent
+Kd 0.2902 0.6392 1.0000
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Flash
+Kd 1.0000 0.8275 0.4196
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 0.85
+illum 2
+Ke 1.0000 0.6902 0.1255

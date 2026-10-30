@@ -1,0 +1,49 @@
+newmtl Suit
+Kd 0.9451 0.9529 0.9647
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Trim
+Kd 0.1843 0.4353 0.9255
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Skin
+Kd 0.9412 0.7686 0.6275
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Hair
+Kd 0.4784 0.2392 0.1098
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Glass
+Kd 0.7490 0.9137 1.0000
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 0.30
+illum 2
+
+newmtl Eye
+Kd 0.1059 0.1059 0.1059
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Panel
+Kd 1.0000 0.8118 0.2275
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+Ke 0.4196 0.2902 0.0000

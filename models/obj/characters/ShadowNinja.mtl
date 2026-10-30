@@ -1,0 +1,49 @@
+newmtl Cloth
+Kd 0.1373 0.1255 0.1686
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl ClothLight
+Kd 0.2275 0.2078 0.2784
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Skin
+Kd 0.7882 0.5529 0.3882
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Red
+Kd 0.8392 0.1569 0.2235
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Steel
+Kd 0.8510 0.8667 0.8902
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Eye
+Kd 0.9490 0.9490 0.9490
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+Ke 0.2510 0.2510 0.2510
+
+newmtl Wrap
+Kd 0.7333 0.6627 0.5412
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2

@@ -1,0 +1,13 @@
+newmtl Cloth
+Kd 0.9490 0.9255 0.8784
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Red
+Kd 0.8863 0.1922 0.1922
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2

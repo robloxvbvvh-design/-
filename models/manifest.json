@@ -1,0 +1,305 @@
+[
+ {
+  "name": "SMG_Uzi",
+  "group": "weapons",
+  "file": "weapons/SMG_Uzi.glb",
+  "doc": "Компактный пистолет-пулемёт: магазин внутри рукояти, складной приклад.",
+  "triangles": 368,
+  "animations": [
+   "Fire",
+   "Reload"
+  ]
+ },
+ {
+  "name": "AssaultRifle",
+  "group": "weapons",
+  "file": "weapons/AssaultRifle.glb",
+  "doc": "",
+  "triangles": 420,
+  "animations": [
+   "Fire",
+   "Reload"
+  ]
+ },
+ {
+  "name": "SniperRifle",
+  "group": "weapons",
+  "file": "weapons/SniperRifle.glb",
+  "doc": "",
+  "triangles": 912,
+  "animations": [
+   "Fire",
+   "BoltCycle",
+   "Reload"
+  ]
+ },
+ {
+  "name": "PumpShotgun",
+  "group": "weapons",
+  "file": "weapons/PumpShotgun.glb",
+  "doc": "",
+  "triangles": 540,
+  "animations": [
+   "Fire"
+  ]
+ },
+ {
+  "name": "Pistol",
+  "group": "weapons",
+  "file": "weapons/Pistol.glb",
+  "doc": "",
+  "triangles": 244,
+  "animations": [
+   "Fire",
+   "Reload"
+  ]
+ },
+ {
+  "name": "RocketLauncher",
+  "group": "weapons",
+  "file": "weapons/RocketLauncher.glb",
+  "doc": "",
+  "triangles": 642,
+  "animations": [
+   "Fire"
+  ]
+ },
+ {
+  "name": "Grenade",
+  "group": "weapons",
+  "file": "weapons/Grenade.glb",
+  "doc": "",
+  "triangles": 660,
+  "animations": [
+   "PullPin"
+  ]
+ },
+ {
+  "name": "Ranger",
+  "group": "characters",
+  "file": "characters/Ranger.glb",
+  "doc": "Рейнджер — солдат в шлеме, бронежилете и с рюкзаком.",
+  "triangles": 768,
+  "animations": [
+   "Idle",
+   "Walk",
+   "Run",
+   "Jump",
+   "Crouch",
+   "Aim",
+   "Dance",
+   "Wave",
+   "Death"
+  ]
+ },
+ {
+  "name": "BoltRobot",
+  "group": "characters",
+  "file": "characters/BoltRobot.glb",
+  "doc": "Болт — дружелюбный робот со светящимся визором и антенной.",
+  "triangles": 1072,
+  "animations": [
+   "Idle",
+   "Walk",
+   "Run",
+   "Jump",
+   "Crouch",
+   "Aim",
+   "Dance",
+   "Wave",
+   "Death",
+   "AntennaBlink"
+  ]
+ },
+ {
+  "name": "ShadowNinja",
+  "group": "characters",
+  "file": "characters/ShadowNinja.glb",
+  "doc": "Тень — ниндзя в маске с красной повязкой и катаной за спиной.",
+  "triangles": 352,
+  "animations": [
+   "Idle",
+   "Walk",
+   "Run",
+   "Jump",
+   "Crouch",
+   "Aim",
+   "Dance",
+   "Wave",
+   "Death",
+   "ScarfFlutter"
+  ]
+ },
+ {
+  "name": "Astronaut",
+  "group": "characters",
+  "file": "characters/Astronaut.glb",
+  "doc": "Космонавтка — скафандр с прозрачным шлемом-пузырём и ранцем.",
+  "triangles": 1304,
+  "animations": [
+   "Idle",
+   "Walk",
+   "Run",
+   "Jump",
+   "Crouch",
+   "Aim",
+   "Dance",
+   "Wave",
+   "Death"
+  ]
+ },
+ {
+  "name": "Tank",
+  "group": "vehicles",
+  "file": "vehicles/Tank.glb",
+  "doc": "Лёгкий танк ~6.4 м: гусеницы, вращающаяся башня, ствол, люк командира.",
+  "triangles": 4706,
+  "animations": [
+   "Drive",
+   "TurretRotate",
+   "Fire",
+   "HatchOpen"
+  ]
+ },
+ {
+  "name": "Chest",
+  "group": "props",
+  "file": "props/Chest.glb",
+  "doc": "",
+  "triangles": 960,
+  "animations": [
+   "Idle",
+   "Open"
+  ]
+ },
+ {
+  "name": "ChestRare",
+  "group": "props",
+  "file": "props/ChestRare.glb",
+  "doc": "",
+  "triangles": 960,
+  "animations": [
+   "Idle",
+   "Open"
+  ]
+ },
+ {
+  "name": "AmmoBox",
+  "group": "props",
+  "file": "props/AmmoBox.glb",
+  "doc": "",
+  "triangles": 556,
+  "animations": [
+   "Open"
+  ]
+ },
+ {
+  "name": "SupplyDrop",
+  "group": "props",
+  "file": "props/SupplyDrop.glb",
+  "doc": "",
+  "triangles": 716,
+  "animations": [
+   "Descend",
+   "Beacon"
+  ]
+ },
+ {
+  "name": "Medkit",
+  "group": "props",
+  "file": "props/Medkit.glb",
+  "doc": "",
+  "triangles": 108,
+  "animations": [
+   "Float"
+  ]
+ },
+ {
+  "name": "Bandage",
+  "group": "props",
+  "file": "props/Bandage.glb",
+  "doc": "",
+  "triangles": 132,
+  "animations": [
+   "Float"
+  ]
+ },
+ {
+  "name": "ShieldPotion",
+  "group": "props",
+  "file": "props/ShieldPotion.glb",
+  "doc": "",
+  "triangles": 936,
+  "animations": [
+   "Float"
+  ]
+ },
+ {
+  "name": "BuildWall",
+  "group": "props",
+  "file": "props/BuildWall.glb",
+  "doc": "",
+  "triangles": 120,
+  "animations": [
+   "Build"
+  ]
+ },
+ {
+  "name": "BuildFloor",
+  "group": "props",
+  "file": "props/BuildFloor.glb",
+  "doc": "",
+  "triangles": 108,
+  "animations": [
+   "Build"
+  ]
+ },
+ {
+  "name": "BuildRamp",
+  "group": "props",
+  "file": "props/BuildRamp.glb",
+  "doc": "",
+  "triangles": 192,
+  "animations": [
+   "Build"
+  ]
+ },
+ {
+  "name": "PineTree",
+  "group": "props",
+  "file": "props/PineTree.glb",
+  "doc": "",
+  "triangles": 148,
+  "animations": [
+   "Sway"
+  ]
+ },
+ {
+  "name": "OakTree",
+  "group": "props",
+  "file": "props/OakTree.glb",
+  "doc": "",
+  "triangles": 804,
+  "animations": [
+   "Sway"
+  ]
+ },
+ {
+  "name": "Rock",
+  "group": "props",
+  "file": "props/Rock.glb",
+  "doc": "",
+  "triangles": 162,
+  "animations": []
+ },
+ {
+  "name": "Bush",
+  "group": "props",
+  "file": "props/Bush.glb",
+  "doc": "",
+  "triangles": 1300,
+  "animations": [
+   "Rustle"
+  ]
+ }
+]

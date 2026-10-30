@@ -1,0 +1,64 @@
+newmtl Armor
+Kd 0.3647 0.4196 0.2275
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl ArmorDark
+Kd 0.2627 0.3059 0.1647
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Camo
+Kd 0.5412 0.4784 0.2902
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Track
+Kd 0.1451 0.1490 0.1647
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Wheel
+Kd 0.2275 0.2392 0.2588
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Steel
+Kd 0.5451 0.5647 0.5961
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Light
+Kd 1.0000 0.9529 0.7686
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+Ke 1.0000 0.8941 0.6039
+
+newmtl Mark
+Kd 0.9490 0.7608 0.1882
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Flash
+Kd 1.0000 0.8275 0.4196
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 0.85
+illum 2
+Ke 1.0000 0.6902 0.1255

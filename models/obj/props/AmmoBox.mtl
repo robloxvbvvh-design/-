@@ -1,0 +1,27 @@
+newmtl Green
+Kd 0.2941 0.3529 0.1804
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Metal
+Kd 0.6039 0.6314 0.6706
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Label
+Kd 0.9490 0.7608 0.1882
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
+
+newmtl Bullet
+Kd 0.8314 0.6431 0.2275
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+d 1.00
+illum 2
