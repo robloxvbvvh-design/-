@@ -11,6 +11,7 @@
     --body: "Rubik", system-ui, -apple-system, "Segoe UI", sans-serif;
     --sl: max(12px, env(safe-area-inset-left, 0px)); --sr: max(12px, env(safe-area-inset-right, 0px));
     --st: env(safe-area-inset-top, 0px); --sb: env(safe-area-inset-bottom, 0px);
+    --k: 1.35;
     color-scheme: dark;
   }
   [hidden] { display: none !important; }
@@ -52,7 +53,9 @@
   #hurt { inset: 0; box-shadow: inset 0 0 120px 30px rgba(255, 40, 40, .7); opacity: 0; transition: opacity .3s; }
 
   #status { left: 50%; transform: translateX(-50%); bottom: calc(var(--sb) + 14px); display: grid; gap: 4px; width: min(320px, 44vw); }
-  .touch #status { bottom: calc(var(--sb) + 10px); width: min(240px, 36vw); }
+  .touch #status { left: var(--sl); transform: none; top: calc(var(--st) + 128px); bottom: auto; width: 190px; }
+  #fps { top: calc(var(--st) + 122px); left: var(--sl); font: 11px var(--body); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .touch #fps { top: calc(var(--st) + 186px); }
   #weapon { display: flex; justify-content: space-between; align-items: baseline; font: 15px var(--display); text-shadow: 0 1px 4px rgba(0,0,0,.8); gap: 8px; }
   #ammo { font-variant-numeric: tabular-nums; } #walls { color: var(--muted); font: 12px var(--body); }
   .meter { height: 9px; border-radius: 5px; background: rgba(0,0,0,.45); overflow: hidden; }
@@ -65,17 +68,24 @@
   /* touch controls */
   #touch { inset: 0; display: none; }
   .touch #touch { display: block; }
-  #joy { position: absolute; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); background: rgba(0,0,0,.15); display: none; }
-  #joy i { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; background: rgba(255,255,255,.55); }
+  #joy { position: absolute; width: calc(150px * var(--k)); height: calc(150px * var(--k)); margin: calc(-75px * var(--k)) 0 0 calc(-75px * var(--k)); border-radius: 50%; border: 2px solid rgba(255,255,255,.35); background: rgba(0,0,0,.15); display: none; }
+  #joy i { position: absolute; left: 50%; top: 50%; width: calc(64px * var(--k)); height: calc(64px * var(--k)); margin: calc(-32px * var(--k)) 0 0 calc(-32px * var(--k)); border-radius: 50%; background: rgba(255,255,255,.55); }
   #joyhint { position: absolute; left: calc(var(--sl) + 30px); bottom: calc(var(--sb) + 60px); color: rgba(255,255,255,.55); font-size: 12px; }
   .tb { position: absolute; pointer-events: auto; border-radius: 50%; display: grid; place-items: center; font: 12px var(--display); color: #fff;
     background: rgba(20,24,30,.55); border: 2px solid rgba(255,255,255,.35); touch-action: none; }
   .tb.on { background: rgba(255,176,32,.55); }
-  #bFire { width: 82px; height: 82px; right: calc(var(--sr) + 18px); bottom: calc(var(--sb) + 40px); font-size: 14px; background: rgba(255,75,75,.45); }
-  #bJump { width: 56px; height: 56px; right: calc(var(--sr) + 112px); bottom: calc(var(--sb) + 22px); }
-  #bBuild { width: 56px; height: 56px; right: calc(var(--sr) + 112px); bottom: calc(var(--sb) + 92px); }
-  #bScope { width: 56px; height: 56px; right: calc(var(--sr) + 30px); bottom: calc(var(--sb) + 136px); }
-  #bReload { width: 48px; height: 48px; right: calc(var(--sr) + 172px); bottom: calc(var(--sb) + 60px); }
+  .tb { font-size: calc(11px * var(--k)); }
+  #bFire { --s: calc(96px * var(--k)); width: var(--s); height: var(--s); right: calc(var(--sr) + 16px); bottom: calc(var(--sb) + 24px); font-size: calc(14px * var(--k)); background: rgba(255,75,75,.45); }
+  #bJump { --s: calc(66px * var(--k)); width: var(--s); height: var(--s); right: calc(var(--sr) + 30px + 96px * var(--k)); bottom: calc(var(--sb) + 14px); }
+  #bBuild { --s: calc(66px * var(--k)); width: var(--s); height: var(--s); right: calc(var(--sr) + 30px + 96px * var(--k)); bottom: calc(var(--sb) + 26px + 66px * var(--k)); }
+  #bScope { --s: calc(66px * var(--k)); width: var(--s); height: var(--s); right: calc(var(--sr) + 16px + 15px * var(--k)); bottom: calc(var(--sb) + 38px + 96px * var(--k)); }
+  #bReload { --s: calc(54px * var(--k)); width: var(--s); height: var(--s); right: calc(var(--sr) + 44px + 162px * var(--k)); bottom: calc(var(--sb) + 18px); }
+  .opts { display: grid; grid-template-columns: auto 1fr; gap: 8px 10px; align-items: center; text-align: left; }
+  .opts > span { color: var(--muted); font-size: 13px; }
+  .seg { display: flex; gap: 6px; flex-wrap: wrap; min-width: 0; }
+  .seg button { padding: 8px 12px; font-size: 13px; flex: 1; }
+  #rotate { display: none; color: var(--gold); }
+  @media (orientation: portrait) { .touch #rotate { display: block; } }
 
   /* overlays */
   .ov { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(10, 12, 16, .78); overflow: auto;
@@ -113,6 +123,7 @@
     <div class="team r" id="sr">0</div>
   </div>
   <div class="hud" id="timer">6:00</div>
+  <div class="hud" id="fps"></div>
   <div class="hud" id="bars"><div class="bar"><div id="bb" style="background:var(--blue)"></div></div><div class="bar"><div id="br" style="background:var(--red)"></div></div></div>
   <canvas class="hud" id="mini" width="220" height="220"></canvas>
   <div class="hud" id="feed"></div>
@@ -138,6 +149,11 @@
       <p>Две команды по четыре бойца. Держи точки A, B и C: каждая удерживаемая точка даёт очко в секунду. Побеждает команда, первой набравшая 250 очков.</p>
       <div id="loading"><p id="loadtxt">Загружаю модели…</p><div id="loadbar"><div></div></div></div>
       <div class="heroes" id="heroes" hidden></div>
+      <div class="opts">
+        <span>Графика</span><div class="seg" id="optQ"><button data-v="low">Быстрая</button><button data-v="mid">Средняя</button><button data-v="high">Красивая</button></div>
+        <span>Кнопки</span><div class="seg" id="optK"><button data-v="1">Обычные</button><button data-v="1.35">Крупные</button><button data-v="1.7">Огромные</button></div>
+      </div>
+      <p id="rotate">Поверни телефон горизонтально — так удобнее играть.</p>
       <button class="go" id="play" hidden>В бой</button>
       <div class="rules">
         <div><b>Захват</b>Встань в круг точки. Чем больше союзников внутри, тем быстрее захват. Если там есть враг, захват стоит на месте.</div>
@@ -188,20 +204,27 @@ const ZONES = [{ id: 'A', x: -40, z: 0 }, { id: 'B', x: 0, z: 0 }, { id: 'C', x:
 
 // ------------------------------------------------------------------ рендер
 const app = $('app');
+const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+let quality = store.get('br_quality') || (TOUCH ? 'low' : 'high');
+let btnScale = store.get('br_btn') || '1.35';
 const renderer = new THREE.WebGLRenderer({ antialias: !TOUCH, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, TOUCH ? 1.5 : 2));
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.enabled = quality !== 'low';
+renderer.shadowMap.type = quality === 'high' ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
+// динамическое разрешение: если кадров мало — рендерим в меньшем разрешении
+const MAXPR = { low: 1, mid: 1.25, high: 2 };
+let resScale = 1;
+const applyPR = () => renderer.setPixelRatio(Math.min(devicePixelRatio, MAXPR[quality]) * resScale);
+applyPR();
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 app.prepend(renderer.domElement);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#8cc3ef');
 scene.fog = new THREE.Fog('#a9d1f0', 60, 170);
-const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 400);
+const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 260);
 scene.add(new THREE.HemisphereLight('#e4f2ff', '#5b6b3c', 1.5));
 const sun = new THREE.DirectionalLight('#fff1dc', 2.4);
-sun.castShadow = true;
-sun.shadow.mapSize.set(TOUCH ? 1024 : 2048, TOUCH ? 1024 : 2048);
+sun.castShadow = quality !== 'low';
+sun.shadow.mapSize.set(quality === 'high' ? 2048 : 1024, quality === 'high' ? 2048 : 1024);
 Object.assign(sun.shadow.camera, { left: -34, right: 34, top: 34, bottom: -34, near: 1, far: 120 });
 sun.shadow.bias = -0.0008;
 scene.add(sun, sun.target);
@@ -216,13 +239,73 @@ async function loadModels() {
   let n = 0;
   for (const m of MODELS) {
     G[m.name] = await new Promise((ok, err) => loader.parse(bytes(m.data), '', ok, err));
+    mergeModel(G[m.name]);
     n++; $('loadbar').firstElementChild.style.width = (n / MODELS.length * 100) + '%';
     await new Promise(r => setTimeout(r, 0));
   }
 }
+// «Быстрая» и «Средняя» графика — Lambert вместо PBR: в разы дешевле для GPU телефона
+const lambert = new Map();
+function cheap(m) {
+  if (!lambert.has(m)) {
+    const l = new THREE.MeshLambertMaterial({ color: m.color, emissive: m.emissive, transparent: m.transparent, opacity: m.opacity,
+      side: m.side, depthWrite: m.depthWrite, flatShading: !!m.flatShading, vertexColors: m.vertexColors });
+    l.name = m.name; lambert.set(m, l);
+  }
+  return lambert.get(m);
+}
+function prep(o) {
+  if (!o.isMesh) return;
+  if (!o.userData.std) o.userData.std = o.material;
+  o.material = quality === 'high' ? o.userData.std : cheap(o.userData.std);
+  o.castShadow = o.receiveShadow = quality !== 'low';
+}
+function applyQuality() {
+  renderer.shadowMap.enabled = quality !== 'low'; sun.castShadow = quality !== 'low';
+  renderer.shadowMap.type = quality === 'high' ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
+  if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; }
+  const n = quality === 'high' ? 2048 : 1024; sun.shadow.mapSize.set(n, n);
+  scene.traverse(prep);
+  for (const m of lambert.values()) m.needsUpdate = true;
+  scene.traverse(o => { if (o.isMesh) o.userData.std.needsUpdate = true; });
+  resScale = 1; applyPR();
+}
+// сливаем неподвижные части каждой модели (по материалу внутри каждого узла) — меньше draw calls
+// непрозрачные и несветящиеся детали разных цветов сливаются в один меш: цвет переезжает в вершины
+const vcMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .62, metalness: .15 });
+function solid(m) { return !m.transparent && m.emissive.getHex() === 0 && !m.vertexColors; }
+function painted(c) {
+  c.updateMatrix();
+  const g = c.geometry.clone().applyMatrix4(c.matrix);
+  if (solid(c.material)) {
+    const n = g.attributes.position.count, col = new Float32Array(n * 3), k = c.material.color;
+    for (let i = 0; i < n; i++) { col[i * 3] = k.r; col[i * 3 + 1] = k.g; col[i * 3 + 2] = k.b; }
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  }
+  return g;
+}
+function mergeModel(g) {
+  const animated = new Set(g.animations.flatMap(c => c.tracks.map(t => t.name.split('.')[0])));
+  const parents = []; g.scene.traverse(o => parents.push(o));
+  for (const P of parents) {
+    const groups = new Map();
+    for (const c of P.children) {
+      if (!c.isMesh || c.children.length || animated.has(c.name)) continue;
+      const key = solid(c.material) ? vcMat : c.material;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(c);
+    }
+    for (const [mat, list] of groups) {
+      if (list.length < 2 && mat !== vcMat) continue;
+      const geo = mergeGeometries(list.map(painted), false);
+      for (const c of list) P.remove(c);
+      const m = new THREE.Mesh(geo, mat); m.name = list[0].name + '_merged'; P.add(m);
+    }
+  }
+}
 function inst(name) {
   const root = G[name].scene.clone(true);
-  root.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  root.traverse(prep);
   return { root, clips: G[name].animations };
 }
 const clipOf = (name, clip) => G[name].animations.find(c => c.name === clip);
@@ -243,7 +326,7 @@ function addStatic(name, x, z, ry = 0, s = 1, y = 0) {
 function flushStatic() {
   for (const [mat, gs] of staticParts) {
     const mesh = new THREE.Mesh(mergeGeometries(gs, false), mat);
-    mesh.castShadow = mesh.receiveShadow = true;
+    mesh.userData.std = mat.isMeshLambertMaterial ? [...lambert].find(([, l]) => l === mat)[0] : mat;
     scene.add(mesh);
   }
   staticParts.clear();
@@ -439,11 +522,11 @@ function buildWorld() {
     trees++;
   }
   for (let i = 0, n = 0; i < 300 && n < 18; i++) { const x = rr(-60, 60), z = rr(-60, 60); if (freeSpot(x, z, 2)) { rock(x, z, rr(.6, 1.3)); n++; } }
-  for (let i = 0, n = 0; i < 300 && n < 40; i++) { const x = rr(-62, 62), z = rr(-62, 62); if (!blocked(x, z, 1)) { addStatic('Bush', x, z, rr(0, 6), rr(.7, 1.2)); n++; } }
+  for (let i = 0, n = 0; i < 300 && n < 24; i++) { const x = rr(-62, 62), z = rr(-62, 62); if (!blocked(x, z, 1)) { addStatic('Bush', x, z, rr(0, 6), rr(.7, 1.2)); n++; } }
   // лес по краю карты
   for (let i = 0; i < 90; i++) {
     const a = i / 90 * Math.PI * 2, r = rr(72, 86);
-    addStatic(R() < .7 ? 'PineTree' : 'OakTree', Math.cos(a) * r, Math.sin(a) * r, rr(0, 6), rr(1, 1.6));
+    addStatic('PineTree', Math.cos(a) * r, Math.sin(a) * r, rr(0, 6), rr(1, 1.6));
   }
   flushStatic();
   // сундуки
@@ -521,16 +604,28 @@ function spawn(u) {
 
 // ------------------------------------------------------------------ эффекты и звук
 const fx = [];
-const tracerMat = new THREE.LineBasicMaterial({ color: '#ffe9a8', transparent: true, opacity: .9 });
-function tracer(a, b) {
-  const g = new THREE.BufferGeometry().setFromPoints([a, b]);
-  const l = new THREE.Line(g, tracerMat.clone()); scene.add(l);
-  fx.push({ obj: l, t: 0, life: .07, upd(k) { l.material.opacity = .9 * (1 - k); } });
+const tracers = [], sparks = [];
+let ti = 0, si = 0;
+for (let i = 0; i < 24; i++) {
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(6, 3));
+  const l = new THREE.Line(g, new THREE.LineBasicMaterial({ color: '#ffe9a8', transparent: true, opacity: 0 }));
+  l.frustumCulled = false; scene.add(l); tracers.push({ l, t: 1 });
 }
 const sparkGeo = new THREE.SphereGeometry(.08, 6, 4);
+for (let i = 0; i < 40; i++) {
+  const m = new THREE.Mesh(sparkGeo, new THREE.MeshBasicMaterial({ color: '#ffe08a', transparent: true, opacity: 0 }));
+  m.visible = false; scene.add(m); sparks.push({ m, t: 1 });
+}
+function tracer(a, b) {
+  const tr = tracers[ti++ % tracers.length], arr = tr.l.geometry.attributes.position;
+  arr.setXYZ(0, a.x, a.y, a.z); arr.setXYZ(1, b.x, b.y, b.z); arr.needsUpdate = true; tr.t = 0;
+}
 function spark(p, color = '#ffe08a') {
-  const m = new THREE.Mesh(sparkGeo, new THREE.MeshBasicMaterial({ color, transparent: true })); m.position.copy(p); scene.add(m);
-  fx.push({ obj: m, t: 0, life: .18, upd(k) { m.scale.setScalar(1 + k * 2); m.material.opacity = 1 - k; } });
+  const s = sparks[si++ % sparks.length]; s.m.position.copy(p); s.m.material.color.set(color); s.m.visible = true; s.t = 0;
+}
+function updatePools(dt) {
+  for (const tr of tracers) if (tr.t < 1) { tr.t = Math.min(1, tr.t + dt / .07); tr.l.material.opacity = .9 * (1 - tr.t); }
+  for (const s of sparks) if (s.t < 1) { s.t = Math.min(1, s.t + dt / .18); s.m.scale.setScalar(1 + s.t * 2); s.m.material.opacity = 1 - s.t; if (s.t >= 1) s.m.visible = false; }
 }
 const boomGeo = new THREE.SphereGeometry(1, 16, 10);
 function boomFx(p) {
@@ -1042,6 +1137,7 @@ function step(dt) {
     const f = fx[i]; f.t += dt; const k = Math.min(1, f.t / f.life); f.upd(k);
     if (k >= 1) { if (f.obj) { scene.remove(f.obj); f.obj.geometry && f.obj.type === 'Line' && f.obj.geometry.dispose(); } fx.splice(i, 1); }
   }
+  updatePools(dt);
   tank.mixer.update(dt);
   updateLoot(dt);
   updateZones(dt);
@@ -1056,17 +1152,27 @@ function hud() {
   $('ammo').textContent = u.reloadT > 0 ? 'перезарядка…' : u.ammo + '/' + u.w.mag;
   $('walls').textContent = '▦ ' + u.walls;
   $('mhp').style.width = Math.max(0, u.hp) + '%'; $('mshield').style.width = u.shield + '%';
-  if (toastT > 0) { toastT -= 1 / 60; if (toastT <= 0) $('toast').style.opacity = 0; }
   drawMini();
 }
+let hudT = 0, fpsT = 0, fpsN = 0;
+function perf(dt) {
+  fpsT += dt; fpsN++;
+  if (fpsT < .5) return;
+  const fps = fpsN / fpsT; fpsT = 0; fpsN = 0;
+  $('fps').textContent = 'FPS ' + Math.round(fps) + (resScale < 1 ? ' · ' + Math.round(resScale * 100) + '%' : '');
+  if (fps < 45 && resScale > .5) { resScale = Math.max(.5, resScale - .1); applyPR(); }
+  else if (fps > 58 && resScale < 1) { resScale = Math.min(1, resScale + .05); applyPR(); }
+}
 function frame() {
-  const dt = Math.min(clock.getDelta(), .05);
+  const raw = clock.getDelta(), dt = Math.min(raw, .05);
+  perf(raw);
   if (running) { step(dt); }
+  if (toastT > 0) { toastT -= dt; if (toastT <= 0) $('toast').style.opacity = 0; }
   if (player) {
     cameraUpdate(dt);
     const p = player.holder.position;
     sun.position.set(p.x + 22, 38, p.z + 14); sun.target.position.set(p.x, 0, p.z);
-    hud();
+    hudT -= raw; if (hudT <= 0) { hudT = .1; hud(); }
   }
   renderer.render(scene, camera);
 }
@@ -1108,14 +1214,24 @@ for (const [id, name] of HEROES) {
   b.onclick = () => { hero = id; document.querySelectorAll('#heroes button').forEach(x => x.classList.toggle('on', x === b)); };
   $('heroes').append(b); if (id === hero) b.classList.add('on');
 }
+function seg(id, cur, on) {
+  const btns = [...$(id).querySelectorAll('button')];
+  const mark = v => btns.forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  btns.forEach(b => b.onclick = () => { mark(b.dataset.v); on(b.dataset.v); });
+  mark(cur);
+}
+seg('optQ', quality, v => { quality = v; store.set('br_quality', v); applyQuality(); });
+seg('optK', btnScale, v => { btnScale = v; store.set('br_btn', v); document.documentElement.style.setProperty('--k', v); });
+document.documentElement.style.setProperty('--k', btnScale);
 $('play').onclick = () => { initAudio(); startMatch(); if (!TOUCH) { try { const r = canvas.requestPointerLock(); if (r && r.catch) r.catch(() => {}); } catch {} } };
 $('again').onclick = () => { $('end').hidden = true; $('menu').hidden = false; };
 
 await loadModels();
 buildWorld();
+scene.traverse(prep);
 // фоновая камера в меню
 camera.position.set(-30, 26, -70); camera.lookAt(0, 0, 0);
 $('loading').hidden = true; $('heroes').hidden = false; $('play').hidden = false;
 renderer.setAnimationLoop(frame);
-window.__game = { get units() { return units; }, get score() { return score; }, get zones() { return zoneObjs; }, step, startMatch, get player() { return player; } };
+window.__game = { get info() { return renderer.info.render; }, get units() { return units; }, get score() { return score; }, get zones() { return zoneObjs; }, step, startMatch, get player() { return player; } };
 </script>
