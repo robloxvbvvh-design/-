@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:540px;height:960px;overflow:hidden;background:#0d1020;font-family:"DejaVu Sans",sans-serif}
+#stage{position:absolute;inset:0;overflow:hidden;background:radial-gradient(circle at 50% 30%,#2a2f6b 0%,#12142c 60%,#0a0b18 100%)}
+#world{position:absolute;inset:0}
+#redbg{position:absolute;inset:0;background:radial-gradient(circle at 50% 35%,#6b1a2a 0%,#2a0b14 60%,#12040a 100%)}
+.abs{position:absolute}
+#subs{left:20px;right:20px;bottom:40px;text-align:center;color:#fff;font-weight:bold;font-size:30px;line-height:1.25;
+  text-shadow:0 0 6px #000,0 3px 0 #000,0 -2px 0 #000,2px 0 0 #000,-2px 0 0 #000;z-index:50}
+#subs span.hl{color:#ffd23f}
+#subs span.rd{color:#ff4d4d}
+#gnome{width:240px;height:288px;z-index:30;transform-origin:50% 100%}
+#hi{left:290px;top:250px;font-size:46px;font-weight:bold;color:#fff;z-index:31}
+#hi b{color:#ffd23f}
+/* hack */
+#term{left:40px;top:110px;width:460px;height:250px;border-radius:14px;background:#05070d;border:2px solid #ff3b3b;box-shadow:0 0 40px rgba(255,40,40,.5);z-index:20;overflow:hidden;font-family:"DejaVu Sans Mono",monospace;font-size:16px;color:#39ff7a;padding:40px 16px 12px}
+#term .bar{position:absolute;left:0;right:0;top:0;height:28px;background:#2a0b10;color:#ff6b6b;font-size:13px;padding:6px 12px;font-weight:bold}
+#term .r{color:#ff4d4d}
+#warn{left:0;right:0;top:56px;text-align:center;font-size:44px;font-weight:bold;color:#ff3b3b;letter-spacing:3px;text-shadow:0 0 20px rgba(255,0,0,.8);z-index:25}
+#servers{left:250px;top:390px;width:270px;height:220px;z-index:18;display:flex;gap:12px}
+.rack{position:relative;width:80px;height:210px;border-radius:8px;background:linear-gradient(180deg,#3a3f5a,#22263a);border:2px solid #4c526f;padding:8px 6px;display:flex;flex-direction:column;gap:8px}
+.rack .u{height:30px;border-radius:4px;background:#14172a;display:flex;align-items:center;gap:5px;padding:0 8px}
+.rack .led{width:8px;height:8px;border-radius:50%;background:#39ff7a;box-shadow:0 0 6px #39ff7a}
+.rack .del{position:absolute;left:-10px;top:80px;width:100px;text-align:center;border:3px solid #ff2d2d;color:#ff2d2d;background:rgba(255,255,255,.9);font-weight:bold;font-size:14px;border-radius:6px;transform:rotate(-14deg)}
+/* phone */
+#phone{left:110px;top:105px;width:320px;height:620px;border-radius:44px;background:#000;padding:12px;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 3px #3a3d55;z-index:20}
+#screen{position:relative;width:100%;height:100%;border-radius:34px;overflow:hidden;background:#d7e6c9;background-image:radial-gradient(rgba(255,255,255,.35) 2px,transparent 2px);background-size:22px 22px}
+.tgHead{height:58px;background:#517da2;color:#fff;display:flex;align-items:center;padding:0 12px;font-size:16px;font-weight:bold;gap:10px}
+.tgHead small{display:block;font-size:11px;font-weight:normal;opacity:.85}
+.ava{width:38px;height:38px;border-radius:50%;flex:none;overflow:hidden}
+#newTag{left:300px;top:80px;background:#ffd23f;color:#3a1a00;font-weight:bold;font-size:26px;padding:8px 16px;border-radius:14px;z-index:26;box-shadow:0 8px 20px rgba(0,0,0,.5)}
+.msgs{position:absolute;left:0;right:0;top:58px;bottom:62px;padding:10px;display:flex;flex-direction:column;justify-content:flex-end;gap:7px}
+.msg{max-width:86%;background:#fff;border-radius:14px;padding:8px 11px;font-size:13.5px;color:#222;box-shadow:0 1px 2px rgba(0,0,0,.15);line-height:1.35}
+.msg.me{align-self:flex-end;background:#effdde}
+.kb{display:flex;flex-direction:column;gap:5px;max-width:86%}
+.kb div{background:rgba(80,110,140,.75);color:#fff;border-radius:10px;padding:8px;text-align:center;font-size:13.5px;font-weight:bold}
+.bottomBar{position:absolute;left:0;right:0;bottom:0;height:62px;background:#fff;display:flex;align-items:center;padding:0 12px}
+#startBtn{width:100%;height:42px;border-radius:10px;background:#3a9be0;color:#fff;font-weight:bold;font-size:17px;display:flex;align-items:center;justify-content:center}
+#sideLbl{left:0;right:0;top:40px;text-align:center;color:#ffd23f;font-size:30px;font-weight:bold;z-index:26}
+#shield{left:380px;top:430px;width:130px;height:150px;z-index:27}
+/* finger */
+#finger{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.55);border:3px solid rgba(255,255,255,.95);box-shadow:0 4px 14px rgba(0,0,0,.4);z-index:40;margin:-22px 0 0 -22px}
+#ripple{width:44px;height:44px;border-radius:50%;border:4px solid #ffd23f;z-index:39;margin:-22px 0 0 -22px}
+/* danger */
+#danger{left:0;right:0;top:120px;text-align:center;font-size:56px;font-weight:bold;color:#ff3b3b;letter-spacing:2px;text-shadow:0 0 24px rgba(255,0,0,.9),0 5px 0 #400;z-index:35}
+#danger small{display:block;font-size:24px;color:#fff;letter-spacing:0;text-shadow:0 2px 6px #000;margin-top:8px}
+#cracks{inset:0;z-index:34;pointer-events:none}
+#scan{inset:0;z-index:46;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.25) 0 2px,transparent 2px 5px)}
+#glitchBar{left:0;right:0;height:40px;z-index:47;pointer-events:none;background:rgba(255,40,80,.35);mix-blend-mode:screen}
+#flash{inset:0;background:#fff;z-index:45;pointer-events:none}
+#outro{inset:0;background:radial-gradient(circle at 50% 40%,#2a2f6b,#0a0b18);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:60}
+#outro .big{color:#fff;font-size:52px;font-weight:bold}
+#outro .big b{color:#ffd23f}
+#outro .tg{background:#2aabee;color:#fff;font-size:26px;font-weight:bold;padding:16px 26px;border-radius:40px}
+#outro .p{color:#fff;font-size:22px;text-align:center}
+</style></head><body>
+<div id="stage">
+<div id="redbg"></div>
+<div id="world">
+  <div id="warn" class="abs">ВЗЛОМ!</div>
+  <div id="term" class="abs"><div class="bar">root@gnom-vpn: ~ — НЕСАНКЦИОНИРОВАННЫЙ ДОСТУП</div><div id="termTxt"></div></div>
+  <div id="servers" class="abs">
+    <div class="rack" id="r0"><div class="u"><i class="led"></i><i class="led"></i></div><div class="u"><i class="led"></i><i class="led"></i></div><div class="u"><i class="led"></i><i class="led"></i></div><div class="u"><i class="led"></i><i class="led"></i></div><div class="u"><i class="led"></i><i class="led"></i></div><div class="del">УДАЛЕНО</div></div>
+    <div class="rack" id="r1"><div class="u"><i class="led"></i><i class="led"></i></div><div class="u"><i class="led"></i><i class="led"></i></div><div class="u"><i class="led"></i><i class="led"></i></div><div class="u"><i class="led"></i><i class="led"></i></div><div class="u"><i class="led"></i><i class="led"></i></div><div class="del">УДАЛЕНО</div></div>
+    <div class="rack" id="r2"><div class="u"><i class="led"></i><i class="led"></i></div><div class="u"><i class="led"></i><i class="led"></i></div><div class="u"><i class="led"></i><i class="led"></i></div><div class="u"><i class="led"></i><i class="led"></i></div><div class="u"><i class="led"></i><i class="led"></i></div><div class="del">УДАЛЕНО</div></div>
+  </div>
+
+  <div id="sideLbl" class="abs"></div>
+  <div id="phone" class="abs"><div id="screen">
+    <div class="tgHead"><svg class="ava" viewBox="0 0 48 48"><circle cx="24" cy="24" r="24" fill="#2f6fdb"/><path d="M24 6 L34 26 L14 26Z" fill="#ff4d4d"/><circle cx="24" cy="31" r="8" fill="#ffd2b0"/><path d="M16 32 Q24 46 32 32Z" fill="#fff"/></svg>
+      <div>Гном VPN 2.0<small>бот · новый</small></div></div>
+    <div class="msgs">
+      <div class="msg" id="m1">Привет! Это <b>новый бот Гном VPN</b>. Все подписки работают тут.</div>
+      <div class="kb" id="kb1"><div>Купить подписку — 50 ₽</div><div id="kbSup">Поддержка</div></div>
+      <div class="msg me" id="m2">Не работает подписка, помогите</div>
+      <div class="msg" id="m3"><b>Поддержка на связи</b> — разберёмся с подпиской.</div>
+      <div class="kb" id="kb2"><div id="kbData">Сообщить о необычных данных</div></div>
+      <div class="msg" id="m4">Спасибо! Данные переданы, проверяем.</div>
+    </div>
+    <div class="bottomBar"><div id="startBtn">СТАРТ</div></div>
+  </div></div>
+  <div id="newTag" class="abs">НОВЫЙ БОТ</div>
+  <svg id="shield" class="abs" viewBox="0 0 130 150"><path d="M65 6 L120 26 L120 70 Q120 120 65 144 Q10 120 10 70 L10 26Z" fill="#1fbf6a" stroke="#fff" stroke-width="5"/>
+    <rect x="58" y="40" width="14" height="52" rx="7" fill="#fff"/><circle cx="65" cy="110" r="9" fill="#fff"/></svg>
+
+  <svg id="gnome" class="abs" viewBox="0 0 300 360"></svg>
+  <div id="hi" class="abs">Всем<br><b>привет!</b></div>
+  <svg id="cracks" class="abs" viewBox="0 0 540 960"><g stroke="#fff" stroke-width="3" fill="none" opacity=".75">
+    <path id="ck1" d="M270 380 L230 300 L250 240 L200 160 L215 90"/><path id="ck2" d="M270 380 L340 330 L380 350 L450 280 L520 300"/>
+    <path id="ck3" d="M270 380 L300 470 L270 540 L310 640"/><path id="ck4" d="M270 380 L180 420 L120 400 L40 460"/></g></svg>
+  <div id="danger" class="abs">ОПАСНОСТЬ<small>если бота взломают — меня могут уничтожить</small></div>
+  <div id="ripple" class="abs"></div>
+  <div id="finger" class="abs"></div>
+</div>
+<div id="scan" class="abs"></div>
+<div id="glitchBar" class="abs"></div>
+<div id="flash" class="abs"></div>
+<div id="outro" class="abs">
+  <svg id="outroG" width="200" height="240" viewBox="0 0 300 360"></svg>
+  <div class="big">ГНОМ <b>VPN</b> 2.0</div>
+  <div class="tg">Новый бот в Telegram</div>
+  <div class="p">Подписка · поддержка 24/7</div>
+</div>
+<div id="subs" class="abs"></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const cl=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const p=(t,a,b)=>cl((t-a)/(b-a));
+const eo=x=>1-Math.pow(1-x,3);
+const back=x=>{const c=1.7;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+const show=(id,v)=>{$(id).style.display=v?'':'none'};
+const op=(id,v)=>{$(id).style.opacity=v};
+const tf=(id,v)=>{$(id).style.transform=v};
+const hash=n=>{const x=Math.sin(n*127.1)*43758.5453;return x-Math.floor(x)};
+
+function gnomeSVG(mood='normal',clone=false){
+  const hat=clone?'#6b4bd6':'#d62a2a', hatDark=clone?'#3d2591':'#9e1220', coat=clone?'#4a4a5e':'#2f6fdb', skin=clone?'#c9b8d8':'#ffd2b0';
+  let eyes, brows='', mouth;
+  if(clone){
+    eyes='<circle cx="125" cy="176" r="8" fill="#ff2d2d"/><circle cx="175" cy="176" r="8" fill="#ff2d2d"/><circle cx="125" cy="176" r="14" fill="rgba(255,45,45,.3)"/><circle cx="175" cy="176" r="14" fill="rgba(255,45,45,.3)"/>';
+    brows='<path d="M110 160 L138 168 M190 160 L162 168" stroke="#222" stroke-width="6" stroke-linecap="round"/>';
+    mouth='<path d="M132 238 Q150 228 168 238" stroke="#5a3a4a" stroke-width="5" fill="none" stroke-linecap="round"/>';
+  } else if(mood==='shock'){
+    eyes='<circle cx="123" cy="174" r="15" fill="#fff" stroke="#222" stroke-width="3"/><circle cx="177" cy="174" r="15" fill="#fff" stroke="#222" stroke-width="3"/><circle cx="123" cy="174" r="5" fill="#222"/><circle cx="177" cy="174" r="5" fill="#222"/>';
+    brows='<path d="M106 148 Q123 138 138 148 M162 148 Q177 138 194 148" stroke="#eee" stroke-width="6" fill="none" stroke-linecap="round"/>';
+    mouth='<ellipse cx="150" cy="246" rx="15" ry="20" fill="#5a1a1a"/>';
+  } else if(mood==='angry'){
+    eyes='<circle cx="125" cy="178" r="7" fill="#222"/><circle cx="175" cy="178" r="7" fill="#222"/>';
+    brows='<path d="M108 160 L140 170 M192 160 L160 170" stroke="#eee" stroke-width="7" stroke-linecap="round"/>';
+    mouth='<path d="M130 242 Q150 230 170 242" stroke="#8a4b3a" stroke-width="5" fill="none" stroke-linecap="round"/>';
+  } else if(mood==='happy'){
+    eyes='<path d="M115 178 Q125 166 135 178 M165 178 Q175 166 185 178" stroke="#222" stroke-width="5" fill="none" stroke-linecap="round"/>';
+    mouth='<path d="M128 234 Q150 256 172 234 Z" fill="#8a3a2a"/>';
+  } else {
+    eyes='<circle cx="125" cy="176" r="7" fill="#222"/><circle cx="175" cy="176" r="7" fill="#222"/><circle cx="127" cy="174" r="2.2" fill="#fff"/><circle cx="177" cy="174" r="2.2" fill="#fff"/>';
+    mouth='<path d="M134 236 Q150 246 166 236" stroke="#8a4b3a" stroke-width="4" fill="none" stroke-linecap="round"/>';
+  }
+  return `<ellipse cx="150" cy="345" rx="95" ry="12" fill="rgba(0,0,0,.35)"/>
+  <path d="M70 250 Q150 210 230 250 L245 340 L55 340 Z" fill="${coat}"/>
+  <rect x="70" y="300" width="160" height="14" rx="5" fill="#3b2a1a"/><rect x="138" y="296" width="24" height="22" rx="4" fill="#ffd23f"/>
+  <circle cx="150" cy="185" r="62" fill="${skin}"/>
+  <path d="M88 190 Q90 300 150 330 Q210 300 212 190 Q190 230 150 228 Q110 230 88 190Z" fill="${clone?'#bdbdd0':'#f4f4f4'}"/>
+  ${mouth}
+  <circle cx="150" cy="200" r="17" fill="${clone?'#a98fbf':'#f2a07b'}"/>
+  ${eyes}${brows}
+  <path d="M150 10 Q190 80 222 150 L78 150 Q112 70 150 10Z" fill="${hat}"/>
+  <path d="M150 10 Q170 70 186 150 L222 150 Q190 80 150 10Z" fill="${hatDark}" opacity=".5"/>
+  <rect x="70" y="140" width="160" height="22" rx="11" fill="#fff"/>
+  <circle cx="150" cy="12" r="12" fill="#ffd23f"/>
+  ${clone?'':'<g transform="translate(184,92)"><path d="M0 -16 L14 -10 L14 2 Q14 12 0 18 Q-14 12 -14 2 L-14 -10Z" fill="#ffd23f"/><path d="M-6 0 L-1 5 L7 -5" stroke="#b3121f" stroke-width="3.5" fill="none" stroke-linecap="round"/></g>'}`;
+}
+
+
+$('outroG').innerHTML=gnomeSVG('happy');
+
+const SUBS=[
+ [0.00,1.05,'Всем <span class="hl">привет!</span>'],
+ [1.05,3.60,'Меня <span class="rd">взломали</span> и <span class="rd">удалили все сервера</span>'],
+ [3.60,6.05,'Короче, вот <span class="hl">новый Telegram-бот</span>'],
+ [6.05,8.40,'Если будут такие же <span class="hl">проблемы с подпиской</span> —'],
+ [8.40,10.60,'я сделал <span class="hl">поддержку</span> сетевых данных'],
+ [10.60,12.20,'…о <span class="hl">необычных данных</span>'],
+ [12.20,13.75,'А если его <span class="rd">взломают</span>…'],
+ [13.75,15.40,'…то меня могут <span class="rd">уничтожить</span>'],
+];
+const END=15.4;
+const TERM=['> connect gnom-vpn.net ... OK','> bruteforce admin ... <span class="r">ДОСТУП ПОЛУЧЕН</span>','> rm -rf /servers/nl1','> rm -rf /servers/de1','> rm -rf /servers/fi1','<span class="r">ВСЕ СЕРВЕРЫ УДАЛЕНЫ</span>'];
+let lastMood='';
+function center(id){const r=$(id).getBoundingClientRect();return [r.left+r.width/2,r.top+r.height/2];}
+
+function render(t){
+  let s='';for(const [a,b,x] of SUBS) if(t>=a&&t<b) s=x;
+  $('subs').innerHTML=s;
+  const sp=SUBS.find(([a,b])=>t>=a&&t<b);
+  if(sp){const k=eo(p(t,sp[0],sp[0]+0.18));op('subs',k);tf('subs',`translateY(${(1-k)*14}px)`);}
+
+  const hack=t>=1.05&&t<3.7, danger=t>=12.3;
+  // background tint
+  op('redbg',hack?eo(p(t,1.05,1.3))*(1-p(t,3.5,3.7)):danger?eo(p(t,12.3,12.6)):0);
+
+  // glitch / shake
+  let g=0;
+  if(t>=1.05&&t<1.6) g=1-p(t,1.05,1.6);
+  if(t>=2.9&&t<3.3) g=Math.max(g,0.7);
+  if(t>=12.3&&t<12.8) g=Math.max(g,1-p(t,12.3,12.8));
+  if(t>=13.8) g=Math.max(g,0.4+0.6*p(t,13.8,15.2));
+  const fr=Math.floor(t*30);
+  const gx=g*(hash(fr)-0.5)*24, gy=g*(hash(fr+9)-0.5)*14;
+  tf('world',`translate(${gx}px,${gy}px)`);
+  $('world').style.filter=g>0.05&&hash(fr+3)<g*0.6?`hue-rotate(${Math.round(hash(fr+5)*180)}deg) saturate(1.6)`:'';
+  show('glitchBar',g>0.05&&hash(fr+1)<g);$('glitchBar').style.top=(hash(fr+2)*900)+'px';$('glitchBar').style.height=(10+hash(fr+4)*60)+'px';
+  op('scan',hack||danger?0.6:0);
+  op('flash',(t>=1.05&&t<1.3)?0.8*(1-p(t,1.05,1.3)):(t>=13.8&&t<14.1)?0.6*(1-p(t,13.8,14.1)):0);
+
+  // gnome
+  let mood='happy';
+  if(t>=1.05&&t<3.8) mood='shock';
+  else if(t>=3.8) mood='normal';
+  if(t>=12.3) mood='shock';
+  if(mood!==lastMood){$('gnome').innerHTML=gnomeSVG(mood);lastMood=mood;}
+  let gx0,gy0,gs;
+  if(t<1.05){gx0=40;gy0=330;gs=1;}
+  else if(t<3.7){gx0=10;gy0=380;gs=0.85;}
+  else if(t<12.3){gx0=-30;gy0=480;gs=0.62;}
+  else {gx0=150;gy0=360;gs=1;}
+  $('gnome').style.left=gx0+'px';$('gnome').style.top=gy0+'px';
+  let gt=`scale(${gs})`;
+  if(t<1.05){const k=back(p(t,0,0.4));gt=`scale(${k}) rotate(${Math.sin(t*14)*5}deg)`;}
+  if(t>=1.05&&t<3.7) gt+=` translateX(${Math.sin(t*50)*3}px)`;
+  if(t>=3.7&&t<12.3){const k=eo(p(t,3.7,4.1));gt=`scale(${gs}) translateX(${(1-k)*-200}px) rotate(${Math.sin(t*3)*3}deg)`;}
+  if(t>=12.3){const k=back(p(t,12.3,12.7));gt=`scale(${k}) translateX(${Math.sin(t*60)*(3+5*p(t,13.8,15))}px)`;}
+  tf('gnome',gt);
+  // dissolve gnome at the end ("уничтожить")
+  if(t>=13.8){const d=p(t,14.0,15.3);$('gnome').style.opacity=1-d*0.85;$('gnome').style.filter=`drop-shadow(${Math.round((hash(fr)-0.5)*20)}px 0 0 rgba(255,0,60,.8)) drop-shadow(${Math.round((hash(fr+7)-0.5)*-20)}px 0 0 rgba(0,220,255,.8))`;}
+  else {$('gnome').style.opacity=1;$('gnome').style.filter='';}
+
+  show('hi',t<1.05);if(t<1.05){const k=back(p(t,0.15,0.45));tf('hi',`scale(${k})`);op('hi',p(t,0.15,0.3)*(1-p(t,0.9,1.05)));}
+
+  // hack scene
+  show('term',hack);show('warn',hack);show('servers',hack);
+  if(hack){
+    const k=eo(p(t,1.1,1.35));tf('term',`scale(${0.8+0.2*k})`);op('term',k*(1-p(t,3.5,3.7)));
+    const n=Math.floor(p(t,1.2,3.0)*TERM.length+0.0001);
+    $('termTxt').innerHTML=TERM.slice(0,Math.max(1,n)).join('<br>')+(Math.floor(t*4)%2?'█':'');
+    op('warn',(Math.floor(t*6)%2?1:0.35)*(1-p(t,3.5,3.7)));
+    op('servers',eo(p(t,1.2,1.5))*(1-p(t,3.5,3.7)));
+    for(let i=0;i<3;i++){
+      const dt=1.9+i*0.4;const dead=t>=dt;
+      const r=$('r'+i);
+      r.querySelectorAll('.led').forEach(l=>{l.style.background=dead?'#ff2d2d':'#39ff7a';l.style.boxShadow=dead?'0 0 6px #ff2d2d':'0 0 6px #39ff7a';});
+      const del=r.querySelector('.del');del.style.display=dead?'':'none';
+      del.style.transform=`rotate(-14deg) scale(${back(p(t,dt,dt+0.2))})`;
+      r.style.opacity=dead?1-0.6*p(t,dt+0.2,dt+0.6):1;
+      r.style.transform=dead?`translateY(${p(t,dt+0.2,dt+0.6)*20}px) rotate(${p(t,dt+0.2,dt+0.6)*(i-1)*8}deg)`:'';
+    }
+  }
+
+  // phone / bot
+  const ph=t>=3.7&&t<12.4;
+  show('phone',ph);show('sideLbl',ph);show('newTag',t>=4.2&&t<6.1);
+  let finger=null,tapT=null;
+  if(ph){
+    const k=eo(p(t,3.75,4.25));const out=p(t,12.2,12.4);
+    tf('phone',`translateY(${(1-k)*720}px) scale(${1-out*0.2})`);op('phone',1-out);
+    $('sideLbl').textContent=t<6.05?'НОВЫЙ TELEGRAM-БОТ':t<10.6?'ПОДДЕРЖКА':'НЕОБЫЧНЫЕ ДАННЫЕ';
+    op('sideLbl',k*(1-out));
+    if(t>=4.2){const b=back(p(t,4.2,4.5));tf('newTag',`scale(${b}) rotate(8deg)`);op('newTag',1-p(t,5.9,6.1));}
+    const ap={m1:4.9,kb1:5.15,m2:7.6,m3:8.6,kb2:9.6,m4:11.3};
+    for(const [id,st] of Object.entries(ap)){show(id,t>=st);const q=eo(p(t,st,st+0.2));op(id,q);tf(id,`translateY(${(1-q)*14}px)`);}
+    show('startBtn',t<4.8);
+    $('kbSup').style.background=(t>=7.0&&t<7.6)?'#3a9be0':'';
+    $('kbData').style.background=(t>=10.9&&t<11.3)?'#e0a800':'';
+    if(t>=4.2&&t<4.85){finger='startBtn';tapT=4.6;}
+    else if(t>=6.2&&t<7.6){finger='kbSup';tapT=7.0;}
+    else if(t>=10.3&&t<11.5){finger='kbData';tapT=10.9;}
+  }
+  show('shield',t>=10.7&&t<12.4);
+  if(t>=10.7){const b=back(p(t,10.7,11.0));tf('shield',`scale(${b}) rotate(${Math.sin(t*5)*4}deg)`);op('shield',1-p(t,12.2,12.4));}
+
+  // finger
+  if(finger){
+    const [x,y]=center(finger);
+    show('finger',1);$('finger').style.left=x+'px';$('finger').style.top=(y+6)+'px';
+    let sc=1;const d=t-tapT;if(d>-0.12&&d<0.12) sc=0.75;
+    if(d>=0&&d<0.45){show('ripple',1);$('ripple').style.left=x+'px';$('ripple').style.top=(y+6)+'px';tf('ripple',`scale(${1+d/0.45*1.6})`);op('ripple',1-d/0.45);} else show('ripple',0);
+    tf('finger',`scale(${sc})`);
+  } else {show('finger',0);show('ripple',0);}
+
+  // danger
+  show('danger',danger);show('cracks',t>=13.8);
+  if(danger){const k=back(p(t,12.35,12.7));tf('danger',`scale(${k})`);op('danger',(Math.floor(t*4)%2?1:0.7));}
+  if(t>=13.8){['ck1','ck2','ck3','ck4'].forEach((id,i)=>{const L=400;const q=eo(p(t,13.8+i*0.08,14.2+i*0.08));$(id).setAttribute('stroke-dasharray',`${L*q} ${L}`);});}
+
+  show('outro',t>=END);
+  if(t>=END) op('outro',p(t,END,END+0.3));
+}
+window.render=render;
+render(0);
+</script>
+</body></html>
