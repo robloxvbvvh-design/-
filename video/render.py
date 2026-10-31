@@ -2,7 +2,7 @@
 """Рендер вертикального видео 1080x1920 с караоке-субтитрами.
 
 Слово, которое сейчас произносится, загорается красным.
-Использование:  python3 render.py audio.mp3 words.json out.mp4
+Использование:  python3 render.py audio.mp3 words.json out.mp4 story.json
 words.json — таймкоды слов (из распознавания речи, см. asr.py).
 """
 import json, math, random, subprocess, sys, re
@@ -16,40 +16,15 @@ FONT_B = "/usr/share/fonts/opentype/inter/Inter-ExtraBold.otf"
 RED = (255, 38, 38)
 
 # ---------------------------------------------------------------- текст
-PHRASES = [
-    "Обычный дневной день.", "Ты сидишь за компьютером.",
-    "Кстати, тебя зовут Дима.", "И говоришь:", "«Сука, блять,",
-    "идите на б… блядь, блять!»",
-    "Ты продолжаешь играть,", "пока ты не слышишь,",
-    "что начинается зомби-апокалипсис!", "Блядь, сука!",
-    "Я был обычным человеком, сука!",
-    "Ты бежишь к бункеру.", "И как убежал — никто не знает.",
-    "Ты сидишь.", "Остались только консервы,", "пару банок питья…",
-    "И слышен стук в бункер.",
-    "К тебе приходит друг.", "— Это кто, блядь, сука?",
-    "— Открывайте!", "Я твой друг!", "Откройте, пожалуйста!",
-    "Вы сидите двое,", "и после этого слышите", "огромный взрыв.",
-    "Вы боитесь.", "— Эй, Дима, к нам кто-то стучится!",
-    "Похоже, зомби изобрели ядерку…", "Блядь, сука!",
-    "И к вам кто-то стучится…",
-]
-
-SCENES = [  # (start, title, kind)
-    (0.0, "ОБЫЧНЫЙ ДЕНЬ", "room"),
-    (10.0, "ЗОМБИ-АПОКАЛИПСИС", "zombie"),
-    (18.5, "БУНКЕР", "bunker"),
-    (27.6, "ТУК-ТУК…", "door"),
-    (34.2, "ВЗРЫВ", "boom"),
-    (43.9, "КТО ТАМ?", "door2"),
-]
-MAT = {"сука", "блять", "блядь", "б"}
+# Текст, сцены и события задаются в story*.json (см. load_story).
+PHRASES, SCENES, MAT = [], [], set()
 
 
 def norm(s):
     return re.sub(r"[^а-яa-z]", "", s.lower().replace("ё", "е"))
 
 
-def build(words):
+def build(words, PHRASES, MAT):
     """Сопоставляет красивый текст (с пунктуацией) с таймкодами распознавания."""
     phrases, k = [], 0
     for p in PHRASES:
@@ -113,6 +88,9 @@ BG = {
     "boom": grad((40, 14, 6), (6, 3, 2)),
 }
 BG["door2"] = BG["door"]
+BG.update({"attack": BG["bunker"], "shoot": grad((34, 40, 30), (6, 8, 6)), "outside": BG["zombie"],
+           "store": grad((58, 52, 44), (12, 11, 10)), "nest": grad((16, 14, 14), (2, 2, 2)),
+           "bunker_empty": BG["bunker"]})
 
 random.seed(3)
 SKYLINE = []
@@ -157,6 +135,8 @@ def person(d, cx, gy, s, col):
 
 
 def draw_scene(img, kind, t, ts, ev):
+    if kind in NEW_KINDS:
+        return draw_new(img, kind, t, ts, ev)
     d = ImageDraw.Draw(img, "RGBA")
     if kind == "room":
         mat = ev["mat"]
@@ -198,7 +178,7 @@ def draw_scene(img, kind, t, ts, ev):
         for i, (s, sp, off) in enumerate([(.9, 70, 0), (1.15, 95, 420), (.75, 55, 850), (1.3, 110, 1200)]):
             cx = W + 200 - ((tz * sp + off) % (W + 450))
             zombie(d, cx, 1240 + (s - 1) * 40, s, tz * 4 + i, (0, 0, 0))
-    elif kind in ("bunker", "boom"):
+    elif kind in ("bunker", "boom", "bunker_empty"):
         for y in range(380, 1250, 120):  # бетонные блоки
             for x in range(-60 * ((y // 120) % 2), W, 240):
                 d.rectangle([x + 4, y + 4, x + 236, y + 116], outline=(0, 0, 0, 70), width=4)
@@ -225,7 +205,7 @@ def draw_scene(img, kind, t, ts, ev):
         d.ellipse([lx - 26, ly - 10, lx + 26, ly + 38], fill=(255, 230, 160))
         if kind == "bunker":
             person(d, 760, 1220, 1.0, (6, 6, 6))
-        else:
+        elif kind == "boom":
             person(d, 360, 1220, 1.0, (6, 6, 6)); person(d, 690, 1220, .92, (6, 6, 6))
             tb = t - ts["взрыв"]
             if tb > 0:  # ядерный гриб на заднем плане и вспышка
@@ -279,6 +259,179 @@ def draw_scene(img, kind, t, ts, ev):
         for x0, y0, r, sp in ASH:
             y = (y0 + t * sp) % H; x = (x0 + math.sin(t + y0) * 30) % W
             d.ellipse([x - r, y - r, x + r, y + r], fill=(255, 200, 180, 90) if kind != "bunker" else (220, 220, 200, 50))
+
+
+# ---------------------------------------------------------------- сцены 2-й серии
+NEW_KINDS = {"attack", "shoot", "outside", "store", "nest"}
+random.seed(11)
+EYES = [(random.randint(60, W - 60), random.randint(420, 1180), random.uniform(.6, 1.3)) for _ in range(26)]
+BUN_SLOTS = [(150 + k * 85, 690) for k in range(9)]
+
+
+def _mask_overlay():
+    y, x = np.mgrid[0:H, 0:W]
+    inside = np.zeros((H, W), bool)
+    for cx in (300, 780):
+        inside |= (x - cx) ** 2 + ((y - 800) * 1.05) ** 2 < 400 ** 2
+    al = np.where(inside, 0, 215).astype(np.uint8)
+    ov = np.zeros((H, W, 4), np.uint8); ov[..., 3] = al
+    im = Image.fromarray(ov, "RGBA").filter(ImageFilter.GaussianBlur(10))
+    d = ImageDraw.Draw(im)
+    for cx in (300, 780):
+        d.ellipse([cx - 400, 800 - 381, cx + 400, 800 + 381], outline=(30, 30, 30, 255), width=26)
+    return im
+
+
+MASK_OV = None
+
+
+def blood(d, x, y, t, s=1.0):
+    random.seed(int(x * 7 + y))
+    for k in range(10):
+        dx, dy = random.uniform(-60, 60) * s, random.uniform(-40, 70) * s
+        r = random.uniform(8, 22) * s
+        d.ellipse([x + dx - r, y + dy - r, x + dx + r, y + dy + r], fill=(200, 0, 0, 230))
+    d.rectangle([x - 6, y, x + 6, y + min(160, t * 200)], fill=(170, 0, 0, 220))
+
+
+def eyes(d, x, y, s=1.0, a=255):
+    for ex in (-18, 18):
+        d.ellipse([x + ex * s - 9 * s, y - 7 * s, x + ex * s + 9 * s, y + 7 * s], fill=(255, 30, 20, a))
+
+
+def gasmask(d, cx, cy, s):
+    d.rounded_rectangle([cx - 170 * s, cy - 190 * s, cx + 170 * s, cy + 170 * s], 140 * s, fill=(70, 75, 70))
+    for ex in (-80, 80):
+        d.ellipse([cx + ex * s - 62 * s, cy - 110 * s, cx + ex * s + 62 * s, cy + 14 * s], fill=(30, 30, 30))
+        d.ellipse([cx + ex * s - 46 * s, cy - 94 * s, cx + ex * s + 46 * s, cy - 2 * s], fill=(120, 170, 160))
+    d.rounded_rectangle([cx - 70 * s, cy + 60 * s, cx + 70 * s, cy + 240 * s], 30 * s, fill=(50, 52, 50))
+    for k in range(4):
+        d.line([(cx - 55 * s, cy + (95 + k * 38) * s), (cx + 55 * s, cy + (95 + k * 38) * s)], fill=(30, 30, 30), width=int(8 * s))
+
+
+def pistol(d, x, y, s=1.0, flash=0):
+    d.polygon([(x, y), (x + 330 * s, y - 120 * s), (x + 360 * s, y - 60 * s), (x + 60 * s, y + 50 * s)], fill=(85, 85, 95), outline=(200, 200, 210))
+    d.polygon([(x + 40 * s, y + 20 * s), (x + 120 * s, y - 10 * s), (x + 150 * s, y + 160 * s), (x + 70 * s, y + 190 * s)], fill=(60, 50, 45))
+    d.polygon([(x + 120 * s, y + 160 * s), (x - 10 * s, y + 420 * s), (x + 130 * s, y + 420 * s), (x + 190 * s, y + 140 * s)], fill=(45, 45, 52), outline=(200, 200, 210))
+    if flash:
+        tx, ty = x + 360 * s, y - 95 * s
+        pts = []
+        for k in range(16):
+            r = (110 if k % 2 == 0 else 40) * s * flash
+            a = k / 16 * math.pi * 2
+            pts.append((tx + math.cos(a) * r * 1.4, ty + math.sin(a) * r))
+        d.polygon(pts, fill=(255, 220, 90))
+        d.ellipse([tx - 30 * s, ty - 25 * s, tx + 30 * s, ty + 25 * s], fill=(255, 255, 230))
+
+
+def draw_new(img, kind, t, ts, ev):
+    global MASK_OV
+    if kind in ("attack", "shoot", "nest"):
+        draw_scene(img, "bunker_empty", t, ts, ev)
+    elif kind == "outside":
+        draw_scene(img, "zombie", t, ts, ev)
+    d = ImageDraw.Draw(img, "RGBA")
+    if kind == "attack":
+        person(d, 300, 1220, 1.0, (6, 6, 6))
+        bit = t >= ts["укус1"]
+        person(d, 680, 1220, .95, (30, 45, 30) if bit and t > ts["укус1"] + .6 else (6, 6, 6))
+        te = t - ts["выход"] + .4
+        if te > 0:
+            zx = max(860, W + 220 - te * 420)
+            zombie(d, zx, 1225, 1.05, t * 5, (0, 0, 0))
+        if bit:
+            blood(d, 760, 960, t - ts["укус1"])
+    elif kind == "shoot":
+        tf = t - ts["падает"]
+        if tf < 0:
+            jit = math.sin(t * 31) * 6
+            person(d, 640 + jit, 1220, 1.0, (35, 60, 35))
+            eyes(d, 640 + jit, 975, 1.4)
+            blood(d, 700, 1060, 2)
+        else:
+            k = min(1, tf / .35)
+            ang = k * math.pi / 2
+            cx, gy = 640, 1220
+            hx, hy = cx + math.sin(ang) * 265, gy - math.cos(ang) * 265
+            d.line([(cx, gy - 40), ((cx + hx) / 2, (gy - 40 + hy) / 2)], fill=(35, 60, 35), width=200)
+            d.ellipse([hx - 62, hy - 62, hx + 62, hy + 62], fill=(35, 60, 35))
+            if k == 1:
+                d.ellipse([cx - 40, gy - 30, cx + 380, gy + 30], fill=(150, 0, 0, 200))
+        tp = t - ts["пушку"]
+        if tp > 0:
+            sl = max(0, 1 - tp / .3)
+            tsh = t - ts["выстрел"]
+            fl = 1 - tsh / .18 if 0 <= tsh < .18 else 0
+            rec = 25 * fl
+            pistol(d, 120 - rec, 1130 + sl * 500 + rec, 1.0, fl)
+    elif kind == "outside":
+        bob = abs(math.sin(t * 9)) * 18
+        person(d, 260, 1250 - bob, .85, (0, 0, 0))
+        tm = t - ts["противогаз"]
+        if tm > 0:
+            gasmask(d, 260, 1250 - bob - 235, .3)
+        tk = t - ts["убиваешь"]
+        if 0 <= tk < .2:
+            pistol(d, 300, 1030 - bob, .5, 1 - tk / .2)
+        if tm > .9:
+            if MASK_OV is None:
+                MASK_OV = _mask_overlay()
+            img.alpha_composite(MASK_OV)
+            d = ImageDraw.Draw(img, "RGBA")
+        if -.3 < tm < .9:
+            p = min(1, (tm + .3) / .25)
+            gasmask(d, W / 2, 700, 1.6 * p)
+    elif kind == "store":
+        d.rectangle([60, 360, 1020, 1200], fill=(40, 34, 28))
+        for sy in (520, 760, 1000):
+            d.rectangle([60, sy, 1020, sy + 22], fill=(110, 80, 50))
+        random.seed(5)
+        for sy in (520, 1000):
+            x = 80
+            while x < 990:
+                w = random.randint(50, 90); h = random.randint(80, 140)
+                d.rectangle([x, sy - h, x + w, sy], fill=random.choice([(180, 50, 40), (40, 110, 170), (220, 180, 60), (60, 140, 70), (200, 200, 200)]))
+                x += w + 10
+        taken = 0 if t < ts["булочек"] - .8 else min(9, int((t - ts["булочек"] + .8) / .15))
+        for k, (bx, by) in enumerate(BUN_SLOTS):
+            if k >= taken:
+                d.ellipse([bx - 38, by - 40, bx + 38, by + 8], fill=(214, 150, 70))
+                d.arc([bx - 24, by - 32, bx + 24, by - 4], 200, 340, fill=(250, 210, 140), width=5)
+        d.rectangle([0, 1200, W, 1260], fill=(30, 28, 26))
+        # ты
+        tr = t - ts["бежишь2"]
+        yx = 300 - max(0, tr) * 900
+        if yx > -200:
+            person(d, yx, 1230, 1.0, (6, 6, 6))
+            for k in range(taken):  # булочки в руках
+                bx, by = yx - 90 + (k % 3) * 60, 1100 - (k // 3) * 40
+                d.ellipse([bx - 34, by - 26, bx + 34, by + 18], fill=(214, 150, 70), outline=(120, 70, 20), width=3)
+        # Тимофей
+        tt = t - ts["тимофей"]
+        if tt > 0:
+            a = min(1, tt / .4)
+            bit = t >= ts["укус2"]
+            tx = 760 + (1 - a) * 300
+            person(d, tx, 1230, .95, (30, 50, 30) if bit and t > ts["укус2"] + .5 else (14, 10, 8))
+            tw = F_TTL.getlength("ТИМОФЕЙ")
+            d.rounded_rectangle([tx - tw / 2 - 24, 860, tx + tw / 2 + 24, 930], 35, fill=(255, 255, 255, int(235 * a)))
+            d.text((tx, 895), "ТИМОФЕЙ", font=F_TTL, anchor="mm", fill=(20, 20, 20, int(255 * a)))
+            tz = t - ts["укус2"] + .5
+            if tz > 0:
+                zombie(d, max(920, W + 200 - tz * 700), 1235, 1.0, t * 5, (0, 0, 0))
+            if bit:
+                blood(d, 830, 990, t - ts["укус2"])
+    elif kind == "nest":
+        d.rectangle([0, 0, W, H], fill=(0, 0, 0, 120))
+        ty = t - ts["глаза"]
+        if ty > 0:
+            n = min(len(EYES), int(ty * 14) + 1)
+            for k in range(n):
+                ex, ey, sc = EYES[k]
+                blink = 0 if math.sin(t * 3 + k * 1.7) > .97 else 255
+                gl = 0.6 + 0.4 * math.sin(t * 4 + k)
+                eyes(d, ex, ey, sc * 1.4, int(blink * gl))
+        person(d, 540, 1260, 1.05, (0, 0, 0))
 
 
 # ---------------------------------------------------------------- субтитры
@@ -353,19 +506,20 @@ def render(i):
     base = Image.fromarray(BG[kind]).convert("RGBA")
     draw_scene(base, kind, t, TS, ev)
     arr = np.asarray(base.convert("RGB")).astype(np.float32)
-    # вспышка взрыва
-    tb = t - TS["взрыв"]
-    if 0 <= tb < 1.6:
-        k = (1 - tb / 1.6) ** 2
-        arr = arr * (1 - k) + np.array([255, 245, 220]) * k
+    # вспышки (взрыв, выстрел, укус)
+    for t0, col, fd in FLASHES:
+        tb = t - t0
+        if 0 <= tb < fd:
+            k = (1 - tb / fd) ** 2 * (0.75 if col != [255, 245, 220] else 1)
+            arr = arr * (1 - k) + np.array(col) * k
     arr = arr * VIG + GRAIN[i % len(GRAIN)]
     # переход между сценами (затемнение)
     for s, *_ in SCENES[1:]:
         dt = abs(t - s)
         if dt < .25:
             arr *= .2 + .8 * dt / .25
-    if t > DUR - 1.0:
-        arr *= max(0, (DUR - t) / 1.0)
+    if t > ADUR - 1.0:
+        arr *= max(0, (ADUR - t) / 1.0)
     img = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8)).convert("RGBA")
     if shake > 0:
         dx, dy = int(math.sin(i * 2.7) * 28 * shake), int(math.cos(i * 3.3) * 28 * shake)
@@ -387,42 +541,70 @@ def render(i):
     # прогресс
     d.rectangle([0, H - 14, W * t / DUR, H], fill=RED)
     draw_subs(img, PH, t)
-    if t > DUR - 1.0:
-        img = Image.fromarray((np.asarray(img.convert("RGB")) * max(0, (DUR - t))).astype(np.uint8))
+    if t > ADUR - 1.0:
+        img = Image.fromarray((np.asarray(img.convert("RGB")) * max(0, (ADUR - t))).astype(np.uint8)).convert("RGBA")
+    if OUTRO and t > ADUR:  # финальная надпись
+        a = min(1, (t - ADUR) / .5)
+        d = ImageDraw.Draw(img, "RGBA")
+        f = ImageFont.truetype(FONT, 96)
+        lines = OUTRO.split("\n")
+        for li, ln in enumerate(lines):
+            d.text((W / 2, H / 2 - (len(lines) - 1) * 60 + li * 120), ln, font=f, anchor="mm",
+                   fill=(RED if li == len(lines) - 1 else (255, 255, 255)) + (int(255 * a),))
     return img.convert("RGB").tobytes()
 
 
-def init(ph, ts, knocks, level, dur):
-    global PH, TS, KNOCKS, LEVEL, DUR
-    PH, TS, KNOCKS, LEVEL, DUR = ph, ts, knocks, level, dur
+class _TS(dict):  # нет такой метки — событие «никогда»
+    def __missing__(self, k):
+        return 1e9
+
+
+def init(ph, ts, knocks, level, dur, adur, story):
+    global PH, TS, KNOCKS, LEVEL, DUR, ADUR, SCENES, FLASHES, OUTRO
+    PH, TS, KNOCKS, LEVEL, DUR, ADUR = ph, _TS(ts), knocks, level, dur, adur
+    SCENES = [tuple(x) for x in story["scenes"]]
+    FLASHES = story["_flashes"]; OUTRO = story.get("outro", "")
+
+
+def times_of(flat, word, which):
+    hits = [tk["s"] for tk in flat if norm(tk["t"]) == norm(word)]
+    assert hits, word
+    return hits if which == "all" else [hits[which]]
+
+
+def load_story(path, words):
+    """story.json: phrases, scenes [t, title, kind], mat, marks {имя: [слово, номер]},
+    knocks [[слово, сила, номер|"all"]], flashes [[слово, номер|"all", [r,g,b], длит.]], outro."""
+    st = json.load(open(path))
+    ph = build(words, st["phrases"], set(st["mat"]))
+    flat = [t for p in ph for t in p]
+    ts = {name: times_of(flat, w, n)[0] for name, (w, n) in st.get("marks", {}).items()}
+    knocks = [(t, amp) for w, amp, n in st.get("knocks", []) for t in times_of(flat, w, n)]
+    st["_flashes"] = [(t, col, fd) for w, n, col, fd in st.get("flashes", []) for t in times_of(flat, w, n)]
+    return st, ph, ts, knocks
 
 
 def main():
     audio, wjson, out = sys.argv[1:4]
+    story = sys.argv[4] if len(sys.argv) > 4 else "story1.json"
     words = json.load(open(wjson))
-    ph = build(words)
-    flat = [t for p in ph for t in p]
-    ts = {}
-    for tk in flat:
-        ts.setdefault(norm(tk["t"]), tk["s"])
-    knocks = [(ts["стук"], 1.0), (ts["открывайте"], .8), (ts["откройте"], .7),
-              (ts["взрыв"], 1.4), (ts["ядерку"], .5)]
-    knocks += [(tk["s"], .9) for tk in flat if norm(tk["t"]) == "стучится"]
+    st, ph, ts, knocks = load_story(story, words)
     # громкость голоса по кадрам
     pcm = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", audio, "-ac", "1", "-ar", "16000",
                           "-f", "s16le", "-"], capture_output=True).stdout
     a = np.frombuffer(pcm, np.int16).astype(np.float32) / 32768
-    dur = len(a) / 16000
+    adur = len(a) / 16000
+    dur = adur + (2.5 if st.get("outro") else 0)
     hop = 16000 // FPS
     lv = np.array([np.sqrt((a[j * hop:(j + 1) * hop] ** 2).mean() + 1e-9) for j in range(len(a) // hop)])
-    lv = np.clip(lv / np.percentile(lv, 97), 0, 1).tolist()
+    lv = np.clip(lv / np.percentile(lv, 97), 0, 1).tolist() + [0.0] * int(3 * FPS)
     n = int(dur * FPS)
     enc = subprocess.Popen(["ffmpeg", "-loglevel", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24",
-                            "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-", "-i", audio,
-                            "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p",
-                            "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", out],
+                            "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-", "-i", audio, "-af", "apad", "-t", f"{dur:.3f}",
+                            "-c:v", "libx264", "-preset", "medium", "-crf", "26", "-pix_fmt", "yuv420p",
+                            "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", out],
                            stdin=subprocess.PIPE)
-    with Pool(4, init, (ph, ts, knocks, lv, dur)) as pool:
+    with Pool(4, init, (ph, ts, knocks, lv, dur, adur, st)) as pool:
         for j, fr in enumerate(pool.imap(render, range(n), chunksize=4)):
             enc.stdin.write(fr)
             if j % 150 == 0:
