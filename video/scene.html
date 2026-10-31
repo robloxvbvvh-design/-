@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:540px;height:960px;overflow:hidden;background:#0d1020;font-family:"DejaVu Sans",sans-serif}
+#stage{position:absolute;inset:0;overflow:hidden;background:radial-gradient(circle at 50% 30%,#2a2f6b 0%,#12142c 60%,#0a0b18 100%)}
+.abs{position:absolute}
+.hide{display:none}
+#subs{left:20px;right:20px;bottom:36px;text-align:center;color:#fff;font-weight:bold;font-size:30px;line-height:1.25;
+  text-shadow:0 0 6px #000,0 3px 0 #000,0 -2px 0 #000,2px 0 0 #000,-2px 0 0 #000;z-index:50}
+#subs span.hl{color:#ffd23f}
+/* scene 1 */
+#happIcon{left:170px;top:190px;width:200px;height:200px;border-radius:46px;background:linear-gradient(135deg,#5b6cff,#8a3cff);
+  box-shadow:0 20px 50px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;color:#fff;font-size:56px;font-weight:bold}
+#cross{left:150px;top:170px;width:240px;height:240px}
+#s1title{left:0;right:0;top:450px;text-align:center;color:#ff5a5a;font-size:34px;font-weight:bold}
+#spinner{left:245px;top:520px;width:50px;height:50px;border-radius:50%;border:6px solid rgba(255,255,255,.2);border-top-color:#fff}
+#price{left:120px;top:600px;width:300px;padding:18px;border-radius:18px;background:#fff;color:#222;text-align:center;font-size:30px;font-weight:bold}
+#price small{display:block;font-size:18px;color:#777;font-weight:normal}
+#priceLine{left:110px;top:640px;width:320px;height:8px;background:#ff3b3b;border-radius:4px;transform-origin:left center}
+/* scene 2 */
+#gnome{left:120px;top:120px;width:300px;height:360px}
+#brand{left:0;right:0;top:500px;text-align:center;color:#fff;font-size:58px;font-weight:bold;letter-spacing:2px;text-shadow:0 4px 20px rgba(120,140,255,.8)}
+#brand b{color:#ffd23f}
+.badge{padding:16px 22px;border-radius:20px;font-weight:bold;color:#fff;font-size:30px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+#b50{left:60px;top:610px;background:linear-gradient(135deg,#ff7a18,#ff3d6e)}
+#b5d{left:245px;top:610px;background:linear-gradient(135deg,#1fbf6a,#0f8f8a);font-size:24px;width:240px}
+#b5d small{display:block;font-size:18px;font-weight:normal}
+/* phone */
+#header{left:0;right:0;top:34px;text-align:center;color:#ffd23f;font-size:30px;font-weight:bold}
+#step{left:0;right:0;top:74px;text-align:center;color:#fff;font-size:22px}
+#phone{left:110px;top:112px;width:320px;height:640px;border-radius:44px;background:#000;padding:12px;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 3px #3a3d55}
+#screen{position:relative;width:100%;height:100%;border-radius:34px;overflow:hidden;background:#fff}
+.scr{position:absolute;inset:0}
+.statusbar{height:28px;font-size:12px;padding:8px 22px;display:flex;justify-content:space-between;color:#222}
+/* play */
+#play{background:#fff}
+.searchbar{margin:8px 14px;height:44px;border-radius:22px;background:#eef0f4;display:flex;align-items:center;padding:0 16px;font-size:17px;color:#222}
+.searchbar .ph{color:#888}
+.caret{display:inline-block;width:2px;height:20px;background:#1a73e8;margin-left:2px;vertical-align:middle}
+.storeLogo{display:flex;align-items:center;gap:8px;padding:6px 18px;font-size:17px;color:#444;font-weight:bold}
+.tri{width:0;height:0;border-left:16px solid #34a853;border-top:10px solid transparent;border-bottom:10px solid transparent}
+#appRow{margin:18px 14px;display:flex;gap:12px;align-items:center}
+.miniHapp{width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#5b6cff,#8a3cff);color:#fff;font-weight:bold;display:flex;align-items:center;justify-content:center;font-size:20px;flex:none}
+#appRow .t{font-size:17px;font-weight:bold;color:#222}
+#appRow .s{font-size:12px;color:#666}
+#installBtn{margin:6px 14px;height:44px;border-radius:22px;background:#01875f;color:#fff;font-weight:bold;font-size:17px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+#progWrap{margin:6px 14px;height:44px;display:flex;flex-direction:column;justify-content:center}
+#progBar{height:6px;border-radius:3px;background:#dfe3e8;overflow:hidden}
+#progFill{height:100%;background:#01875f;width:0}
+#progTxt{font-size:13px;color:#555;margin-top:6px}
+.shots{display:flex;gap:8px;margin:14px}
+.shots div{flex:1;height:170px;border-radius:12px;background:linear-gradient(160deg,#6c7bff,#2c2f6b)}
+/* telegram */
+#tg{background:#fff}
+.tgHead{height:52px;background:#517da2;color:#fff;display:flex;align-items:center;padding:0 14px;font-size:17px;font-weight:bold;gap:10px}
+.tgSearch{margin:10px 12px;height:38px;border-radius:19px;background:#f0f2f5;display:flex;align-items:center;padding:0 14px;font-size:16px;color:#222}
+.chatRow{display:flex;gap:10px;align-items:center;padding:10px 14px}
+.ava{width:48px;height:48px;border-radius:50%;background:#c0392b;flex:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.chatRow .t{font-weight:bold;font-size:16px;color:#222}
+.chatRow .s{font-size:13px;color:#888}
+#tgChat{background:#d7e6c9;background-image:radial-gradient(rgba(255,255,255,.35) 2px,transparent 2px);background-size:22px 22px}
+#tgChat .tgHead{background:#517da2}
+.msgs{position:absolute;left:0;right:0;top:80px;bottom:62px;padding:10px;display:flex;flex-direction:column;justify-content:flex-end;gap:8px}
+.msg{max-width:84%;background:#fff;border-radius:14px;padding:9px 12px;font-size:14px;color:#222;box-shadow:0 1px 2px rgba(0,0,0,.15);line-height:1.35}
+.msg.me{align-self:flex-end;background:#effdde}
+.kb{display:flex;flex-direction:column;gap:5px;max-width:84%}
+.kb div{background:rgba(80,110,140,.75);color:#fff;border-radius:10px;padding:9px;text-align:center;font-size:14px;font-weight:bold}
+.keyBox{margin-top:6px;background:#f2f4f7;border-radius:8px;padding:7px;font-family:"DejaVu Sans Mono",monospace;font-size:11px;color:#1a5fa0;word-break:break-all}
+.bottomBar{position:absolute;left:0;right:0;bottom:0;height:62px;background:#fff;display:flex;align-items:center;justify-content:center;padding:0 12px}
+#startBtn{width:100%;height:42px;border-radius:10px;background:#3a9be0;color:#fff;font-weight:bold;font-size:17px;display:flex;align-items:center;justify-content:center}
+#toast{left:50%;bottom:200px;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;font-size:14px;padding:8px 16px;border-radius:16px;white-space:nowrap}
+/* happ app */
+#happ{background:linear-gradient(180deg,#1b1e3d,#0f1126);color:#fff}
+.hHead{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;font-size:20px;font-weight:bold}
+#plus{width:40px;height:40px;border-radius:50%;background:#5b6cff;display:flex;align-items:center;justify-content:center;font-size:26px}
+#menu{right:16px;top:86px;background:#fff;color:#222;border-radius:12px;padding:6px;box-shadow:0 10px 30px rgba(0,0,0,.4);font-size:14px;width:210px}
+#menu div{padding:10px}
+#menuPaste{background:#eef0ff;border-radius:8px;font-weight:bold}
+#server{margin:14px 16px;padding:14px;border-radius:14px;background:rgba(255,255,255,.08);display:flex;gap:12px;align-items:center}
+#server .t{font-weight:bold;font-size:16px}
+#server .s{font-size:12px;color:#aab}
+#power{left:85px;top:300px;width:140px;height:140px;border-radius:50%;background:#2a2e55;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 10px rgba(255,255,255,.05)}
+#connTxt{left:0;right:0;top:470px;text-align:center;font-size:20px;font-weight:bold}
+/* finger */
+#finger{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.55);border:3px solid rgba(255,255,255,.95);box-shadow:0 4px 14px rgba(0,0,0,.4);z-index:40;margin:-22px 0 0 -22px}
+#ripple{width:44px;height:44px;border-radius:50%;border:4px solid #ffd23f;z-index:39;margin:-22px 0 0 -22px}
+/* outro */
+#outro{inset:0;background:radial-gradient(circle at 50% 40%,#2a2f6b,#0a0b18);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:60}
+#outro .big{color:#fff;font-size:52px;font-weight:bold}
+#outro .big b{color:#ffd23f}
+#outro .tg{background:#2aabee;color:#fff;font-size:26px;font-weight:bold;padding:16px 26px;border-radius:40px}
+#outro .p{color:#fff;font-size:24px}
+</style></head><body>
+<div id="stage">
+
+<!-- SCENE 1 -->
+<div id="s1" class="abs" style="inset:0">
+  <div id="happIcon" class="abs">Happ</div>
+  <svg id="cross" class="abs" viewBox="0 0 240 240"><g stroke="#ff2d2d" stroke-width="30" stroke-linecap="round">
+    <line id="x1" x1="40" y1="40" x2="200" y2="200"/><line id="x2" x1="200" y1="40" x2="40" y2="200"/></g></svg>
+  <div id="s1title" class="abs">VPN не работает</div>
+  <div id="spinner" class="abs"></div>
+  <div id="price" class="abs">999 ₽ / мес<small>дорогая подписка</small></div>
+  <div id="priceLine" class="abs"></div>
+</div>
+
+<!-- SCENE 2 -->
+<div id="s2" class="abs" style="inset:0">
+  <svg id="gnome" class="abs" viewBox="0 0 300 360">
+    <defs><linearGradient id="hat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff4d4d"/><stop offset="1" stop-color="#b3121f"/></linearGradient></defs>
+    <ellipse cx="150" cy="345" rx="95" ry="12" fill="rgba(0,0,0,.35)"/>
+    <path d="M70 250 Q150 210 230 250 L245 340 L55 340 Z" fill="#2f6fdb"/>
+    <rect x="70" y="300" width="160" height="14" rx="5" fill="#3b2a1a"/><rect x="138" y="296" width="24" height="22" rx="4" fill="#ffd23f"/>
+    <circle cx="150" cy="185" r="62" fill="#ffd2b0"/>
+    <path d="M88 190 Q90 300 150 330 Q210 300 212 190 Q190 230 150 228 Q110 230 88 190Z" fill="#f4f4f4"/>
+    <path d="M118 222 Q150 205 182 222 Q150 236 118 222Z" fill="#e6e6e6"/>
+    <circle cx="150" cy="200" r="17" fill="#f2a07b"/>
+    <circle cx="125" cy="176" r="7" fill="#222"/><circle cx="175" cy="176" r="7" fill="#222"/>
+    <circle cx="127" cy="174" r="2.2" fill="#fff"/><circle cx="177" cy="174" r="2.2" fill="#fff"/>
+    <path d="M150 10 Q190 80 222 150 L78 150 Q112 70 150 10Z" fill="url(#hat)"/>
+    <rect x="70" y="140" width="160" height="22" rx="11" fill="#fff"/>
+    <circle cx="150" cy="12" r="12" fill="#ffd23f"/>
+    <g transform="translate(184,92)"><path d="M0 -16 L14 -10 L14 2 Q14 12 0 18 Q-14 12 -14 2 L-14 -10Z" fill="#ffd23f"/><path d="M-6 0 L-1 5 L7 -5" stroke="#b3121f" stroke-width="3.5" fill="none" stroke-linecap="round"/></g>
+  </svg>
+  <div id="brand" class="abs">ГНОМ <b>VPN</b></div>
+  <div id="b50" class="abs badge">50 ₽</div>
+  <div id="b5d" class="abs badge">5 дней<small>бесплатно</small></div>
+</div>
+
+<!-- PHONE SCENES -->
+<div id="ph" class="abs" style="inset:0">
+  <div id="header" class="abs">ИНСТРУКЦИЯ</div>
+  <div id="step" class="abs"></div>
+  <div id="phone" class="abs"><div id="screen">
+
+    <div id="play" class="scr">
+      <div class="statusbar"><span>12:00</span><span>▮▮▮ 100%</span></div>
+      <div class="storeLogo"><div class="tri"></div>Google Play</div>
+      <div class="searchbar"><span id="playQ"></span><span class="caret" id="playCaret"></span></div>
+      <div id="playRes">
+        <div id="appRow"><div class="miniHapp">Happ</div><div><div class="t">Happ – Proxy Utility</div><div class="s">Клиент VPN · 4,7 ★</div></div></div>
+        <div id="installBtn">Установить</div>
+        <div id="progWrap"><div id="progBar"><div id="progFill"></div></div><div id="progTxt">Скачивание…</div></div>
+        <div class="shots"><div></div><div></div><div></div></div>
+      </div>
+    </div>
+
+    <div id="tg" class="scr">
+      <div class="tgHead">Telegram</div>
+      <div class="tgSearch"><span id="tgQ"></span><span class="caret" id="tgCaret"></span></div>
+      <div id="tgRes" class="chatRow"><div class="ava"><svg width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="24" fill="#2f6fdb"/><path d="M24 6 L34 26 L14 26Z" fill="#ff4d4d"/><circle cx="24" cy="31" r="8" fill="#ffd2b0"/><path d="M16 32 Q24 46 32 32Z" fill="#fff"/></svg></div>
+        <div><div class="t">Гном VPN</div><div class="s">бот · подписка на VPN</div></div></div>
+    </div>
+
+    <div id="tgChat" class="scr">
+      <div class="tgHead"><div class="ava" style="width:34px;height:34px"><svg width="34" height="34" viewBox="0 0 48 48"><circle cx="24" cy="24" r="24" fill="#2f6fdb"/><path d="M24 6 L34 26 L14 26Z" fill="#ff4d4d"/><circle cx="24" cy="31" r="8" fill="#ffd2b0"/><path d="M16 32 Q24 46 32 32Z" fill="#fff"/></svg></div>Гном VPN</div>
+      <div class="msgs">
+        <div class="msg" id="m1">Привет! Я бот <b>Гном VPN</b>. Быстрый VPN без ограничений.</div>
+        <div class="msg me" id="m2">/start</div>
+        <div class="msg" id="m3">Выберите тариф:</div>
+        <div class="kb" id="kb"><div id="kbPay">Оплатить подписку — 50 ₽</div><div>5 дней бесплатно</div></div>
+        <div class="msg" id="m4">✓ Оплата прошла! Подписка активна.</div>
+        <div class="msg" id="m5">Ваш ключ-ссылка:<div class="keyBox" id="keyBox">vless://gnom-vpn@nl1.gnomvpn.net:443?security=reality#GnomVPN</div></div>
+      </div>
+      <div class="bottomBar"><div id="startBtn">СТАРТ</div></div>
+      <div id="toast" class="abs">Ссылка скопирована</div>
+    </div>
+
+    <div id="happ" class="scr">
+      <div class="statusbar" style="color:#fff"><span>12:02</span><span>▮▮▮ 100%</span></div>
+      <div class="hHead">Happ<div id="plus">+</div></div>
+      <div id="menu" class="abs"><div id="menuPaste">Вставить из буфера</div><div>Сканировать QR</div><div>Добавить вручную</div></div>
+      <div id="server"><div class="miniHapp" style="width:42px;height:42px;font-size:12px;background:#2f6fdb">ГНОМ</div><div><div class="t">Гном VPN · Нидерланды</div><div class="s">vless · reality</div></div></div>
+      <div id="power" class="abs"><svg width="70" height="70" viewBox="0 0 70 70"><path d="M35 8 V34" stroke="#fff" stroke-width="7" stroke-linecap="round"/><path d="M20 18 A22 22 0 1 0 50 18" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round"/></svg></div>
+      <div id="connTxt" class="abs">Не подключено</div>
+    </div>
+
+  </div></div>
+</div>
+
+<div id="ripple" class="abs"></div>
+<div id="finger" class="abs"></div>
+
+<div id="outro" class="abs">
+  <svg id="outroG" width="200" height="240" viewBox="0 0 300 360"></svg>
+  <div class="big">ГНОМ <b>VPN</b></div>
+  <div class="tg">Telegram: Гном VPN</div>
+  <div class="p">50 ₽ · 5 дней бесплатно</div>
+</div>
+
+<div id="subs" class="abs"></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const cl=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const p=(t,a,b)=>cl((t-a)/(b-a));
+const eo=x=>1-Math.pow(1-x,3);
+const back=x=>{const c=1.7;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+const show=(id,v)=>{$(id).style.display=v?'':'none'};
+const op=(id,v)=>{$(id).style.opacity=v};
+const tf=(id,v)=>{$(id).style.transform=v};
+const type=(s,t,a,b)=>s.slice(0,Math.round(s.length*p(t,a,b)));
+
+// subtitles aligned to silence gaps in the audio
+const SUBS=[
+ [0.00,2.30,'Ваш <span class="hl">VPN</span> не грузит? Что делать?'],
+ [2.30,4.45,'Ну у него же <span class="hl">дорогая подписка</span>'],
+ [4.45,6.20,'Держи наш <span class="hl">VPN Гном</span>'],
+ [6.20,8.40,'<span class="hl">50 руб</span>, бесплатно <span class="hl">пять дней</span>'],
+ [8.40,9.70,'Вот инструкция'],
+ [9.70,13.15,'Пишем в поиске <span class="hl">Happ</span> и заходим на специальный клиент'],
+ [13.15,15.60,'Заходим в Telegram-канал <span class="hl">Гном VPN</span>'],
+ [15.60,18.45,'Нажимаем <span class="hl">Старт</span> или <span class="hl">Оплачиваю подписку</span>'],
+ [18.45,20.70,'Сразу же идём, получаем <span class="hl">ключ-ссылку</span>'],
+ [20.70,23.10,'Вставляем его — и пользуемся!'],
+];
+const END=23.1;
+
+// finger keyframes: [time, targetId or null(hidden), tap?]
+function center(id){const r=$(id).getBoundingClientRect();return [r.left+r.width/2,r.top+r.height/2];}
+
+function render(t){
+  // subtitles
+  let s='';for(const [a,b,x] of SUBS) if(t>=a&&t<b) s=x;
+  $('subs').innerHTML=s;
+  const sp=SUBS.find(([a,b])=>t>=a&&t<b);
+  if(sp){const k=eo(p(t,sp[0],sp[0]+0.18));op('subs',k);tf('subs',`translateY(${(1-k)*14}px)`);}
+
+  // ---- scene 1 (0-4.45)
+  show('s1',t<4.45);
+  if(t<4.45){
+    const fadeOut=1-p(t,4.2,4.45);op('s1',fadeOut);
+    const ic=back(p(t,0,0.45));tf('happIcon',`scale(${ic}) rotate(${Math.sin(t*20)*3*p(t,0.9,1.3)*(1-p(t,1.6,2.0))}deg)`);
+    const L=226;
+    const x1=p(t,0.7,0.95),x2=p(t,0.95,1.2);
+    $('x1').setAttribute('stroke-dasharray',`${L*x1} ${L}`);$('x2').setAttribute('stroke-dasharray',`${L*x2} ${L}`);
+    op('cross',x1>0?1:0);
+    op('s1title',eo(p(t,1.1,1.4)));
+    op('spinner',eo(p(t,0.2,0.5))*(1-p(t,2.2,2.4)));tf('spinner',`rotate(${t*400}deg)`);
+    const pr=back(p(t,2.4,2.8));op('price',p(t,2.4,2.6));tf('price',`scale(${pr})`);
+    tf('priceLine',`scaleX(${eo(p(t,3.2,3.6))}) rotate(-8deg)`);op('priceLine',t>3.2?1:0);
+  }
+
+  // ---- scene 2 (4.45-8.4)
+  show('s2',t>=4.3&&t<8.6);
+  if(t>=4.3&&t<8.6){
+    op('s2',p(t,4.3,4.5)*(1-p(t,8.3,8.6)));
+    const g=back(p(t,4.45,5.0));
+    tf('gnome',`translateY(${(1-g)*260}px) scale(${0.6+0.4*g}) rotate(${Math.sin(t*3)*2}deg)`);
+    const br=eo(p(t,4.9,5.3));op('brand',br);tf('brand',`scale(${0.8+0.2*br})`);
+    const a=back(p(t,6.25,6.6)),b=back(p(t,7.0,7.35));
+    op('b50',p(t,6.25,6.4));tf('b50',`scale(${a}) rotate(-6deg)`);
+    op('b5d',p(t,7.0,7.15));tf('b5d',`scale(${b}) rotate(4deg)`);
+  }
+
+  // ---- phone (8.4-END)
+  show('ph',t>=8.4);
+  let finger=null,tapT=null;
+  if(t>=8.4){
+    const ph=eo(p(t,8.4,9.0));
+    tf('phone',`translateY(${(1-ph)*700}px)`);
+    op('header',ph);
+    let step='';
+    if(t<13.15) step='Шаг 1 · Google Play → Happ';
+    else if(t<18.45) step='Шаг 2 · Telegram → Гном VPN';
+    else if(t<20.7) step='Шаг 3 · Получаем ключ';
+    else step='Шаг 4 · Вставляем в Happ';
+    $('step').textContent=step;op('step',ph);
+
+    const scr = t<13.15?'play': t<14.75?'tg': t<20.75?'tgChat':'happ';
+    for(const id of ['play','tg','tgChat','happ']) show(id,id===scr);
+
+    if(scr==='play'){
+      const q=type('Happ',t,9.9,10.7);
+      $('playQ').innerHTML=q||'<span class="ph">Поиск приложений</span>';
+      op('playCaret',(Math.floor(t*3)%2||t<10.8)?1:0);
+      const r=eo(p(t,10.85,11.15));op('playRes',r);tf('playRes',`translateY(${(1-r)*20}px)`);
+      const installing=t>=11.55;
+      show('installBtn',!installing||t>=12.75);show('progWrap',installing&&t<12.75);
+      $('installBtn').textContent=t>=12.75?'Открыть':'Установить';
+      const pf=p(t,11.6,12.65);$('progFill').style.width=(pf*100)+'%';
+      $('progTxt').textContent=pf<1?`Скачивание… ${Math.round(pf*100)}%`:'Установка…';
+      if(t>=9.3&&t<11.6){finger='installBtn';tapT=11.45;}
+      if(t>=12.75){finger='installBtn';tapT=12.95;}
+      if(t>=9.3&&t<10.8) finger='playQ';
+    }
+    if(scr==='tg'){
+      $('tgQ').textContent=type('Гном VPN',t,13.35,14.1);
+      op('tgCaret',Math.floor(t*3)%2?1:0);
+      op('tgRes',eo(p(t,14.1,14.3)));
+      finger='tgRes';tapT=14.6;
+    }
+    if(scr==='tgChat'){
+      op('m1',1);
+      show('m2',t>=15.95);show('m3',t>=16.2);show('kb',t>=16.4);
+      show('m4',t>=17.6);show('m5',t>=18.6);
+      for(const id of ['m2','m3','kb','m4','m5']){const st={m2:15.95,m3:16.2,kb:16.4,m4:17.6,m5:18.6}[id];const k=eo(p(t,st,st+0.2));op(id,k);tf(id,`translateY(${(1-k)*14}px)`);}
+      $('kbPay').style.background=(t>=17.15&&t<17.5)?'#3a9be0':'';
+      show('startBtn',t<16.0);
+      $('startBtn').style.filter=(t>15.75&&t<16.0)?'brightness(.8)':'';
+      $('keyBox').style.background=(t>=19.55&&t<20.4)?'#cfe3ff':'';
+      show('toast',t>=19.6&&t<20.6);op('toast',p(t,19.6,19.75)*(1-p(t,20.4,20.6)));
+      if(t<15.95){finger='startBtn';tapT=15.8;}
+      else if(t<17.6){finger='kbPay';tapT=17.2;}
+      else if(t>=18.8&&t<20.3){finger='keyBox';tapT=19.55;}
+    }
+    if(scr==='happ'){
+      show('menu',t>=21.05&&t<21.55);op('menu',eo(p(t,21.05,21.2)));
+      show('server',t>=21.55);const k=back(p(t,21.55,21.85));tf('server',`scale(${k})`);op('server',p(t,21.55,21.7));
+      const on=t>=22.15,conn=t>=21.95&&t<22.15;
+      $('power').style.background=on?'#1fbf6a':conn?'#e0a800':'#2a2e55';
+      $('power').style.boxShadow=on?`0 0 0 ${10+6*Math.sin(t*8)}px rgba(31,191,106,.25),0 0 50px rgba(31,191,106,.6)`:'0 0 0 10px rgba(255,255,255,.05)';
+      $('connTxt').textContent=on?'Подключено ✓':conn?'Подключение…':'Не подключено';
+      $('connTxt').style.color=on?'#34e08a':'#fff';
+      if(t<21.05){finger='plus';tapT=20.95;}
+      else if(t<21.55){finger='menuPaste';tapT=21.4;}
+      else if(t<22.4){finger='power';tapT=21.95;}
+    }
+  }
+  // finger
+  if(finger){
+    const [x,y]=center(finger);
+    show('finger',1);$('finger').style.left=x+'px';$('finger').style.top=(y+6)+'px';
+    let sc=1;
+    if(tapT!==null){const d=t-tapT;if(d>-0.12&&d<0.12) sc=0.75;
+      if(d>=0&&d<0.45){show('ripple',1);$('ripple').style.left=x+'px';$('ripple').style.top=(y+6)+'px';const r=d/0.45;tf('ripple',`scale(${1+r*1.6})`);op('ripple',1-r);} else show('ripple',0);}
+    else show('ripple',0);
+    tf('finger',`scale(${sc})`);
+  } else {show('finger',0);show('ripple',0);}
+
+  // outro
+  show('outro',t>=END);
+  if(t>=END){op('outro',p(t,END,END+0.3));}
+}
+window.render=render;
+$('outroG').innerHTML=$('gnome').innerHTML.replace('id="hat"','id="hat2"').replace('url(#hat)','url(#hat2)');
+render(0);
+</script>
+</body></html>
