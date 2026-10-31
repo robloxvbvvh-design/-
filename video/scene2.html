@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:540px;height:960px;overflow:hidden;background:#0d1020;font-family:"DejaVu Sans",sans-serif}
+#stage{position:absolute;inset:0;overflow:hidden;background:radial-gradient(circle at 50% 30%,#2a2f6b 0%,#12142c 60%,#0a0b18 100%)}
+#world{position:absolute;inset:0}
+.abs{position:absolute}
+#floor{left:-20px;right:-20px;top:620px;bottom:-20px;background:linear-gradient(180deg,#1a1d3d,#0b0c1a);border-top:3px solid #3a3f7a}
+#subs{left:20px;right:20px;bottom:40px;text-align:center;color:#fff;font-weight:bold;font-size:30px;line-height:1.25;
+  text-shadow:0 0 6px #000,0 3px 0 #000,0 -2px 0 #000,2px 0 0 #000,-2px 0 0 #000;z-index:50}
+#subs span.hl{color:#ffd23f}
+#title{left:0;right:0;top:300px;text-align:center;color:#ff3b3b;font-size:76px;font-weight:bold;letter-spacing:3px;
+  text-shadow:0 0 30px rgba(255,40,40,.8),0 6px 0 #5a0000;z-index:30}
+#vs{left:0;right:0;top:400px;text-align:center;color:#fff;font-size:28px;font-weight:bold;z-index:30}
+#flash{inset:0;background:#fff;z-index:45;pointer-events:none}
+#redflash{inset:0;background:#ff2020;z-index:44;pointer-events:none;mix-blend-mode:screen}
+#gnome{left:30px;top:370px;width:210px;height:252px;z-index:20;transform-origin:50% 100%}
+#laptop{left:150px;top:540px;width:120px;height:80px;z-index:21}
+#villain{left:315px;top:300px;width:200px;height:327px;z-index:19;transform-origin:50% 100%}
+#sign{left:300px;top:200px;width:230px;padding:10px 0;text-align:center;font-size:34px;font-weight:bold;color:#ff4fd8;border:4px solid #ff4fd8;border-radius:14px;
+  text-shadow:0 0 10px #ff4fd8,0 0 24px #ff4fd8;box-shadow:0 0 18px #ff4fd8,inset 0 0 14px rgba(255,79,216,.6);z-index:18;background:rgba(40,0,40,.4)}
+#sign small{display:block;font-size:15px;color:#7ff3ff;text-shadow:0 0 8px #7ff3ff}
+.bubble{background:#fff;color:#111;border-radius:22px;padding:14px 18px;font-weight:bold;font-size:24px;text-align:center;z-index:35;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.bubble:after{content:"";position:absolute;bottom:-18px;width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:20px solid #fff}
+.bubble.r:after{right:50px}.bubble.l:after{left:50px}
+#bOffer{left:150px;top:90px;width:360px}
+#bOffer .pr{color:#e0245e;font-size:34px;display:block;margin-top:4px}
+#bNo{left:30px;top:250px;width:170px;font-size:44px;color:#e0245e}
+#bNot{left:180px;top:96px;width:340px;font-size:24px}
+#steam{left:350px;top:270px;width:130px;height:70px;z-index:22}
+#ray{left:0;top:0;width:540px;height:960px;z-index:23;pointer-events:none}
+#clone1{left:190px;top:380px;width:150px;height:180px;z-index:18;transform-origin:50% 100%}
+#cloneTag{left:215px;top:345px;background:#7a2cff;color:#fff;font-weight:bold;font-size:18px;padding:4px 12px;border-radius:10px;z-index:24}
+#shock{left:70px;top:300px;color:#ffd23f;font-size:64px;font-weight:bold;z-index:36;text-shadow:0 4px 0 #a33}
+#clones{inset:0;z-index:15}
+.cl{position:absolute;width:80px;height:96px;transform-origin:50% 100%}
+.ban{position:absolute;left:-6px;top:30px;width:92px;text-align:center;border:4px solid #ff2d2d;color:#ff2d2d;font-weight:bold;font-size:20px;border-radius:8px;background:rgba(255,255,255,.85);transform:rotate(-14deg)}
+#disc{left:20px;top:150px;width:230px;padding:14px;border-radius:20px;background:linear-gradient(135deg,#ffd23f,#ff9f1c);color:#3a1a00;font-weight:bold;text-align:center;z-index:37;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+#disc .a{font-size:20px}
+#disc .b{font-size:46px;line-height:1}
+#disc .c{font-size:18px}
+#hammer{left:250px;top:120px;width:240px;height:240px;z-index:38;transform-origin:85% 85%}
+#banTxt{left:0;right:0;top:400px;text-align:center;color:#ff2d2d;font-size:100px;font-weight:bold;letter-spacing:6px;z-index:39;
+  text-shadow:0 0 30px rgba(255,0,0,.8),0 8px 0 #4a0000,0 0 2px #fff}
+#vBan{left:330px;top:420px;z-index:40;border:6px solid #ff2d2d;color:#ff2d2d;font-weight:bold;font-size:40px;padding:4px 14px;border-radius:10px;background:rgba(255,255,255,.9);transform:rotate(-14deg)}
+#outro{inset:0;background:radial-gradient(circle at 50% 40%,#2a2f6b,#0a0b18);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:60}
+#outro .big{color:#fff;font-size:52px;font-weight:bold}
+#outro .big b{color:#ffd23f}
+#outro .tg{background:#2aabee;color:#fff;font-size:26px;font-weight:bold;padding:16px 26px;border-radius:40px}
+#outro .p{color:#fff;font-size:24px}
+</style></head><body>
+<div id="stage"><div id="world">
+  <div id="floor" class="abs"></div>
+  <div id="clones" class="abs"></div>
+  <div id="sign" class="abs">VPN БАР<small>300 ₽ / неделя</small></div>
+  <svg id="villain" class="abs" viewBox="0 0 220 360"></svg>
+  <svg id="steam" class="abs" viewBox="0 0 130 70"><g fill="rgba(255,255,255,.85)"><circle id="st1" cx="25" cy="50" r="14"/><circle id="st2" cx="105" cy="50" r="14"/></g></svg>
+  <svg id="clone1" class="abs" viewBox="0 0 300 360"></svg>
+  <div id="cloneTag" class="abs">КЛОН</div>
+  <svg id="gnome" class="abs" viewBox="0 0 300 360"></svg>
+  <svg id="laptop" class="abs" viewBox="0 0 120 80"><rect x="14" y="4" width="92" height="60" rx="6" fill="#c9cde0"/><rect x="20" y="10" width="80" height="48" rx="3" fill="#12142c"/>
+    <circle cx="60" cy="28" r="10" fill="#1fbf6a"/><text x="60" y="51" font-size="9" fill="#9fffc8" text-anchor="middle" font-family="DejaVu Sans" font-weight="bold">ГНОМ VPN</text>
+    <path d="M0 66 H120 L112 78 H8Z" fill="#a9aec6"/></svg>
+  <svg id="ray" class="abs" viewBox="0 0 540 960"><polyline id="rayL" fill="none" stroke="#b98cff" stroke-width="8" stroke-linejoin="round"/><polyline id="rayL2" fill="none" stroke="#fff" stroke-width="3"/></svg>
+  <div id="shock" class="abs">!!!</div>
+  <div id="bOffer" class="abs bubble r">Сделай подписку!<span class="pr">300 ₽ в неделю</span></div>
+  <div id="bNo" class="abs bubble l">НЕТ!</div>
+  <div id="bNot" class="abs bubble r">Ты ничего не понимаешь!</div>
+  <div id="disc" class="abs"><div class="a">СКИДКА</div><div class="b">−50%</div><div class="c">Гном VPN · всего 50 ₽</div></div>
+  <svg id="hammer" class="abs" viewBox="0 0 240 240"><rect x="120" y="70" width="22" height="160" rx="8" fill="#8a5a2b" transform="rotate(-45 131 150)"/>
+    <g transform="rotate(-45 120 80)"><rect x="40" y="40" width="160" height="70" rx="12" fill="#ff2d2d"/><rect x="40" y="40" width="160" height="18" rx="9" fill="#ff7a7a"/>
+    <text x="120" y="96" font-size="34" font-weight="bold" fill="#fff" text-anchor="middle" font-family="DejaVu Sans">BAN</text></g></svg>
+  <div id="vBan" class="abs">BAN</div>
+  <div id="title" class="abs">КОНФЛИКТ</div>
+  <div id="vs" class="abs">Гном VPN <span style="color:#ff4fd8">vs</span> ???</div>
+</div>
+<div id="redflash" class="abs"></div>
+<div id="flash" class="abs"></div>
+<div id="outro" class="abs">
+  <svg id="outroG" width="200" height="240" viewBox="0 0 300 360"></svg>
+  <div class="big">ГНОМ <b>VPN</b></div>
+  <div class="tg">Telegram: Гном VPN</div>
+  <div class="p">50 ₽ · 5 дней бесплатно</div>
+</div>
+<div id="subs" class="abs"></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const cl=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const p=(t,a,b)=>cl((t-a)/(b-a));
+const eo=x=>1-Math.pow(1-x,3);
+const back=x=>{const c=1.7;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+const show=(id,v)=>{$(id).style.display=v?'':'none'};
+const op=(id,v)=>{$(id).style.opacity=v};
+const tf=(id,v)=>{$(id).style.transform=v};
+
+// gnome drawing with moods; same character as the first video
+function gnomeSVG(mood='normal',clone=false){
+  const hat=clone?'#6b4bd6':'#d62a2a', hatDark=clone?'#3d2591':'#9e1220', coat=clone?'#4a4a5e':'#2f6fdb', skin=clone?'#c9b8d8':'#ffd2b0';
+  let eyes, brows='', mouth;
+  if(clone){
+    eyes='<circle cx="125" cy="176" r="8" fill="#ff2d2d"/><circle cx="175" cy="176" r="8" fill="#ff2d2d"/><circle cx="125" cy="176" r="14" fill="rgba(255,45,45,.3)"/><circle cx="175" cy="176" r="14" fill="rgba(255,45,45,.3)"/>';
+    brows='<path d="M110 160 L138 168 M190 160 L162 168" stroke="#222" stroke-width="6" stroke-linecap="round"/>';
+    mouth='<path d="M132 238 Q150 228 168 238" stroke="#5a3a4a" stroke-width="5" fill="none" stroke-linecap="round"/>';
+  } else if(mood==='shock'){
+    eyes='<circle cx="123" cy="174" r="15" fill="#fff" stroke="#222" stroke-width="3"/><circle cx="177" cy="174" r="15" fill="#fff" stroke="#222" stroke-width="3"/><circle cx="123" cy="174" r="5" fill="#222"/><circle cx="177" cy="174" r="5" fill="#222"/>';
+    brows='<path d="M106 148 Q123 138 138 148 M162 148 Q177 138 194 148" stroke="#eee" stroke-width="6" fill="none" stroke-linecap="round"/>';
+    mouth='<ellipse cx="150" cy="246" rx="15" ry="20" fill="#5a1a1a"/>';
+  } else if(mood==='angry'){
+    eyes='<circle cx="125" cy="178" r="7" fill="#222"/><circle cx="175" cy="178" r="7" fill="#222"/>';
+    brows='<path d="M108 160 L140 170 M192 160 L160 170" stroke="#eee" stroke-width="7" stroke-linecap="round"/>';
+    mouth='<path d="M130 242 Q150 230 170 242" stroke="#8a4b3a" stroke-width="5" fill="none" stroke-linecap="round"/>';
+  } else if(mood==='happy'){
+    eyes='<path d="M115 178 Q125 166 135 178 M165 178 Q175 166 185 178" stroke="#222" stroke-width="5" fill="none" stroke-linecap="round"/>';
+    mouth='<path d="M128 234 Q150 256 172 234 Z" fill="#8a3a2a"/>';
+  } else {
+    eyes='<circle cx="125" cy="176" r="7" fill="#222"/><circle cx="175" cy="176" r="7" fill="#222"/><circle cx="127" cy="174" r="2.2" fill="#fff"/><circle cx="177" cy="174" r="2.2" fill="#fff"/>';
+    mouth='<path d="M134 236 Q150 246 166 236" stroke="#8a4b3a" stroke-width="4" fill="none" stroke-linecap="round"/>';
+  }
+  return `<ellipse cx="150" cy="345" rx="95" ry="12" fill="rgba(0,0,0,.35)"/>
+  <path d="M70 250 Q150 210 230 250 L245 340 L55 340 Z" fill="${coat}"/>
+  <rect x="70" y="300" width="160" height="14" rx="5" fill="#3b2a1a"/><rect x="138" y="296" width="24" height="22" rx="4" fill="#ffd23f"/>
+  <circle cx="150" cy="185" r="62" fill="${skin}"/>
+  <path d="M88 190 Q90 300 150 330 Q210 300 212 190 Q190 230 150 228 Q110 230 88 190Z" fill="${clone?'#bdbdd0':'#f4f4f4'}"/>
+  ${mouth}
+  <circle cx="150" cy="200" r="17" fill="${clone?'#a98fbf':'#f2a07b'}"/>
+  ${eyes}${brows}
+  <path d="M150 10 Q190 80 222 150 L78 150 Q112 70 150 10Z" fill="${hat}"/>
+  <path d="M150 10 Q170 70 186 150 L222 150 Q190 80 150 10Z" fill="${hatDark}" opacity=".5"/>
+  <rect x="70" y="140" width="160" height="22" rx="11" fill="#fff"/>
+  <circle cx="150" cy="12" r="12" fill="#ffd23f"/>
+  ${clone?'':'<g transform="translate(184,92)"><path d="M0 -16 L14 -10 L14 2 Q14 12 0 18 Q-14 12 -14 2 L-14 -10Z" fill="#ffd23f"/><path d="M-6 0 L-1 5 L7 -5" stroke="#b3121f" stroke-width="3.5" fill="none" stroke-linecap="round"/></g>'}`;
+}
+function villainSVG(anger=0,mouthOpen=false){
+  const r=Math.round(159+(230-159)*anger),g=Math.round(212+(70-212)*anger),b=Math.round(168+(70-168)*anger);
+  const face=`rgb(${r},${g},${b})`;
+  const brows=anger>0.3?'<path d="M60 108 L104 120 M160 108 L116 120" stroke="#111" stroke-width="7" stroke-linecap="round"/>':'';
+  const mouth=mouthOpen?'<ellipse cx="110" cy="182" rx="18" ry="11" fill="#2a0a0a"/>'
+    : anger>0.3?'<path d="M86 188 Q110 172 134 188" stroke="#222" stroke-width="5" fill="none" stroke-linecap="round"/>'
+    :'<path d="M88 176 Q112 190 134 170" stroke="#222" stroke-width="5" fill="none" stroke-linecap="round"/>';
+  return `<ellipse cx="110" cy="350" rx="90" ry="10" fill="rgba(0,0,0,.35)"/>
+  <path d="M28 350 L48 210 Q110 170 172 210 L192 350Z" fill="#2d1f4d"/>
+  <path d="M95 215 L110 260 L125 215" stroke="#ffd23f" stroke-width="4" fill="none"/><circle cx="110" cy="270" r="16" fill="#ffd23f"/>
+  <text x="110" y="279" font-size="22" font-weight="bold" text-anchor="middle" fill="#7a5a00" font-family="DejaVu Sans">₽</text>
+  <circle cx="110" cy="135" r="76" fill="#3a2a63"/>
+  <ellipse cx="110" cy="145" rx="52" ry="58" fill="${face}"/>
+  <rect x="58" y="120" width="104" height="30" rx="10" fill="#111"/>
+  <path d="M70 126 L86 126" stroke="#555" stroke-width="4" stroke-linecap="round"/><path d="M118 126 L134 126" stroke="#555" stroke-width="4" stroke-linecap="round"/>
+  ${brows}${mouth}`;
+}
+
+// clones scattered over the scene (deterministic)
+const CL=[];let seed=7;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
+for(let i=0;i<22;i++){CL.push({x:10+rnd()*450,y:110+rnd()*420,s:0.7+rnd()*0.55,t:16.7+i*0.13,bt:21.95+rnd()*0.5,rot:(rnd()-0.5)*16});}
+CL.sort((a,b)=>a.y-b.y);
+$('clones').innerHTML=CL.map((c,i)=>`<div class="cl" id="c${i}" style="left:${c.x}px;top:${c.y}px"><svg width="80" height="96" viewBox="0 0 300 360">${gnomeSVG('',true)}</svg><div class="ban">BAN</div></div>`).join('');
+$('clone1').innerHTML=gnomeSVG('',true);
+$('outroG').innerHTML=gnomeSVG('happy');
+
+const SUBS=[
+ [0.00,1.45,'Опять у нас <span class="hl">конфликт</span>'],
+ [1.45,2.90,'Я как обычно сидел…'],
+ [2.90,5.90,'И приходит какой-то странный <span class="hl">VPN-бар</span>'],
+ [5.90,8.95,'«Сделай подписку — <span class="hl">300 рублей в неделю</span>»'],
+ [8.95,10.50,'Я говорю: <span class="hl">нет</span>'],
+ [10.50,14.60,'Я, оказывается, «не понимаю»… и за это он <span class="hl">нагрелся</span>'],
+ [14.60,16.45,'И он сделал <span class="hl">мой клон</span>'],
+ [16.45,20.00,'Я сразу же офигел — у меня было <span class="hl">очень много клонов</span>'],
+ [20.00,23.20,'Всё-таки я сделал <span class="hl">скидку</span> и <span class="hl">забанил всех!</span>'],
+];
+const END=23.2;
+let lastG='',lastV='';
+
+function render(t){
+  let s='';for(const [a,b,x] of SUBS) if(t>=a&&t<b) s=x;
+  $('subs').innerHTML=s;
+  const sp=SUBS.find(([a,b])=>t>=a&&t<b);
+  if(sp){const k=eo(p(t,sp[0],sp[0]+0.18));op('subs',k);tf('subs',`translateY(${(1-k)*14}px)`);}
+
+  // camera shake
+  let sh=0;
+  if(t<0.5) sh=8*(1-p(t,0.15,0.5));
+  if(t>11.8&&t<14.4) sh=Math.max(sh,3*p(t,11.8,12.5));
+  if(t>14.85&&t<15.3) sh=Math.max(sh,10*(1-p(t,14.85,15.3)));
+  if(t>21.9&&t<22.5) sh=Math.max(sh,14*(1-p(t,21.9,22.5)));
+  tf('world',`translate(${Math.sin(t*90)*sh}px,${Math.cos(t*77)*sh}px)`);
+
+  // title "КОНФЛИКТ"
+  show('title',t<1.5);show('vs',t<1.5);
+  if(t<1.5){const k=back(p(t,0,0.25));tf('title',`scale(${2.2-1.2*k})`);op('title',p(t,0,0.12)*(1-p(t,1.25,1.5)));op('vs',p(t,0.35,0.55)*(1-p(t,1.25,1.5)));}
+  op('redflash',t<0.5?0.35*(1-p(t,0.1,0.5)) : (t>21.9&&t<22.4)?0.4*(1-p(t,21.9,22.4)) : (t>11.8&&t<14.4)?0.08+0.06*Math.sin(t*12):0);
+
+  // gnome mood
+  let mood='normal';
+  if(t>=9.0&&t<10.5) mood='angry';
+  if(t>=15.0&&t<20.2) mood='shock';
+  if(t>=22.0) mood='happy';
+  if(mood!==lastG){$('gnome').innerHTML=gnomeSVG(mood);lastG=mood;}
+  const gIn=eo(p(t,1.35,1.8));
+  op('gnome',gIn);op('laptop',gIn*(1-p(t,8.9,9.2)));
+  let gT=`translateX(${(1-gIn)*-260}px)`;
+  if(t<9) gT+=` translateY(${Math.sin(t*3)*3}px)`;             // idle "sitting" bob
+  if(t>=9.1&&t<10.4) gT+=` rotate(${Math.sin((t-9.1)*28)*6*(1-p(t,9.9,10.4))}deg) scale(1.08)`; // head shake "НЕТ"
+  if(t>=16.6&&t<17.0) gT+=` scale(${1+0.25*Math.sin(p(t,16.6,17.0)*Math.PI)})`;  // jump in shock
+  if(t>=20.2) gT+=` scale(1.08)`;
+  tf('gnome',gT);
+
+  // villain
+  const vIn=t>=2.9;
+  const anger=p(t,11.2,12.6)*(1-p(t,21.9,22.2));
+  const talking=(t>=5.98&&t<8.75&&Math.floor(t*8)%2===0)||(t>=10.6&&t<11.3&&Math.floor(t*8)%2===0);
+  const vkey=anger.toFixed(2)+talking;
+  if(vkey!==lastV){$('villain').innerHTML=villainSVG(anger,talking);lastV=vkey;}
+  show('villain',vIn);show('sign',t>=3.2&&t<22.2);
+  if(vIn){
+    const k=eo(p(t,2.9,3.8));
+    const vb=t>=21.9?p(t,22.0,22.6):0;
+    tf('villain',`translateX(${(1-k)*320}px) translateY(${Math.abs(Math.sin(t*9))*-8*(1-p(t,3.6,3.8))}px) rotate(${anger*Math.sin(t*40)*2}deg) scale(${1-vb*0.3}) rotate(${vb*25}deg)`);
+    op('villain',1-p(t,22.3,22.7));
+    // neon sign flicker
+    const fl=(t>3.2&&t<3.7)?(Math.floor(t*20)%3===0?0.25:1):1;
+    op('sign',p(t,3.2,3.35)*fl*(1-p(t,21.95,22.2)));
+  }
+  // steam when angry
+  show('steam',anger>0.2&&t<21.95);
+  if(anger>0.2){for(const [id,ph] of [['st1',0],['st2',0.5]]){const q=((t*1.6+ph)%1);$(id).setAttribute('cy',50-q*45);$(id).setAttribute('r',8+q*14);$(id).style.opacity=1-q;}}
+
+  // speech bubbles
+  const bub=(id,a,b)=>{show(id,t>=a&&t<b);if(t>=a&&t<b){const k=back(p(t,a,a+0.3));tf(id,`scale(${k})`);op(id,p(t,a,a+0.1)*(1-p(t,b-0.15,b)));}};
+  bub('bOffer',5.95,8.95);bub('bNo',9.1,10.5);bub('bNot',10.6,14.6);
+
+  // clone ray + first clone
+  show('ray',t>=14.6&&t<15.2);
+  if(t>=14.6&&t<15.2){
+    const pts=[[350,420]];for(let i=1;i<=6;i++){pts.push([350-i*16,420+((i+Math.floor(t*30))%2?-18:18)+i*4]);}
+    const str=pts.map(q=>q.join(',')).join(' ');$('rayL').setAttribute('points',str);$('rayL2').setAttribute('points',str);
+    op('ray',(1-p(t,15.0,15.2)));
+  }
+  op('flash',(t>=14.85&&t<15.3)?0.85*(1-p(t,14.85,15.3)):(t>=21.9&&t<22.2)?0.7*(1-p(t,21.9,22.2)):0);
+  show('clone1',t>=14.85&&t<22.6);show('cloneTag',t>=15.0&&t<16.6);
+  if(t>=14.85){const k=back(p(t,14.85,15.25));const b=p(t,22.0,22.5);tf('clone1',`scale(${k*(1-b)}) rotate(${b*40}deg)`);op('cloneTag',p(t,15.0,15.15));}
+
+  // shock "!!!"
+  show('shock',t>=16.6&&t<18.6);
+  if(t>=16.6){const k=back(p(t,16.6,16.9));tf('shock',`scale(${k}) rotate(${Math.sin(t*25)*6}deg)`);op('shock',1-p(t,18.3,18.6));}
+
+  // army of clones
+  CL.forEach((c,i)=>{
+    const el=$('c'+i);
+    if(t<c.t){el.style.display='none';return;}
+    el.style.display='';
+    const k=back(p(t,c.t,c.t+0.3));
+    const banned=t>=c.bt;
+    const fall=p(t,c.bt+0.15,c.bt+0.6);
+    el.style.transform=`scale(${k*c.s*(1-fall*0.6)}) rotate(${c.rot+fall*90}deg) translateY(${fall*60}px)`;
+    el.style.opacity=1-fall;
+    el.querySelector('.ban').style.display=banned?'':'none';
+    el.querySelector('.ban').style.transform=`rotate(-14deg) scale(${banned?back(p(t,c.bt,c.bt+0.15))*1.2:0})`;
+    el.style.filter=`drop-shadow(0 0 ${6+4*Math.sin(t*10+i)}px rgba(255,45,45,.5))`;
+  });
+
+  // discount badge
+  show('disc',t>=20.3);
+  if(t>=20.3){const k=back(p(t,20.3,20.65));tf('disc',`scale(${k}) rotate(${-6+Math.sin(t*4)*2}deg)`);op('disc',p(t,20.3,20.45));}
+
+  // ban hammer
+  show('hammer',t>=21.3&&t<22.9);
+  if(t>=21.3){
+    const raise=p(t,21.3,21.7),slam=p(t,21.75,21.9);
+    const ang=-20-50*eo(raise)+90*slam*slam;
+    tf('hammer',`rotate(${ang}deg)`);op('hammer',p(t,21.3,21.45)*(1-p(t,22.6,22.9)));
+  }
+  show('vBan',t>=21.95&&t<22.6);
+  if(t>=21.95){tf('vBan',`rotate(-14deg) scale(${back(p(t,21.95,22.1))*1.1})`);op('vBan',1-p(t,22.35,22.6));}
+
+  show('outro',t>=END);
+  if(t>=END) op('outro',p(t,END,END+0.3));
+}
+window.render=render;
+render(0);
+</script>
+</body></html>
