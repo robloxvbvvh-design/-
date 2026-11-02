@@ -14,7 +14,9 @@ from aiohttp import web
 
 import db
 from config import (ADMINS, BOT_TOKEN, DAY, DB_PATH, PROVIDER_TOKEN, SUB_PORT, TAP_SECONDS,
-                    TAP_WITHDRAW_MIN, TARIFFS, TRIAL_DAYS, load_servers)
+                    TAP_WITHDRAW_MIN, TARIFFS, TEST_PAYMENTS, TRIAL_DAYS, USE_FREE_KEYS,
+                    load_servers)
+from collector import collector_loop
 from sub_server import make_app, open_url, sub_url
 
 dp = Dispatcher()
@@ -140,6 +142,11 @@ async def buy(cb: CallbackQuery, bot: Bot):
     code = cb.data.split(":", 1)[1]
     if code not in TARIFFS:
         return await cb.answer()
+    if TEST_PAYMENTS:
+        await db.add_time(cb.from_user.id, TARIFFS[code][2])
+        user = await db.get_user(cb.from_user.id)
+        await cb.answer("🧪 Тестовая оплата прошла", show_alert=True)
+        return await edit(cb, f"✅ (ТЕСТ) Оплачено: {TARIFFS[code][0]}\nПодписка: {fmt_left(user)}", MAIN_KB)
     if not PROVIDER_TOKEN:
         return await cb.answer("Оплата пока не подключена. Напишите администратору.", show_alert=True)
     name, price, _ = TARIFFS[code]
@@ -289,6 +296,8 @@ async def main():
     await web.TCPSite(runner, "0.0.0.0", SUB_PORT).start()
 
     asyncio.create_task(reminder_loop(bot))
+    if USE_FREE_KEYS:
+        asyncio.create_task(collector_loop())
     await dp.start_polling(bot)
 
 

@@ -8,3 +8,4 @@
 *.db
 __pycache__/
 servers.json
+servers_auto.json
