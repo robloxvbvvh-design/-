@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Чернобыль, 01:23</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tektur:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one dark "control room" column — instrument header, 16:9 stage with subtitles, transport, then the step list. Single dark look on purpose: it is night, 01:23. */
+:root {
+  --night: #0a0e15;
+  --panel: #111824;
+  --line: #233044;
+  --ink: #e7ebf1;
+  --muted: #8d99ab;
+  --amber: #f0a43c;
+  --ion: #86b8ff;
+  --danger: #e5534b;
+  --ok: #4fc08d;
+  --display: "Tektur", "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", Roboto, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--night);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.55;
+}
+.wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding-block: 28px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  gap: 22px;
+}
+header { display: grid; gap: 6px; }
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+h1 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(28px, 5vw, 48px);
+  line-height: 1.05;
+  margin: 0;
+  text-wrap: balance;
+}
+.lede { color: var(--muted); margin: 0; max-width: 62ch; }
+
+.stage {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #05070b;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+canvas { display: block; width: 100%; height: 100%; }
+.chip {
+  position: absolute;
+  top: 12px; left: 12px;
+  display: flex; gap: 10px; align-items: center;
+  font-family: var(--mono);
+  font-size: clamp(10px, 1.5vw, 13px);
+  background: rgba(10, 14, 21, .72);
+  border: 1px solid var(--line);
+  padding: 4px 10px;
+  border-radius: 3px;
+}
+.chip b { color: var(--amber); font-weight: 500; }
+.sub {
+  position: absolute;
+  left: 50%; bottom: 4%;
+  transform: translateX(-50%);
+  width: min(92%, 860px);
+  text-align: center;
+  font-size: clamp(13px, 2.1vw, 21px);
+  line-height: 1.35;
+  font-weight: 500;
+  background: rgba(5, 7, 11, .78);
+  padding: .45em .8em;
+  border-radius: 4px;
+  text-wrap: balance;
+}
+.sub:empty { display: none; }
+.start {
+  position: absolute; inset: 0;
+  display: grid; place-content: center; gap: 12px; justify-items: center;
+  background: radial-gradient(ellipse at center, rgba(10,14,21,.55), rgba(5,7,11,.88));
+  border: 0; color: var(--ink); cursor: pointer;
+  font-family: var(--body);
+}
+.start[hidden] { display: none; }
+.start .big {
+  font-family: var(--display);
+  font-size: clamp(18px, 3.4vw, 30px);
+  background: var(--amber);
+  color: #1a1206;
+  padding: .5em 1.1em;
+  border-radius: 4px;
+}
+.start small { color: var(--muted); font-size: clamp(11px, 1.6vw, 14px); }
+.start:focus-visible .big { outline: 3px solid var(--ion); outline-offset: 4px; }
+
+.transport {
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+}
+.transport button {
+  font: 500 14px var(--body);
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 8px 14px;
+  cursor: pointer;
+  min-height: 40px;
+}
+.transport button:hover { border-color: var(--muted); }
+.transport button:focus-visible { outline: 2px solid var(--ion); outline-offset: 2px; }
+.transport button[aria-pressed="false"] { color: var(--muted); }
+.meter {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--mono); font-size: 12px; color: var(--muted);
+  min-width: 0;
+}
+.bar {
+  width: clamp(90px, 18vw, 180px); height: 8px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 2px; overflow: hidden;
+}
+.bar i {
+  display: block; height: 100%; width: 100%;
+  background: linear-gradient(90deg, var(--ok), var(--amber) 55%, var(--danger));
+  transform-origin: left; transition: transform .8s ease;
+}
+.note { font-size: 13px; color: var(--muted); margin: 0; }
+.note.warn { color: var(--amber); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; counter-reset: s; }
+.steps li { counter-increment: s; }
+.steps button {
+  width: 100%;
+  display: grid; grid-template-columns: 2.4em 1fr; gap: 10px; align-items: baseline;
+  text-align: left;
+  background: transparent; color: var(--ink);
+  border: 0; border-left: 2px solid transparent;
+  padding: 10px 12px;
+  font: inherit; cursor: pointer;
+}
+.steps button::before {
+  content: counter(s, decimal-leading-zero);
+  font-family: var(--mono); color: var(--muted); font-size: 13px;
+}
+.steps button:hover { background: var(--panel); }
+.steps button:focus-visible { outline: 2px solid var(--ion); outline-offset: -2px; }
+.steps button[aria-current="true"] { background: var(--panel); border-left-color: var(--amber); }
+.steps button[aria-current="true"]::before { color: var(--amber); }
+.steps strong { font-family: var(--display); font-weight: 500; font-size: 16px; display: block; }
+.steps span.t { color: var(--muted); font-size: 14px; display: block; min-width: 0; }
+
+footer { border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 6px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">26.04.1986 · 01:23:40 · ЧАЭС, энергоблок № 4</div>
+    <h1>Как выжить при аварии на атомной станции</h1>
+    <p class="lede">Анимированная памятка с голосом. Ночь взрыва на Чернобыльской АЭС и восемь шагов, которые снижают дозу облучения, если авария случилась рядом с вами.</p>
+  </header>
+
+  <div class="stage" id="stage">
+    <canvas id="cv" aria-label="Анимация"></canvas>
+    <div class="chip"><b id="chipNum">01/08</b><span id="chipTitle">Взрыв</span></div>
+    <div class="sub" id="sub" aria-live="polite"></div>
+    <button class="start" id="startBtn" type="button">
+      <span class="big">▶ Смотреть со звуком</span>
+      <small>Озвучка — синтезатор речи вашего браузера · ≈ 4 минуты</small>
+    </button>
+  </div>
+
+  <div class="transport">
+    <button id="prevBtn" type="button" aria-label="Предыдущий шаг">◀ Назад</button>
+    <button id="playBtn" type="button">▶ Пуск</button>
+    <button id="nextBtn" type="button" aria-label="Следующий шаг">Далее ▶</button>
+    <button id="voiceBtn" type="button" aria-pressed="true">Голос: вкл</button>
+    <button id="geigerBtn" type="button" aria-pressed="true">Счётчик Гейгера: вкл</button>
+    <div class="meter" title="Иллюстративная шкала, не реальные замеры">
+      <span>опасность (условно)</span>
+      <div class="bar"><i id="barFill"></i></div>
+    </div>
+  </div>
+  <p class="note" id="voiceNote">Голос подключится после нажатия «Смотреть со звуком».</p>
+
+  <ol class="steps" id="steps"></ol>
+
+  <footer>
+    <p class="note">Памятка основана на общих рекомендациях по радиационной защите (укрытие, дезактивация, йодная профилактика по указанию властей). В реальной ситуации слушайте официальные сообщения и службы спасения.</p>
+    <p class="note">Исторические данные: взрыв — 26 апреля 1986 г. в 01:23:40; эвакуация Припяти — 27 апреля, начало в 14:00, около 49 000 жителей, около 1 200 автобусов.</p>
+  </footer>
+</div>
+
+<script>
+(() => {
+  const SCENES = [
+    { title: "Взрыв", short: "26 апреля 1986, 01:23. Реактор четвёртого блока разрушен.", risk: 1.0, clicks: 26,
+      text: "Двадцать шестое апреля тысяча девятьсот восемьдесят шестого года. Час двадцать три минуты ночи. На четвёртом энергоблоке Чернобыльской атомной станции происходит взрыв. Реактор разрушен, и в небо поднимается облако радиоактивной пыли и газов. Что делать, если вы оказались рядом?" },
+    { title: "Уйдите в здание", short: "Не смотрите на пожар. Кирпич и бетон ослабляют излучение.", risk: 0.8, clicks: 18,
+      text: "Главная опасность — не сама вспышка, а радиоактивная пыль, которую разносит ветер. Не подходите ближе и не стойте на улице, чтобы посмотреть на пожар. Сразу зайдите в капитальное здание. Кирпич и бетон заметно ослабляют излучение." },
+    { title: "Закройте окна", short: "Окна, двери, вентиляция. Щели — мокрой тканью.", risk: 0.5, clicks: 9,
+      text: "Плотно закройте окна, форточки и двери. Выключите вентиляцию и кондиционер. Щели закройте мокрыми полотенцами. Лучше всего перейти в середину здания или в подвал, подальше от окон и наружных стен." },
+    { title: "Снимите одежду", short: "Верхнюю одежду — в пакет. Затем тёплый душ с мылом.", risk: 0.35, clicks: 6,
+      text: "Если вы были на улице, снимите верхнюю одежду и обувь, сложите их в пакет и уберите подальше. Это убирает большую часть радиоактивной пыли. Затем примите тёплый душ с мылом и тщательно вымойте волосы." },
+    { title: "Йод — только по указанию", short: "Йодистый калий защищает щитовидную железу. Спиртовой йод пить нельзя.", risk: 0.3, clicks: 5,
+      text: "Радиоактивный йод накапливается в щитовидной железе. Таблетки йодистого калия заполняют её обычным йодом и защищают. Принимайте их только по указанию врачей или властей. Ни в коем случае не пейте спиртовой раствор йода из аптечки — это ожог и отравление." },
+    { title: "Еда и вода", short: "Только закрытые упаковки. Не пейте местное молоко.", risk: 0.25, clicks: 4,
+      text: "Пейте воду и ешьте продукты только из закрытых упаковок. Не пейте местное молоко, не ешьте овощи с огорода, не собирайте грибы и ягоды. Радиоактивный йод быстрее всего попадает в организм именно через молоко." },
+    { title: "Эвакуация", short: "27 апреля, 14:00. Около 49 000 человек за три часа.", risk: 0.15, clicks: 3,
+      text: "Слушайте радио и официальные объявления. Двадцать седьмого апреля в четырнадцать часов началась эвакуация Припяти. Около сорока девяти тысяч человек вывезли примерно на тысяче двухстах автобусах. Если объявили эвакуацию, возьмите документы, воду и лекарства, закройте нос и рот влажной тканью и уезжайте поперёк ветра, а не вслед за облаком." },
+    { title: "Время, расстояние, укрытие", short: "Три правила, которые снижают дозу.", risk: 0.05, clicks: 1,
+      text: "Запомните три правила. Время: чем меньше вы рядом с источником, тем меньше доза. Расстояние: чем дальше, тем безопаснее. Укрытие: чем толще стены, тем лучше защита. Мы помним пожарных и ликвидаторов, которые первыми вступили в борьбу с аварией." }
+  ];
+
+  // ---------- DOM ----------
+  const $ = id => document.getElementById(id);
+  const cv = $("cv"), ctx = cv.getContext("2d");
+  const sub = $("sub"), startBtn = $("startBtn"), playBtn = $("playBtn");
+  const voiceBtn = $("voiceBtn"), geigerBtn = $("geigerBtn"), voiceNote = $("voiceNote");
+  const stepsEl = $("steps");
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  SCENES.forEach((s, i) => {
+    const li = document.createElement("li");
+    const b = document.createElement("button");
+    b.type = "button";
+    b.innerHTML = `<span><strong></strong><span class="t"></span></span>`;
+    b.querySelector("strong").textContent = s.title;
+    b.querySelector(".t").textContent = s.short;
+    b.addEventListener("click", () => { begin(); goTo(i); });
+    li.appendChild(b); stepsEl.appendChild(li);
+  });
+  const stepBtns = [...stepsEl.querySelectorAll("button")];
+
+  // ---------- state ----------
+  let scene = 0, sceneT = 0, playing = false, started = false;
+  let voiceOn = true, geigerOn = true;
+  let sentences = [], sIdx = 0, token = 0, timer = null;
+  let ruVoice = null;
+
+  function pickVoice() {
+    if (!("speechSynthesis" in window)) return;
+    const vs = speechSynthesis.getVoices();
+    ruVoice = vs.find(v => /^ru/i.test(v.lang) && /google|yandex|milena|natural|online/i.test(v.name))
+           || vs.find(v => /^ru/i.test(v.lang)) || null;
+    if (started) updateVoiceNote();
+  }
+  if ("speechSynthesis" in window) {
+    pickVoice();
+    speechSynthesis.addEventListener?.("voiceschanged", pickVoice);
+  }
+  function updateVoiceNote() {
+    voiceNote.classList.remove("warn");
+    if (!("speechSynthesis" in window)) {
+      voiceNote.textContent = "Браузер не поддерживает синтез речи — показываем только субтитры.";
+      voiceNote.classList.add("warn");
+    } else if (!voiceOn) {
+      voiceNote.textContent = "Голос выключен — показываем субтитры.";
+    } else if (ruVoice) {
+      voiceNote.textContent = "Голос: " + ruVoice.name + ".";
+    } else {
+      voiceNote.textContent = "Русский голос в системе не найден. Попробуем озвучить, субтитры остаются на экране.";
+      voiceNote.classList.add("warn");
+    }
+  }
+
+  // ---------- narration ----------
+  function splitSentences(t) { return t.match(/[^.!?]+[.!?]+/g).map(s => s.trim()); }
+  function stopSpeech() {
+    token++;
+    clearTimeout(timer);
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
+  }
+  function speakFrom(i) {
+    const my = ++token;
+    clearTimeout(timer);
+    sIdx = i;
+    if (i >= sentences.length) {
+      timer = setTimeout(() => { if (my === token && playing) next(true); }, 1600);
+      return;
+    }
+    const s = sentences[i];
+    sub.textContent = s;
+    const advance = () => { if (my === token && playing) speakFrom(i + 1); };
+    const readTime = 900 + s.length * 62;
+    if (voiceOn && "speechSynthesis" in window) {
+      const u = new SpeechSynthesisUtterance(s);
+      u.lang = "ru-RU";
+      if (ruVoice) u.voice = ruVoice;
+      u.rate = 0.96; u.pitch = 0.95;
+      let done = false;
+      const fin = () => { if (!done) { done = true; clearTimeout(timer); advance(); } };
+      u.onend = fin; u.onerror = fin;
+      speechSynthesis.speak(u);
+      timer = setTimeout(fin, readTime * 2.2 + 3000); // страховка, если onend не придёт
+    } else {
+      timer = setTimeout(advance, readTime);
+    }
+  }
+  function goTo(i, auto) {
+    stopSpeech();
+    scene = Math.max(0, Math.min(SCENES.length - 1, i));
+    sceneT = 0;
+    sentences = splitSentences(SCENES[scene].text);
+    $("chipNum").textContent = String(scene + 1).padStart(2, "0") + "/" + String(SCENES.length).padStart(2, "0");
+    $("chipTitle").textContent = SCENES[scene].title;
+    $("barFill").style.transform = `scaleX(${SCENES[scene].risk})`;
+    stepBtns.forEach((b, k) => b.setAttribute("aria-current", k === scene ? "true" : "false"));
+    if (playing) speakFrom(0); else sub.textContent = sentences[0];
+  }
+  function next(auto) {
+    if (scene < SCENES.length - 1) goTo(scene + 1, auto);
+    else { setPlaying(false); sub.textContent = "Конец. Нажмите на любой шаг, чтобы посмотреть его снова."; }
+  }
+  function setPlaying(p) {
+    playing = p;
+    playBtn.textContent = p ? "❚❚ Пауза" : "▶ Пуск";
+    if (p) speakFrom(sIdx >= sentences.length ? 0 : sIdx);
+    else stopSpeech();
+  }
+  function begin() {
+    if (started) return;
+    started = true;
+    startBtn.hidden = true;
+    initAudio();
+    updateVoiceNote();
+    setPlaying(true);
+  }
+
+  startBtn.addEventListener("click", () => { begin(); });
+  playBtn.addEventListener("click", () => { if (!started) return begin(); setPlaying(!playing); });
+  $("prevBtn").addEventListener("click", () => { begin(); goTo(scene - 1); });
+  $("nextBtn").addEventListener("click", () => { begin(); goTo(scene + 1); });
+  voiceBtn.addEventListener("click", () => {
+    voiceOn = !voiceOn;
+    voiceBtn.setAttribute("aria-pressed", voiceOn);
+    voiceBtn.textContent = "Голос: " + (voiceOn ? "вкл" : "выкл");
+    updateVoiceNote();
+    if (playing) speakFrom(sIdx);
+  });
+  geigerBtn.addEventListener("click", () => {
+    geigerOn = !geigerOn;
+    geigerBtn.setAttribute("aria-pressed", geigerOn);
+    geigerBtn.textContent = "Счётчик Гейгера: " + (geigerOn ? "вкл" : "выкл");
+  });
+
+  // ---------- Geiger counter audio ----------
+  let ac = null, noiseBuf = null;
+  function initAudio() {
+    try {
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      noiseBuf = ac.createBuffer(1, Math.floor(ac.sampleRate * 0.004), ac.sampleRate);
+      const d = noiseBuf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3);
+    } catch (e) { ac = null; }
+  }
+  function click() {
+    if (!ac || !geigerOn) return;
+    const s = ac.createBufferSource(); s.buffer = noiseBuf;
+    const g = ac.createGain(); g.gain.value = 0.22;
+    const f = ac.createBiquadFilter(); f.type = "highpass"; f.frequency.value = 1800;
+    s.connect(f).connect(g).connect(ac.destination); s.start();
+  }
+
+  // ---------- drawing helpers (virtual 1600×900) ----------
+  const W = 1600, H = 900;
+  const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+  const ease = x => { x = clamp(x); return x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; };
+  const rnd = i => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+  const C = { night: "#0a0e15", ink: "#e7ebf1", muted: "#8d99ab", amber: "#f0a43c", ion: "#86b8ff", danger: "#e5534b", ok: "#4fc08d" };
+  const FONT_D = '"Tektur", "IBM Plex Sans Condensed", sans-serif';
+  const FONT_M = '"IBM Plex Mono", monospace';
+
+  function sky(top = "#060912", bottom = "#141c2c") {
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, top); g.addColorStop(1, bottom);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  function stars(t, n = 90) {
+    for (let i = 0; i < n; i++) {
+      const a = 0.25 + 0.5 * Math.abs(Math.sin(t * 0.8 + i));
+      ctx.fillStyle = `rgba(220,230,255,${a * 0.6})`;
+      ctx.fillRect(rnd(i) * W, rnd(i + 99) * H * 0.55, 2, 2);
+    }
+  }
+  // falling radioactive dust, deterministic from time
+  function fallout(t, n, region, alpha = 1, color = "240,164,60") {
+    const { x, y, w, h } = region;
+    const count = reduceMotion ? Math.floor(n / 2) : n;
+    for (let i = 0; i < count; i++) {
+      const sp = 30 + rnd(i + 7) * 60;
+      const px = x + ((rnd(i) * w + t * (25 + rnd(i + 3) * 30)) % w);
+      const py = y + ((rnd(i + 50) * h + t * sp) % h);
+      const r = 1.6 + rnd(i + 11) * 2.4;
+      ctx.fillStyle = `rgba(${color},${alpha * (0.45 + rnd(i + 21) * 0.5)})`;
+      ctx.beginPath(); ctx.arc(px, py, r, 0, 7); ctx.fill();
+    }
+  }
+  function person(x, y, s, phase = 0, opt = {}) {
+    // y = feet
+    ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+    const sw = Math.sin(phase) * 0.5;
+    ctx.strokeStyle = opt.color || "#c9d3e2"; ctx.lineCap = "round"; ctx.lineWidth = 14;
+    ctx.beginPath(); // legs
+    ctx.moveTo(0, -95); ctx.lineTo(Math.sin(sw) * 40, 0);
+    ctx.moveTo(0, -95); ctx.lineTo(-Math.sin(sw) * 40, 0);
+    ctx.stroke();
+    ctx.lineWidth = 26; // torso
+    ctx.beginPath(); ctx.moveTo(0, -100); ctx.lineTo(0, -175); ctx.stroke();
+    ctx.lineWidth = 11; // arms
+    ctx.beginPath();
+    ctx.moveTo(0, -165); ctx.lineTo(-Math.sin(sw) * 35, -105);
+    ctx.moveTo(0, -165); ctx.lineTo(Math.sin(sw) * 35, -105);
+    ctx.stroke();
+    ctx.fillStyle = opt.color || "#c9d3e2";
+    ctx.beginPath(); ctx.arc(0, -205, 20, 0, 7); ctx.fill();
+    if (opt.cloth) { // wet cloth over mouth
+      ctx.fillStyle = "#7fa7c9"; ctx.fillRect(4, -205, 22, 16);
+    }
+    ctx.restore();
+  }
+  function label(txt, x, y, size = 34, color = C.ink, align = "left", font = FONT_D) {
+    ctx.font = `600 ${size}px ${font}`; ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = "alphabetic";
+    ctx.fillText(txt, x, y);
+  }
+  function check(x, y, s, p, ok) {
+    p = clamp(p); if (p <= 0) return;
+    ctx.save(); ctx.lineWidth = 12 * s; ctx.lineCap = "round";
+    ctx.strokeStyle = ok ? C.ok : C.danger;
+    ctx.beginPath();
+    if (ok) {
+      ctx.moveTo(x - 30 * s, y); ctx.lineTo(x - 30 * s + 22 * s * clamp(p * 2), y + 22 * s * clamp(p * 2));
+      if (p > .5) ctx.lineTo(x - 8 * s + 46 * s * clamp(p * 2 - 1), y + 22 * s - 52 * s * clamp(p * 2 - 1));
+    } else {
+      const a = clamp(p * 2), b = clamp(p * 2 - 1);
+      ctx.moveTo(x - 32 * s, y - 32 * s); ctx.lineTo(x - 32 * s + 64 * s * a, y - 32 * s + 64 * s * a);
+      if (b > 0) { ctx.moveTo(x + 32 * s, y - 32 * s); ctx.lineTo(x + 32 * s - 64 * s * b, y - 32 * s + 64 * s * b); }
+    }
+    ctx.stroke(); ctx.restore();
+  }
+  function plant(x, base, s, t, blown) {
+    ctx.save(); ctx.translate(x, base); ctx.scale(s, s);
+    ctx.fillStyle = "#1a2232";
+    ctx.fillRect(-520, -150, 380, 150);          // turbine hall
+    ctx.fillRect(-140, -230, 300, 230);          // reactor block
+    ctx.fillRect(160, -190, 260, 190);           // unit 3
+    // ventilation stack, red-white bands
+    for (let i = 0; i < 8; i++) {
+      ctx.fillStyle = i % 2 ? "#c9cfd8" : "#a3393a";
+      const w0 = 46 - i * 2.2;
+      ctx.fillRect(140 - w0 / 2, -230 - (i + 1) * 40, w0, 40);
+    }
+    ctx.strokeStyle = "#2a3446"; ctx.lineWidth = 2;
+    for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.moveTo(116 + i * 9, -230); ctx.lineTo(126 + i * 6, -550); ctx.stroke(); }
+    // windows
+    for (let i = 0; i < 14; i++) for (let j = 0; j < 3; j++) {
+      const on = rnd(i * 3 + j) > .35;
+      ctx.fillStyle = on ? "rgba(240,190,90,.75)" : "#111827";
+      ctx.fillRect(-500 + i * 26, -125 + j * 34, 12, 16);
+    }
+    if (blown) {
+      ctx.fillStyle = "#0a0e15";
+      ctx.beginPath(); ctx.moveTo(-140, -230); ctx.lineTo(-60, -150); ctx.lineTo(10, -200); ctx.lineTo(70, -140); ctx.lineTo(160, -230); ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+  }
+  function town(t, litBias = 0) {
+    const blocks = [[60, 330, 230], [330, 420, 200], [620, 300, 260], [1240, 380, 220], [1500, 300, 200]];
+    blocks.forEach(([bx, bh, bw], k) => {
+      ctx.fillStyle = "#151c29"; ctx.fillRect(bx - bw / 2, 760 - bh, bw, bh);
+      for (let r = 0; r < bh / 34 - 1; r++) for (let c = 0; c < bw / 30 - 1; c++) {
+        const on = rnd(k * 97 + r * 13 + c) > .55 - litBias;
+        ctx.fillStyle = on ? "rgba(240,190,90,.55)" : "#0d1320";
+        ctx.fillRect(bx - bw / 2 + 14 + c * 30, 760 - bh + 18 + r * 34, 14, 18);
+      }
+    });
+  }
+  function ground(y = 760, col = "#0d121b") { ctx.fillStyle = col; ctx.fillRect(0, y, W, H - y); }
+  function plume(cx, cy, t, dir = 1, scale = 1) {
+    for (let i = 0; i < 26; i++) {
+      const k = i / 26;
+      const px = cx + dir * k * 900 * scale + Math.sin(t * .6 + i) * 10;
+      const py = cy - k * 260 * scale - Math.sin(k * 3) * 40;
+      const r = (30 + k * 140) * scale;
+      ctx.fillStyle = `rgba(70,75,90,${0.28 * (1 - k * .6)})`;
+      ctx.beginPath(); ctx.arc(px, py, r, 0, 7); ctx.fill();
+    }
+  }
+
+  // ---------- scenes ----------
+  const DRAW = [
+    // 1. Explosion
+    t => {
+      sky(); stars(t);
+      const boom = 2.2;
+      const after = t - boom;
+      if (after > 0) {
+        // blue ionised-air column, as eyewitnesses described
+        const g = ctx.createLinearGradient(0, 0, 0, 520);
+        g.addColorStop(0, "rgba(134,184,255,0)"); g.addColorStop(1, `rgba(134,184,255,${0.35 * clamp(after / 2)})`);
+        ctx.fillStyle = g; ctx.fillRect(760, 0, 90, 520);
+        plume(800, 470, t, 1, clamp(after / 6, .1, 1));
+      }
+      ground(700, "#0b1018");
+      plant(820, 700, 1, t, after > 0);
+      if (after > 0) {
+        // fire glow
+        const fr = ctx.createRadialGradient(800, 520, 10, 800, 520, 260);
+        fr.addColorStop(0, `rgba(255,150,60,${0.85 + Math.sin(t * 13) * .1})`); fr.addColorStop(1, "rgba(255,90,30,0)");
+        ctx.fillStyle = fr; ctx.beginPath(); ctx.arc(800, 520, 260, 0, 7); ctx.fill();
+        // debris
+        for (let i = 0; i < 40; i++) {
+          const a = -Math.PI / 2 + (rnd(i) - .5) * 2.2, v = 260 + rnd(i + 5) * 420;
+          const tt = Math.min(after, 3.2);
+          const px = 800 + Math.cos(a) * v * tt;
+          const py = 480 + Math.sin(a) * v * tt + 0.5 * 320 * tt * tt;
+          if (py < 700) { ctx.fillStyle = rnd(i + 9) > .5 ? "#ffb26b" : "#6b7385"; ctx.fillRect(px, py, 6, 6); }
+        }
+        if (after > 3) fallout(t, 120, { x: 0, y: 0, w: W, h: 700 }, clamp((after - 3) / 3));
+        // flash
+        const f = Math.max(0, 1 - after / 0.9);
+        if (f > 0) { ctx.fillStyle = `rgba(255,245,225,${f})`; ctx.fillRect(0, 0, W, H); }
+      }
+      label("01:23:40", 1460, 120, 56, after > 0 ? C.amber : C.ink, "right", FONT_M);
+      label("26 апреля 1986", 1460, 165, 28, C.muted, "right");
+    },
+    // 2. Go inside
+    t => {
+      sky("#070a12", "#1c1a20");
+      // distant plant glow
+      const gl = ctx.createRadialGradient(1050, 470, 5, 1050, 470, 300);
+      gl.addColorStop(0, "rgba(255,140,60,.55)"); gl.addColorStop(1, "rgba(255,140,60,0)");
+      ctx.fillStyle = gl; ctx.fillRect(700, 200, 700, 500);
+      plume(1050, 440, t, 1, .5);
+      town(t, .05);
+      ground();
+      // shelter building with door
+      ctx.fillStyle = "#222c3d"; ctx.fillRect(950, 380, 300, 380);
+      for (let r = 0; r < 7; r++) for (let c = 0; c < 6; c++) { ctx.fillStyle = "rgba(240,190,90,.55)"; ctx.fillRect(972 + c * 46, 400 + r * 44, 20, 24); }
+      ctx.fillStyle = "#0a0e15"; ctx.fillRect(1070, 650, 70, 110);
+      const walk = clamp(t / 7);
+      const px = 180 + ease(walk) * 925;
+      const inside = walk >= 1;
+      if (!inside) person(px, 760, 0.85, t * 7, { color: "#d3dbe8" });
+      // door closes after entering
+      const close = clamp((t - 7.2) / .8);
+      ctx.fillStyle = "#4a3a2a"; ctx.fillRect(1070, 650, 70 * close, 110);
+      fallout(t, 140, { x: 0, y: 0, w: W, h: 760 });
+      label("Кирпич и бетон", 980, 340, 34, C.ion);
+      label("ослабляют излучение", 980, 376, 26, C.muted);
+      if (close >= 1) { ctx.globalAlpha = clamp((t - 8) / 1); label("✓ в укрытии", 1105, 630, 28, C.ok, "center"); ctx.globalAlpha = 1; }
+    },
+    // 3. Close windows
+    t => {
+      ctx.fillStyle = "#2a2622"; ctx.fillRect(0, 0, W, H);          // interior wall
+      ctx.fillStyle = "#1e1b18"; ctx.fillRect(0, 760, W, 140);       // floor
+      // window
+      const wx = 520, wy = 160, ww = 560, wh = 440;
+      ctx.save(); ctx.beginPath(); ctx.rect(wx, wy, ww, wh); ctx.clip();
+      const g = ctx.createLinearGradient(0, wy, 0, wy + wh); g.addColorStop(0, "#0b1220"); g.addColorStop(1, "#2a2030");
+      ctx.fillStyle = g; ctx.fillRect(wx, wy, ww, wh);
+      fallout(t, 80, { x: wx, y: wy, w: ww, h: wh });
+      ctx.restore();
+      const o = 1 - ease((t - 1) / 3);   // open amount
+      ctx.strokeStyle = "#cfc7b8"; ctx.lineWidth = 16;
+      ctx.strokeRect(wx, wy, ww, wh);
+      // sashes: when open they are narrow (turned in), when closed they cover half each
+      const sashW = ww / 2 * (1 - o * 0.8);
+      ctx.lineWidth = 10;
+      ctx.strokeRect(wx, wy, sashW, wh);
+      ctx.strokeRect(wx + ww - sashW, wy, sashW, wh);
+      ctx.fillStyle = "rgba(160,190,220,.08)";
+      ctx.fillRect(wx, wy, sashW, wh); ctx.fillRect(wx + ww - sashW, wy, sashW, wh);
+      // dust drifting inside through the gap
+      const inside = Math.round(60 * o);
+      fallout(t, inside, { x: wx + 100, y: wy + 60, w: ww - 200, h: 560 }, .9);
+      // sill + wet towel
+      ctx.fillStyle = "#cfc7b8"; ctx.fillRect(wx - 30, wy + wh, ww + 60, 22);
+      const towel = clamp((t - 5) / 1.2);
+      if (towel > 0) {
+        ctx.fillStyle = "#5b86ad"; ctx.globalAlpha = towel;
+        ctx.beginPath(); ctx.moveTo(wx - 10, wy + wh - 8); ctx.lineTo(wx + ww + 10, wy + wh - 8);
+        for (let i = 10; i >= 0; i--) ctx.lineTo(wx + i * ww / 10, wy + wh + 46 + Math.sin(i * 1.7) * 8);
+        ctx.fill();
+        for (let i = 0; i < 6; i++) { ctx.fillStyle = "#9cc3e6"; ctx.fillRect(wx + 60 + i * 90, wy + wh + 54 + ((t * 40 + i * 13) % 40), 4, 10); }
+        ctx.globalAlpha = 1;
+        label("мокрое полотенце", wx + ww / 2, wy + wh + 110, 28, C.ion, "center");
+      }
+      // ventilation fan slowing
+      const vx = 1310, vy = 200;
+      ctx.fillStyle = "#3a3530"; ctx.fillRect(vx - 90, vy - 90, 180, 180);
+      ctx.strokeStyle = "#16130f"; ctx.lineWidth = 6; ctx.strokeRect(vx - 90, vy - 90, 180, 180);
+      const off = t > 7;
+      const ang = off ? 7 * 6 + (1 - Math.exp(-(t - 7))) * 3 : t * 6;
+      ctx.save(); ctx.translate(vx, vy); ctx.rotate(ang);
+      ctx.fillStyle = "#8a8378";
+      for (let i = 0; i < 4; i++) { ctx.rotate(Math.PI / 2); ctx.beginPath(); ctx.ellipse(0, -38, 16, 38, 0, 0, 7); ctx.fill(); }
+      ctx.restore();
+      label(off ? "вентиляция: ВЫКЛ" : "вентиляция", vx, vy + 135, 26, off ? C.ok : C.muted, "center");
+      if (o < .05) label("✓ окна закрыты", 160, 300, 34, C.ok);
+      label("от окон —", 160, 680, 28, C.muted);
+      label("в середину здания", 160, 716, 28, C.ink);
+    },
+    // 4. Clothes and shower
+    t => {
+      ctx.fillStyle = "#1a2029"; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = "#131820"; ctx.fillRect(0, 780, W, 120);
+      const fx = 600, fy = 780;
+      person(fx, fy, 1.6, 0, { color: "#c9d3e2" });
+      // jacket with dust
+      const off = ease((t - 1.5) / 2.5);
+      const jx = fx - 34 + off * 720, jy = fy - 290 + Math.sin(off * Math.PI) * -140;
+      ctx.save(); ctx.translate(jx, jy); ctx.rotate(off * 0.6);
+      ctx.fillStyle = "#6a5a43"; ctx.fillRect(0, 0, 68, 140);
+      for (let i = 0; i < 26; i++) { ctx.fillStyle = "rgba(240,164,60,.9)"; ctx.beginPath(); ctx.arc(rnd(i) * 68, rnd(i + 40) * 140, 3.5, 0, 7); ctx.fill(); }
+      ctx.restore();
+      // bag
+      ctx.fillStyle = "#2e3a2c"; ctx.beginPath();
+      ctx.moveTo(1240, 520); ctx.lineTo(1420, 520); ctx.lineTo(1450, 780); ctx.lineTo(1210, 780); ctx.closePath(); ctx.fill();
+      label("пакет", 1330, 500, 28, C.muted, "center");
+      if (off >= 1) label("−90% пыли", 1330, 440, 44, C.ok, "center");
+      // shower
+      const sh = clamp((t - 5.5) / 1);
+      ctx.fillStyle = "#7d8899"; ctx.fillRect(fx - 10, 200, 20, 120); ctx.fillRect(fx - 60, 320, 120, 18);
+      if (sh > 0) {
+        for (let i = 0; i < 40; i++) {
+          const dx = fx - 55 + rnd(i) * 110 + (rnd(i) - .5) * 60 * ((t * 900 + rnd(i + 3) * 460) % 460) / 460;
+          const dy = 345 + ((t * 900 + rnd(i + 3) * 460) % 460);
+          ctx.fillStyle = `rgba(134,184,255,${0.7 * sh})`; ctx.fillRect(dx, dy, 3, 18);
+        }
+      }
+      // remaining dust on body washes away
+      const left = 1 - clamp((t - 6.5) / 3);
+      for (let i = 0; i < 10; i++) {
+        ctx.fillStyle = `rgba(240,164,60,${left})`;
+        ctx.beginPath(); ctx.arc(fx - 40 + rnd(i + 70) * 80, fy - 380 + rnd(i + 80) * 260 + (1 - left) * 200, 4, 0, 7); ctx.fill();
+      }
+      if (t > 6) label("тёплый душ + мыло", fx, 170, 32, C.ion, "center");
+      if (left <= 0) label("✓ чисто", fx + 160, 420, 30, C.ok, "left");
+    },
+    // 5. Iodine
+    t => {
+      ctx.fillStyle = "#12161f"; ctx.fillRect(0, 0, W, H);
+      // head & neck profile
+      ctx.fillStyle = "#2a3242";
+      ctx.beginPath(); ctx.ellipse(480, 260, 150, 170, 0, 0, 7); ctx.fill();
+      ctx.fillRect(400, 360, 150, 300);
+      ctx.beginPath(); ctx.ellipse(475, 760, 300, 120, 0, Math.PI, 0); ctx.fill();
+      // thyroid butterfly
+      const shield = clamp((t - 4) / 1.5);
+      ctx.fillStyle = shield > 0 ? `rgba(79,192,141,${.5 + .4 * shield})` : "rgba(229,83,75,.8)";
+      ctx.beginPath(); ctx.ellipse(445, 560, 30, 46, -0.3, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(505, 560, 30, 46, 0.3, 0, 7); ctx.fill();
+      ctx.fillRect(445, 560, 60, 22);
+      label("щитовидная железа", 475, 700, 26, C.muted, "center");
+      if (shield > 0) {
+        ctx.strokeStyle = `rgba(79,192,141,${shield})`; ctx.lineWidth = 5;
+        ctx.beginPath(); ctx.arc(475, 565, 110, 0, 7); ctx.stroke();
+      }
+      // I-131 particles coming in
+      for (let i = 0; i < 12; i++) {
+        const ph = ((t * .35 + rnd(i)) % 1);
+        let px = 1000 - ph * 430, py = 420 + rnd(i + 5) * 300;
+        if (shield > .5 && px < 640) px = 640 + (640 - px) * .6;
+        ctx.fillStyle = "rgba(240,164,60,.9)"; ctx.beginPath(); ctx.arc(px, py, 9, 0, 7); ctx.fill();
+        ctx.font = `500 16px ${FONT_M}`; ctx.fillStyle = C.amber; ctx.textAlign = "left"; ctx.fillText("I-131", px + 12, py + 5);
+      }
+      // pill KI
+      const pill = ease((t - 2) / 2);
+      if (t > 2) {
+        const px = 760 - pill * 300, py = 300 + pill * 120;
+        if (pill < 1) {
+          ctx.fillStyle = "#e7ebf1"; ctx.beginPath(); ctx.ellipse(px, py, 34, 20, 0, 0, 7); ctx.fill();
+          ctx.fillStyle = "#0a0e15"; ctx.font = `700 20px ${FONT_M}`; ctx.textAlign = "center"; ctx.fillText("KI", px, py + 7);
+        }
+      }
+      label("Йодистый калий (KI)", 760, 150, 36, C.ink);
+      label("только по указанию врачей", 760, 192, 28, C.amber);
+      // iodine bottle crossed out
+      const bx = 1300, by = 520;
+      ctx.fillStyle = "#3b2a1f"; ctx.fillRect(bx - 60, by - 110, 120, 200);
+      ctx.fillStyle = "#1f1b19"; ctx.fillRect(bx - 22, by - 160, 44, 52);
+      ctx.fillStyle = "#e8dcc4"; ctx.fillRect(bx - 50, by - 60, 100, 70);
+      ctx.fillStyle = "#3b2a1f"; ctx.font = `700 22px ${FONT_D}`; ctx.textAlign = "center"; ctx.fillText("ЙОД 5%", bx, by - 18);
+      check(bx, by - 20, 2.2, (t - 7) / 1.2, false);
+      if (t > 8) label("НЕ ПИТЬ", bx, by + 160, 40, C.danger, "center");
+    },
+    // 6. Food & water
+    t => {
+      ctx.fillStyle = "#151a22"; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = "#3a2e22"; ctx.fillRect(80, 640, W - 160, 26); // table
+      label("МОЖНО", 400, 150, 44, C.ok, "center");
+      label("НЕЛЬЗЯ", 1150, 150, 44, C.danger, "center");
+      ctx.fillStyle = "#233044"; ctx.fillRect(798, 180, 4, 560);
+      // sealed bottle
+      ctx.fillStyle = "rgba(134,184,255,.5)"; ctx.fillRect(240, 380, 90, 260); ctx.fillStyle = "#4a6ea0"; ctx.fillRect(262, 340, 46, 44);
+      // can
+      ctx.fillStyle = "#8b96a8"; ctx.fillRect(420, 500, 120, 140); ctx.fillStyle = "#a33b3b"; ctx.fillRect(420, 540, 120, 50);
+      label("вода и консервы", 400, 720, 28, C.muted, "center");
+      check(400, 290, 1.6, (t - 1) / 1, true);
+      // milk jug
+      ctx.fillStyle = "#e7ebf1"; ctx.beginPath(); ctx.moveTo(900, 640); ctx.lineTo(910, 460); ctx.lineTo(950, 420); ctx.lineTo(1020, 420); ctx.lineTo(1050, 460); ctx.lineTo(1060, 640); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#1c2534"; ctx.font = `700 22px ${FONT_D}`; ctx.textAlign = "center"; ctx.fillText("МОЛОКО", 980, 560);
+      // vegetables
+      ctx.fillStyle = "#c2433a"; ctx.beginPath(); ctx.arc(1150, 605, 36, 0, 7); ctx.fill();
+      ctx.fillStyle = "#4f8a3a"; ctx.beginPath(); ctx.ellipse(1240, 615, 60, 22, -0.2, 0, 7); ctx.fill();
+      // mushroom
+      ctx.fillStyle = "#e3d6bf"; ctx.fillRect(1335, 570, 30, 70);
+      ctx.fillStyle = "#7a4a2a"; ctx.beginPath(); ctx.ellipse(1350, 575, 60, 36, 0, Math.PI, 0); ctx.fill();
+      label("молоко, огород, грибы", 1150, 720, 28, C.muted, "center");
+      fallout(t, 50, { x: 820, y: 180, w: 700, h: 460 });
+      check(1150, 290, 1.6, (t - 2.5) / 1, false);
+      if (t > 6) label("радиоактивный йод быстрее всего попадает в организм через молоко", 800, 80, 26, C.amber, "center", '"IBM Plex Sans", sans-serif');
+    },
+    // 7. Evacuation
+    t => {
+      sky("#7d98b8", "#c9d4dd"); // daytime, 27 April
+      ctx.fillStyle = "#e9e3c6"; ctx.beginPath(); ctx.arc(1380, 140, 50, 0, 7); ctx.fill();
+      // plume drifting north (up), road runs across
+      for (let i = 0; i < 14; i++) {
+        const k = i / 14;
+        ctx.fillStyle = `rgba(90,90,100,${.25 * (1 - k)})`;
+        ctx.beginPath(); ctx.arc(180 + Math.sin(i) * 30, 520 - k * 520, 60 + k * 120, 0, 7); ctx.fill();
+      }
+      ctx.fillStyle = "#5c7349"; ctx.fillRect(0, 560, W, 340);
+      ctx.fillStyle = "#3b3f46"; ctx.fillRect(0, 650, W, 120);
+      ctx.strokeStyle = "#d9d3b0"; ctx.lineWidth = 6; ctx.setLineDash([40, 30]);
+      ctx.beginPath(); ctx.moveTo(0, 710); ctx.lineTo(W, 710); ctx.stroke(); ctx.setLineDash([]);
+      // buses
+      for (let i = 0; i < 7; i++) {
+        const x = ((t * 140 + i * 300) % (W + 400)) - 300;
+        ctx.fillStyle = i % 2 ? "#e2b23a" : "#d9dfe6";
+        ctx.fillRect(x, 620, 230, 70);
+        ctx.fillStyle = "#24364f"; for (let w = 0; w < 6; w++) ctx.fillRect(x + 12 + w * 36, 632, 26, 22);
+        ctx.fillStyle = "#111"; ctx.beginPath(); ctx.arc(x + 45, 692, 15, 0, 7); ctx.arc(x + 190, 692, 15, 0, 7); ctx.fill();
+      }
+      // wind arrow
+      ctx.strokeStyle = "#1c2534"; ctx.fillStyle = "#1c2534"; ctx.lineWidth = 8;
+      ctx.beginPath(); ctx.moveTo(420, 520); ctx.lineTo(420, 340); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(400, 350); ctx.lineTo(420, 310); ctx.lineTo(440, 350); ctx.fill();
+      label("ветер", 450, 440, 28, "#1c2534");
+      label("→ уезжайте поперёк ветра", 900, 600, 30, "#1c2534");
+      // clock card
+      ctx.fillStyle = "rgba(10,14,21,.82)"; ctx.fillRect(1020, 230, 480, 250);
+      label("27.04.1986 · 14:00", 1050, 290, 36, C.amber, "left", FONT_M);
+      label("≈ 49 000 жителей", 1050, 345, 32, C.ink);
+      label("≈ 1 200 автобусов", 1050, 395, 32, C.ink);
+      person(560 + Math.min(t * 30, 260), 640, .55, t * 6, { color: "#1c2534", cloth: true });
+      label("документы · вода · лекарства", 1050, 445, 26, C.muted);
+    },
+    // 8. Time, distance, shielding
+    t => {
+      ctx.fillStyle = "#0b0f17"; ctx.fillRect(0, 0, W, H);
+      const items = [
+        { x: 340, name: "Время", d: "меньше — лучше" },
+        { x: 800, name: "Расстояние", d: "дальше — безопаснее" },
+        { x: 1260, name: "Укрытие", d: "толще стены — лучше" }
+      ];
+      items.forEach((it, i) => {
+        const a = ease((t - 1 - i * 2.4) / 1);
+        if (a <= 0) return;
+        ctx.globalAlpha = a;
+        const y = 330 - (1 - a) * 30;
+        ctx.strokeStyle = C.amber; ctx.lineWidth = 8;
+        if (i === 0) { ctx.beginPath(); ctx.arc(it.x, y, 90, 0, 7); ctx.stroke(); ctx.beginPath(); ctx.moveTo(it.x, y); ctx.lineTo(it.x, y - 60); ctx.moveTo(it.x, y); ctx.lineTo(it.x + 45 * Math.cos(t), y + 45 * Math.sin(t)); ctx.stroke(); }
+        if (i === 1) { ctx.beginPath(); ctx.moveTo(it.x - 120, y); ctx.lineTo(it.x + 120, y); ctx.moveTo(it.x - 90, y - 30); ctx.lineTo(it.x - 120, y); ctx.lineTo(it.x - 90, y + 30); ctx.moveTo(it.x + 90, y - 30); ctx.lineTo(it.x + 120, y); ctx.lineTo(it.x + 90, y + 30); ctx.stroke(); }
+        if (i === 2) { ctx.fillStyle = "#6b4a36"; for (let r = 0; r < 5; r++) for (let c = 0; c < 4; c++) ctx.fillRect(it.x - 100 + c * 52 + (r % 2) * 26 - 13, y - 90 + r * 38, 46, 32); }
+        label(it.name, it.x, y + 170, 48, C.ink, "center");
+        label(it.d, it.x, y + 215, 28, C.muted, "center");
+        ctx.globalAlpha = 1;
+      });
+      const c = clamp((t - 9) / 1.5);
+      if (c > 0) {
+        ctx.globalAlpha = c;
+        ctx.fillStyle = "#e7e0cf"; ctx.fillRect(788, 660, 24, 90);
+        const fl = 1 + Math.sin(t * 9) * .08;
+        const g = ctx.createRadialGradient(800, 640, 2, 800, 640, 60 * fl);
+        g.addColorStop(0, "rgba(255,210,120,.95)"); g.addColorStop(1, "rgba(255,160,60,0)");
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(800, 640, 60 * fl, 0, 7); ctx.fill();
+        label("Памяти пожарных и ликвидаторов", 850, 725, 30, C.muted, "left");
+        ctx.globalAlpha = 1;
+      }
+    }
+  ];
+
+  // ---------- canvas sizing & loop ----------
+  function resize() {
+    const r = cv.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.max(1, Math.round(r.width * dpr));
+    cv.height = Math.max(1, Math.round(r.height * dpr));
+  }
+  new ResizeObserver(resize).observe(cv);
+  resize();
+
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    if (playing) {
+      sceneT += dt;
+      if (Math.random() < SCENES[scene].clicks * dt) click();
+    }
+    ctx.setTransform(cv.width / W, 0, 0, cv.height / H, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    DRAW[scene](started ? sceneT : 3.4);
+    requestAnimationFrame(frame);
+  }
+  goTo(0);
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => requestAnimationFrame(frame));
+})();
+</script>
+</body>
+</html>
