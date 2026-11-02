@@ -17,7 +17,7 @@ const PUBLIC_DIR = path.join(ROOT, 'public');
 const DATA_DIR = path.join(ROOT, 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 // Адрес, по которому Happ будет забирать подписку (если сервер стоит за доменом/туннелем)
-const PUBLIC_URL = (process.env.PUBLIC_URL || '').replace(/\/$/, '');
+const PUBLIC_URL = (process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || '').replace(/\/$/, '');
 
 // ---- Правила игры ----
 const MINUTES_PER_TAP = 1;      // 1 нажатие = 1 минута
