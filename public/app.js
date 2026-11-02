@@ -93,11 +93,15 @@ function renderServers() {
   const need = Number($('pkgSelect').value);
   const list = $('serversList');
   list.innerHTML = '';
+  if (!cfg.servers.length) {
+    list.innerHTML = '<div class="empty">🔎 Ищу рабочие бесплатные серверы…<br>Обычно это занимает до минуты.</div>';
+    return;
+  }
   for (const s of cfg.servers) {
     const row = document.createElement('div');
     row.className = 'row';
     row.innerHTML = `<span class="flag">${s.flag}</span>
-      <div class="info"><b>${s.name}</b><small>Shadowsocks · сервер #${s.id}</small></div>`;
+      <div class="info"><b>${s.name}</b><small>Shadowsocks · ${s.free ? 'бесплатный' : 'свой'} · #${s.id}</small></div>`;
     const btn = document.createElement('button');
     btn.className = 'btn';
     const enough = balance() >= need;
@@ -215,6 +219,10 @@ async function init() {
   $('tapBtn').addEventListener('pointerdown', onTap);
   document.querySelectorAll('.bottom button').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
   setInterval(flushTaps, 1000);
+  // Список бесплатных серверов меняется — обновляем его
+  setInterval(async () => {
+    try { cfg = await api('GET', '/api/config'); renderServers(); } catch {}
+  }, cfg.servers.length ? 5 * 60_000 : 15_000);
   setInterval(tickTimers, 1000);
   setInterval(() => { if (user.grants.some(g => g.expiresAt <= Date.now())) renderKeys(); }, 5000);
   window.addEventListener('pagehide', flushTaps);

@@ -19,8 +19,32 @@ const MAX_BURST = 60;           // максимум тапов, накоплен
 const MIN_WITHDRAW = 60;        // вывести можно минимум 60 минут
 const WITHDRAW_PACKAGES = [60, 180, 720, 1440, 10080]; // 1ч, 3ч, 12ч, сутки, неделя
 
-const servers = JSON.parse(fs.readFileSync(path.join(ROOT, 'config/servers.json'), 'utf8'));
+const { findFreeServers } = require('./freeServers');
+
+const SERVER_SLOTS = 10;
+const REFRESH_MS = 30 * 60_000; // обновлять бесплатные серверы каждые 30 минут
+
+// Свои серверы из config/servers.json (заглушки *.example.com игнорируются)
+const ownServers = JSON.parse(fs.readFileSync(path.join(ROOT, 'config/servers.json'), 'utf8'))
+  .filter(s => s.ssKey || (s.host && !s.host.endsWith('example.com')));
 const skins = JSON.parse(fs.readFileSync(path.join(ROOT, 'config/skins.json'), 'utf8'));
+
+let servers = ownServers.map((s, i) => ({ ...s, id: i + 1 }));
+
+async function refreshFreeServers() {
+  const need = SERVER_SLOTS - ownServers.length;
+  if (need <= 0) return;
+  try {
+    const free = await findFreeServers(need);
+    if (!free.length) return console.warn('Рабочих бесплатных серверов не найдено, оставляю старые');
+    servers = [...ownServers, ...free].map((s, i) => ({ ...s, id: i + 1 }));
+    console.log(`Серверы обновлены: ${servers.map(s => `${s.flag} ${s.name}`).join(', ')}`);
+  } catch (e) {
+    console.warn('Ошибка обновления бесплатных серверов:', e.message);
+  }
+}
+refreshFreeServers();
+setInterval(refreshFreeServers, REFRESH_MS);
 
 // ---- Простейшая база в JSON-файле ----
 fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -100,7 +124,7 @@ const routes = {
     minWithdraw: MIN_WITHDRAW,
     packages: WITHDRAW_PACKAGES,
     skins,
-    servers: servers.map(({ id, name, flag }) => ({ id, name, flag })),
+    servers: servers.map(({ id, name, flag, free }) => ({ id, name, flag, free: !!free })),
   }],
 
   'POST /api/register': () => {
@@ -159,8 +183,9 @@ const routes = {
     u.minutes -= minutes;
     const now = Date.now();
     // Если на этом сервере уже есть активный доступ — продлеваем его
-    const active = u.grants.find(g => g.serverId === server.id && g.expiresAt > now);
     const key = ssLink(server);
+    // Продлеваем, только если это тот же самый ключ (бесплатные серверы меняются)
+    const active = u.grants.find(g => g.key === key && g.expiresAt > now);
     let grant;
     if (active) {
       active.expiresAt += minutes * 60_000;
