@@ -1,0 +1,12 @@
+[
+  {"name": "🇩🇪 Германия",       "link": "vless://UUID@de.example.com:443?type=tcp&security=reality&pbk=PUBLIC_KEY&sni=www.google.com&fp=chrome&sid=SHORT_ID&flow=xtls-rprx-vision"},
+  {"name": "🇳🇱 Нидерланды",     "link": "vless://UUID@nl.example.com:443?type=tcp&security=reality&pbk=PUBLIC_KEY&sni=www.google.com&fp=chrome&sid=SHORT_ID&flow=xtls-rprx-vision"},
+  {"name": "🇫🇮 Финляндия",      "link": "vless://UUID@fi.example.com:443?type=tcp&security=reality&pbk=PUBLIC_KEY&sni=www.google.com&fp=chrome&sid=SHORT_ID&flow=xtls-rprx-vision"},
+  {"name": "🇸🇪 Швеция",         "link": "vless://UUID@se.example.com:443?type=tcp&security=reality&pbk=PUBLIC_KEY&sni=www.google.com&fp=chrome&sid=SHORT_ID&flow=xtls-rprx-vision"},
+  {"name": "🇵🇱 Польша",         "link": "vless://UUID@pl.example.com:443?type=tcp&security=reality&pbk=PUBLIC_KEY&sni=www.google.com&fp=chrome&sid=SHORT_ID&flow=xtls-rprx-vision"},
+  {"name": "🇫🇷 Франция",        "link": "vless://UUID@fr.example.com:443?type=tcp&security=reality&pbk=PUBLIC_KEY&sni=www.google.com&fp=chrome&sid=SHORT_ID&flow=xtls-rprx-vision"},
+  {"name": "🇬🇧 Великобритания", "link": "vless://UUID@uk.example.com:443?type=tcp&security=reality&pbk=PUBLIC_KEY&sni=www.google.com&fp=chrome&sid=SHORT_ID&flow=xtls-rprx-vision"},
+  {"name": "🇺🇸 США",            "link": "vless://UUID@us.example.com:443?type=tcp&security=reality&pbk=PUBLIC_KEY&sni=www.google.com&fp=chrome&sid=SHORT_ID&flow=xtls-rprx-vision"},
+  {"name": "🇹🇷 Турция",         "link": "vless://UUID@tr.example.com:443?type=tcp&security=reality&pbk=PUBLIC_KEY&sni=www.google.com&fp=chrome&sid=SHORT_ID&flow=xtls-rprx-vision"},
+  {"name": "🇰🇿 Казахстан",      "link": "vless://UUID@kz.example.com:443?type=tcp&security=reality&pbk=PUBLIC_KEY&sni=www.google.com&fp=chrome&sid=SHORT_ID&flow=xtls-rprx-vision"}
+]
