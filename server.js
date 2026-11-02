@@ -1,16 +1,23 @@
 // ВПН-кликер: сервер без внешних зависимостей (только Node.js >= 18).
 // Запуск: node server.js  ->  http://localhost:3000
+//
+// Каждый игрок получает личную ссылку-подписку для приложения Happ.
+// Happ сам показывает по ней: сколько натапано, баланс минут и до какого времени работает ВПН.
+// Пока время есть — в подписке 10 серверов Shadowsocks, когда кончилось — серверов нет.
 
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { findFreeServers } = require('./freeServers');
 
 const PORT = Number(process.env.PORT) || 3000;
 const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const DATA_DIR = path.join(ROOT, 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
+// Адрес, по которому Happ будет забирать подписку (если сервер стоит за доменом/туннелем)
+const PUBLIC_URL = (process.env.PUBLIC_URL || '').replace(/\/$/, '');
 
 // ---- Правила игры ----
 const MINUTES_PER_TAP = 1;      // 1 нажатие = 1 минута
@@ -18,9 +25,9 @@ const MAX_TAPS_PER_SEC = 15;    // защита от автокликеров
 const MAX_BURST = 60;           // максимум тапов, накопленных за паузу
 const MIN_WITHDRAW = 60;        // вывести можно минимум 60 минут
 const WITHDRAW_PACKAGES = [60, 180, 720, 1440, 10080]; // 1ч, 3ч, 12ч, сутки, неделя
+const HAPP_UPDATE_HOURS = 1;    // как часто Happ обновляет подписку (минимум 1 час)
 
-const { findFreeServers } = require('./freeServers');
-
+// ---- Серверы ----
 const SERVER_SLOTS = 10;
 const REFRESH_MS = 30 * 60_000; // обновлять бесплатные серверы каждые 30 минут
 
@@ -51,6 +58,17 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
 let db = { users: {} };
 try { db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8')); } catch { /* новая база */ }
 
+// Индекс подписок: subId -> пользователь (+ дополняем старые записи новыми полями)
+const bySub = {};
+for (const u of Object.values(db.users)) {
+  u.subId ||= crypto.randomBytes(12).toString('hex');
+  u.vpnUntil ||= 0;
+  u.totalWithdrawn ||= 0;
+  u.lastSubFetch ||= 0;
+  delete u.grants;
+  bySub[u.subId] = u;
+}
+
 let saveTimer = null;
 function save() {
   if (saveTimer) return;
@@ -66,22 +84,58 @@ function publicUser(u) {
   return {
     minutes: u.minutes,
     totalTaps: u.totalTaps,
+    totalWithdrawn: u.totalWithdrawn,
+    vpnUntil: u.vpnUntil,
+    subId: u.subId,
+    lastSubFetch: u.lastSubFetch,
     skin: u.skin,
     ownedSkins: u.ownedSkins,
-    grants: u.grants.filter(g => g.expiresAt > Date.now()),
   };
 }
 
-// ---- Shadowsocks-ключи ----
+// ---- Shadowsocks-ключи и подписка Happ ----
 function ssLink(s) {
   if (s.ssKey) return s.ssKey; // можно вставить готовый ss:// ключ в конфиг
   const userInfo = Buffer.from(`${s.method}:${s.password}`).toString('base64url');
   return `ss://${userInfo}@${s.host}:${s.port}#${encodeURIComponent(`${s.flag} ${s.name}`)}`;
 }
 
-// Ссылка, которая открывает приложение Happ и добавляет в него ключ
-function happLink(key) {
-  return `happ://add/${key}`;
+const b64 = (s) => 'base64:' + Buffer.from(s).toString('base64');
+
+function fmtDuration(min) {
+  const d = Math.floor(min / 1440), h = Math.floor((min % 1440) / 60), m = min % 60;
+  return (d ? `${d}д ` : '') + `${h}ч ${m}м`;
+}
+
+function serveSubscription(req, res, subId) {
+  const u = bySub[subId];
+  if (!u) { res.writeHead(404); return res.end('Not found'); }
+  const now = Date.now();
+  u.lastSubFetch = now;
+  save();
+
+  const active = u.vpnUntil > now;
+  const leftMin = active ? Math.ceil((u.vpnUntil - now) / 60_000) : 0;
+  const announce = active
+    ? `✅ ВПН ещё ${fmtDuration(leftMin)} · Натапано: ${u.totalTaps} · Баланс: ${u.minutes} мин`
+    : `⛔ Время ВПН закончилось. Натапано: ${u.totalTaps} · Баланс: ${u.minutes} мин. Натапайте и выведите минуты!`;
+
+  const body = active ? servers.map(ssLink).join('\n') : '';
+  const base = PUBLIC_URL || `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers.host}`;
+
+  res.writeHead(200, {
+    'Content-Type': 'text/plain; charset=utf-8',
+    'Cache-Control': 'no-store',
+    // Заголовки, которые понимает Happ:
+    'profile-title': b64('🛡️ ВПН Кликер'),
+    'profile-update-interval': String(HAPP_UPDATE_HOURS),
+    // expire = до какого времени работает подписка (Happ показывает дату и оставшиеся дни)
+    'subscription-userinfo': `upload=0; download=0; total=0; expire=${Math.floor((active ? u.vpnUntil : now) / 1000)}`,
+    'announce': b64(announce),
+    'profile-web-page-url': base + '/',
+    'support-url': base + '/',
+  });
+  res.end(Buffer.from(body).toString('base64'));
 }
 
 // ---- HTTP-помощники ----
@@ -123,18 +177,23 @@ const routes = {
     minutesPerTap: MINUTES_PER_TAP,
     minWithdraw: MIN_WITHDRAW,
     packages: WITHDRAW_PACKAGES,
+    happUpdateHours: HAPP_UPDATE_HOURS,
+    publicUrl: PUBLIC_URL,
     skins,
     servers: servers.map(({ id, name, flag, free }) => ({ id, name, flag, free: !!free })),
   }],
 
   'POST /api/register': () => {
     const token = crypto.randomBytes(24).toString('hex');
-    db.users[token] = {
-      minutes: 0, totalTaps: 0, skin: 'default', ownedSkins: ['default'],
-      grants: [], lastTapAt: Date.now(), createdAt: Date.now(),
+    const u = {
+      minutes: 0, totalTaps: 0, totalWithdrawn: 0, vpnUntil: 0, lastSubFetch: 0,
+      subId: crypto.randomBytes(12).toString('hex'),
+      skin: 'default', ownedSkins: ['default'], lastTapAt: Date.now(), createdAt: Date.now(),
     };
+    db.users[token] = u;
+    bySub[u.subId] = u;
     save();
-    return [200, { token, user: publicUser(db.users[token]) }];
+    return [200, { token, user: publicUser(u) }];
   },
 
   'GET /api/me': (u) => [200, { user: publicUser(u) }],
@@ -172,39 +231,27 @@ const routes = {
     return [200, { user: publicUser(u) }];
   },
 
+  // Вывод минут = продление подписки Happ (все 10 серверов)
   'POST /api/withdraw': (u, body) => {
-    const server = servers.find(s => s.id === Number(body.serverId));
     const minutes = Number(body.minutes);
-    if (!server) return [404, { error: 'Сервер не найден' }];
     if (!WITHDRAW_PACKAGES.includes(minutes)) return [400, { error: 'Неверный пакет минут' }];
     if (minutes < MIN_WITHDRAW) return [400, { error: `Минимум ${MIN_WITHDRAW} мин.` }];
     if (u.minutes < minutes) return [400, { error: `Натапайте ещё ${minutes - u.minutes} мин.` }];
-
-    u.minutes -= minutes;
     const now = Date.now();
-    // Если на этом сервере уже есть активный доступ — продлеваем его
-    const key = ssLink(server);
-    // Продлеваем, только если это тот же самый ключ (бесплатные серверы меняются)
-    const active = u.grants.find(g => g.key === key && g.expiresAt > now);
-    let grant;
-    if (active) {
-      active.expiresAt += minutes * 60_000;
-      grant = active;
-    } else {
-      grant = {
-        id: crypto.randomUUID(), serverId: server.id, serverName: `${server.flag} ${server.name}`,
-        key, happ: happLink(key), createdAt: now, expiresAt: now + minutes * 60_000,
-      };
-      u.grants.push(grant);
-    }
-    u.grants = u.grants.filter(g => g.expiresAt > now);
+    u.minutes -= minutes;
+    u.totalWithdrawn += minutes;
+    u.vpnUntil = Math.max(now, u.vpnUntil) + minutes * 60_000;
     save();
-    return [200, { grant, user: publicUser(u) }];
+    return [200, { user: publicUser(u) }];
   },
 };
 
 http.createServer(async (req, res) => {
   const pathname = new URL(req.url, 'http://x').pathname;
+
+  const sub = pathname.match(/^\/sub\/([a-f0-9]{24})$/);
+  if (sub && req.method === 'GET') return serveSubscription(req, res, sub[1]);
+
   const handler = routes[`${req.method} ${pathname}`];
   if (!handler) return pathname.startsWith('/api/') ? send(res, 404, { error: 'Not found' }) : serveStatic(req, res);
 

@@ -79,6 +79,12 @@ h2 { margin: 4px 0 16px; font-size: 20px; }
 .key .timer { color: var(--ok); font-variant-numeric: tabular-nums; }
 .key code { display: block; font-size: 11px; color: var(--muted); word-break: break-all; background: #0b1020; padding: 8px; border-radius: 8px; margin-bottom: 10px; user-select: all; }
 .key .actions { display: flex; gap: 8px; }
+.key + .key { margin-top: 12px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; margin-top: 6px; }
+.stats span { display: block; font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.stats small, .muted { color: var(--muted); font-size: 12px; }
+.timer.off { color: #f87171; }
+#withdrawBtn { margin-bottom: 4px; }
 .empty { color: var(--muted); text-align: center; padding: 30px 0; }
 
 .bottom {

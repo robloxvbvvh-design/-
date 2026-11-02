@@ -91,6 +91,9 @@ function renderPackages() {
 
 function renderServers() {
   const need = Number($('pkgSelect').value);
+  const enough = balance() >= need;
+  $('withdrawBtn').disabled = !enough;
+  $('withdrawBtn').textContent = enough ? `Активировать ${fmtDuration(need)}` : `Натапайте ещё ${need - balance()} мин`;
   const list = $('serversList');
   list.innerHTML = '';
   if (!cfg.servers.length) {
@@ -102,51 +105,37 @@ function renderServers() {
     row.className = 'row';
     row.innerHTML = `<span class="flag">${s.flag}</span>
       <div class="info"><b>${s.name}</b><small>Shadowsocks · ${s.free ? 'бесплатный' : 'свой'} · #${s.id}</small></div>`;
-    const btn = document.createElement('button');
-    btn.className = 'btn';
-    const enough = balance() >= need;
-    btn.textContent = enough ? 'Вывести' : `Ещё ${need - balance()}`;
-    btn.disabled = !enough;
-    btn.onclick = () => withdraw(s, need);
-    row.appendChild(btn);
     list.appendChild(row);
   }
 }
 
-function renderKeys() {
-  const list = $('keysList');
-  const grants = user.grants.filter(g => g.expiresAt > Date.now());
-  if (!grants.length) { list.innerHTML = '<div class="empty">Пока нет ключей.<br>Натапайте минуты и выведите их на сервер.</div>'; return; }
-  list.innerHTML = '';
-  for (const g of grants) {
-    const el = document.createElement('div');
-    el.className = 'key';
-    el.innerHTML = `
-      <div class="head"><b>${g.serverName}</b><span class="timer" data-exp="${g.expiresAt}"></span></div>
-      <code>${g.key}</code>
-      <div class="actions">
-        <a class="btn" href="${g.happ}" style="text-align:center;text-decoration:none">Открыть в Happ</a>
-        <button class="btn ghost">Копировать</button>
-      </div>`;
-    el.querySelector('button').onclick = async () => {
-      try { await navigator.clipboard.writeText(g.key); toast('Ключ скопирован'); }
-      catch { toast('Не удалось скопировать — выделите ключ вручную'); }
-    };
-    list.appendChild(el);
-  }
+function subUrl() {
+  return `${cfg.publicUrl || location.origin}/sub/${user.subId}`;
+}
+
+function renderHapp() {
+  const url = subUrl();
+  $('subUrl').textContent = url;
+  $('happBtn').href = `happ://add/${url}`;
+  $('stTaps').textContent = user.totalTaps.toLocaleString('ru-RU');
+  $('stWithdrawn').textContent = user.totalWithdrawn.toLocaleString('ru-RU');
+  $('stBalance').textContent = balance().toLocaleString('ru-RU');
+  $('lastSync').textContent = user.lastSubFetch
+    ? 'Happ обновлял: ' + new Date(user.lastSubFetch).toLocaleString('ru-RU', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
+    : 'Happ ещё не подключён';
   tickTimers();
 }
 
 function tickTimers() {
-  document.querySelectorAll('.timer[data-exp]').forEach(el => {
-    const left = Math.max(0, Number(el.dataset.exp) - Date.now());
-    const s = Math.floor(left / 1000);
-    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
-    el.textContent = left ? `осталось ${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}` : 'истёк';
-  });
+  const el = $('vpnTimer');
+  const left = Math.max(0, user.vpnUntil - Date.now());
+  const s = Math.floor(left / 1000);
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  el.textContent = left ? `осталось ${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}` : 'выключен';
+  el.classList.toggle('off', !left);
 }
 
-function renderAll() { renderBalance(); renderSkins(); renderKeys(); }
+function renderAll() { renderBalance(); renderSkins(); renderHapp(); }
 
 // ---------- Действия ----------
 function onTap(e) {
@@ -182,15 +171,16 @@ async function flushTaps() {
   return flushing;
 }
 
-async function withdraw(server, minutes) {
+async function withdraw() {
+  const minutes = Number($('pkgSelect').value);
   await flushTaps();
-  if (!confirm(`Вывести ${minutes} мин на сервер ${server.flag} ${server.name}?`)) return;
+  if (!confirm(`Потратить ${minutes} мин и включить ВПН на ${fmtDuration(minutes)}?`)) return;
   try {
-    const r = await api('POST', '/api/withdraw', { serverId: server.id, minutes });
+    const r = await api('POST', '/api/withdraw', { minutes });
     user = r.user;
     renderAll();
     switchTab('keys');
-    toast('Готово! Нажмите «Открыть в Happ»');
+    toast(user.lastSubFetch ? 'Готово! Обновите подписку в Happ' : 'Готово! Нажмите «Добавить в Happ»');
   } catch (e) { toast(e.message); }
 }
 
@@ -223,8 +213,16 @@ async function init() {
   setInterval(async () => {
     try { cfg = await api('GET', '/api/config'); renderServers(); } catch {}
   }, cfg.servers.length ? 5 * 60_000 : 15_000);
+  $('withdrawBtn').onclick = withdraw;
+  $('copySub').onclick = async () => {
+    try { await navigator.clipboard.writeText(subUrl()); toast('Ссылка скопирована'); }
+    catch { toast('Не удалось скопировать — выделите ссылку вручную'); }
+  };
   setInterval(tickTimers, 1000);
-  setInterval(() => { if (user.grants.some(g => g.expiresAt <= Date.now())) renderKeys(); }, 5000);
+  // Подтягиваем, когда Happ последний раз забирал подписку
+  setInterval(async () => {
+    try { user = (await api('GET', '/api/me')).user; renderHapp(); } catch {}
+  }, 30_000);
   window.addEventListener('pagehide', flushTaps);
 }
 

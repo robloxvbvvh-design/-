@@ -35,18 +35,37 @@
 
     <!-- Серверы / вывод -->
     <section class="tab" id="tab-servers">
-      <h2>Вывести минуты</h2>
+      <h2>Вывести минуты в Happ</h2>
       <label class="field">Сколько минут
         <select id="pkgSelect"></select>
       </label>
+      <button class="btn" id="withdrawBtn">Активировать</button>
+      <p class="hint">Время добавится к подписке Happ — откроются все серверы ниже.</p>
       <div class="list" id="serversList"></div>
     </section>
 
-    <!-- Мои ключи -->
+    <!-- Happ: подписка и статистика -->
     <section class="tab" id="tab-keys">
-      <h2>Мои ключи</h2>
-      <p class="hint">Нажмите «Открыть в Happ» — ключ сам добавится в приложение.</p>
-      <div class="list" id="keysList"></div>
+      <h2>Happ</h2>
+      <div class="key">
+        <div class="head"><b>Статус ВПН</b><span class="timer" id="vpnTimer"></span></div>
+        <div class="stats">
+          <div><span id="stTaps">0</span><small>натапано</small></div>
+          <div><span id="stWithdrawn">0</span><small>выведено мин</small></div>
+          <div><span id="stBalance">0</span><small>баланс мин</small></div>
+        </div>
+      </div>
+      <div class="key">
+        <div class="head"><b>Ваша подписка</b><small id="lastSync" class="muted"></small></div>
+        <code id="subUrl"></code>
+        <div class="actions">
+          <a class="btn" id="happBtn" style="text-align:center;text-decoration:none">Добавить в Happ</a>
+          <button class="btn ghost" id="copySub">Копировать</button>
+        </div>
+      </div>
+      <p class="hint">Добавьте подписку в Happ один раз. Дальше Happ сам показывает, сколько вы натапали
+        и сколько осталось ВПН. Когда время кончится — серверы пропадут. Чтобы Happ сразу увидел новые
+        минуты, потяните список серверов вниз (обновить подписку).</p>
     </section>
   </main>
 
@@ -54,7 +73,7 @@
     <button data-tab="tap" class="active">👆<span>Тап</span></button>
     <button data-tab="skins">🎨<span>Скины</span></button>
     <button data-tab="servers">🌍<span>Серверы</span></button>
-    <button data-tab="keys">🔑<span>Ключи</span></button>
+    <button data-tab="keys">📲<span>Happ</span></button>
   </nav>
 
   <div id="toast" class="toast"></div>
