@@ -1,0 +1,12 @@
+[
+  { "id": 1,  "name": "Германия",       "flag": "🇩🇪", "host": "de.example.com", "port": 8388, "method": "chacha20-ietf-poly1305", "password": "CHANGE_ME_1" },
+  { "id": 2,  "name": "Нидерланды",     "flag": "🇳🇱", "host": "nl.example.com", "port": 8388, "method": "chacha20-ietf-poly1305", "password": "CHANGE_ME_2" },
+  { "id": 3,  "name": "Финляндия",      "flag": "🇫🇮", "host": "fi.example.com", "port": 8388, "method": "chacha20-ietf-poly1305", "password": "CHANGE_ME_3" },
+  { "id": 4,  "name": "Швеция",         "flag": "🇸🇪", "host": "se.example.com", "port": 8388, "method": "chacha20-ietf-poly1305", "password": "CHANGE_ME_4" },
+  { "id": 5,  "name": "Польша",         "flag": "🇵🇱", "host": "pl.example.com", "port": 8388, "method": "chacha20-ietf-poly1305", "password": "CHANGE_ME_5" },
+  { "id": 6,  "name": "Франция",        "flag": "🇫🇷", "host": "fr.example.com", "port": 8388, "method": "chacha20-ietf-poly1305", "password": "CHANGE_ME_6" },
+  { "id": 7,  "name": "Великобритания", "flag": "🇬🇧", "host": "uk.example.com", "port": 8388, "method": "chacha20-ietf-poly1305", "password": "CHANGE_ME_7" },
+  { "id": 8,  "name": "США",            "flag": "🇺🇸", "host": "us.example.com", "port": 8388, "method": "chacha20-ietf-poly1305", "password": "CHANGE_ME_8" },
+  { "id": 9,  "name": "Турция",         "flag": "🇹🇷", "host": "tr.example.com", "port": 8388, "method": "chacha20-ietf-poly1305", "password": "CHANGE_ME_9" },
+  { "id": 10, "name": "Казахстан",      "flag": "🇰🇿", "host": "kz.example.com", "port": 8388, "method": "chacha20-ietf-poly1305", "password": "CHANGE_ME_10" }
+]

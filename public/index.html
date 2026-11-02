@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>ВПН Кликер</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="balance">
+      <span class="label">Баланс</span>
+      <span class="value"><span id="minutes">0</span> мин</span>
+      <span class="sub" id="hours">≈ 0 ч 0 мин ВПН</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- Тапалка -->
+    <section class="tab active" id="tab-tap">
+      <button id="tapBtn" class="tap-btn" aria-label="Тапнуть">
+        <span class="tap-emoji" id="tapEmoji">🛡️</span>
+        <span class="tap-text">VPN</span>
+      </button>
+      <p class="hint">1 тап = 1 минута ВПН · вывод от <span id="minW">60</span> мин</p>
+      <div class="progress"><div id="progressBar"></div></div>
+      <p class="hint" id="progressText"></p>
+    </section>
+
+    <!-- Скины -->
+    <section class="tab" id="tab-skins">
+      <h2>Скины</h2>
+      <div class="grid" id="skinsList"></div>
+    </section>
+
+    <!-- Серверы / вывод -->
+    <section class="tab" id="tab-servers">
+      <h2>Вывести минуты</h2>
+      <label class="field">Сколько минут
+        <select id="pkgSelect"></select>
+      </label>
+      <div class="list" id="serversList"></div>
+    </section>
+
+    <!-- Мои ключи -->
+    <section class="tab" id="tab-keys">
+      <h2>Мои ключи</h2>
+      <p class="hint">Нажмите «Открыть в Happ» — ключ сам добавится в приложение.</p>
+      <div class="list" id="keysList"></div>
+    </section>
+  </main>
+
+  <nav class="bottom">
+    <button data-tab="tap" class="active">👆<span>Тап</span></button>
+    <button data-tab="skins">🎨<span>Скины</span></button>
+    <button data-tab="servers">🌍<span>Серверы</span></button>
+    <button data-tab="keys">🔑<span>Ключи</span></button>
+  </nav>
+
+  <div id="toast" class="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>

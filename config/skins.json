@@ -1,0 +1,10 @@
+[
+  { "id": "default", "name": "Классика",  "price": 0,     "emoji": "🛡️", "colors": ["#3b82f6", "#1d4ed8"] },
+  { "id": "neon",    "name": "Неон",      "price": 100,   "emoji": "⚡",  "colors": ["#22d3ee", "#a855f7"] },
+  { "id": "fire",    "name": "Огонь",     "price": 300,   "emoji": "🔥", "colors": ["#f97316", "#dc2626"] },
+  { "id": "matrix",  "name": "Матрица",   "price": 600,   "emoji": "💾", "colors": ["#22c55e", "#064e3b"] },
+  { "id": "ice",     "name": "Лёд",       "price": 1000,  "emoji": "❄️", "colors": ["#e0f2fe", "#0ea5e9"] },
+  { "id": "space",   "name": "Космос",    "price": 2000,  "emoji": "🚀", "colors": ["#6366f1", "#0f172a"] },
+  { "id": "gold",    "name": "Золото",    "price": 5000,  "emoji": "👑", "colors": ["#fde047", "#b45309"] },
+  { "id": "diamond", "name": "Бриллиант", "price": 10000, "emoji": "💎", "colors": ["#f0abfc", "#38bdf8"] }
+]

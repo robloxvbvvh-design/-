@@ -4,3 +4,5 @@
 *.ptx
 *.cubin
 *.fatbin
+node_modules/
+data/

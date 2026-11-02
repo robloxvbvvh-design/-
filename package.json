@@ -1,0 +1,13 @@
+{
+  "name": "vpn-clicker",
+  "version": "1.0.0",
+  "description": "ВПН-кликер: тапай, копи минуты, покупай скины и выводи минуты ВПН (Shadowsocks) в приложение Happ",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}
