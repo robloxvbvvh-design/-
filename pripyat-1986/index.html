@@ -34,6 +34,14 @@ h1 span{color:var(--alarm)}
 .overlay p{margin:0;color:var(--fg);opacity:.85;font-size:clamp(13px,1.8vw,16px)}
 .big{display:inline-flex;align-items:center;gap:10px;font:500 16px/1 var(--body);color:#120806;background:var(--fg);border:0;border-radius:999px;padding:14px 24px;cursor:pointer}
 .big:hover{background:#fff}
+.big.ghost{background:transparent;color:var(--fg);box-shadow:inset 0 0 0 1px rgba(235,231,222,.5)}
+.big.ghost:hover{background:rgba(255,255,255,.08)}
+.row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.eps{display:flex;gap:8px;flex-wrap:wrap}
+.ep{display:flex;align-items:baseline;gap:8px;background:var(--panel);color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:8px 16px;font:inherit;cursor:pointer}
+.ep b{font-weight:500;color:var(--fg)}
+.ep[aria-pressed="true"]{border-color:var(--alarm);color:var(--fg)}
+.ep[aria-pressed="true"] b{color:var(--alarm)}
 .big svg{width:16px;height:16px;fill:currentColor}
 button:focus-visible,input:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .controls{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 12px}
@@ -55,19 +63,25 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--amber);outline-
 <div class="wrap">
   <header>
     <h1>Припять, <span>1986</span></h1>
-    <div class="meta">Анимация · голос · 0:56</div>
+    <div class="meta">Анимация · 2 части · по 0:56</div>
   </header>
+
+  <div class="eps" role="group" aria-label="Части">
+    <button class="ep" type="button" aria-pressed="true"><b>Часть 1</b><span>Взрыв</span></button>
+    <button class="ep" type="button" aria-pressed="false"><b>Часть 2</b><span>Туман</span></button>
+  </div>
 
   <div class="player" id="player">
     <canvas id="screen" width="1280" height="720" aria-label="Анимация: Припять, апрель 1986"></canvas>
     <div class="overlay" id="startOv">
-      <h2>ПРИПЯТЬ. 1986</h2>
-      <p>26 апреля. Четвёртый энергоблок. Дима остаётся в городе.</p>
+      <h2 id="ovTitle">ПРИПЯТЬ. 1986</h2>
+      <p id="ovText">26 апреля. Четвёртый энергоблок. Дима остаётся в городе.</p>
       <button class="big" id="startBtn"><svg viewBox="0 0 16 16"><path d="M3 1.5v13l11-6.5z"/></svg>Смотреть со звуком</button>
     </div>
     <div class="overlay" id="endOv" hidden>
-      <h2>КОНЕЦ</h2>
-      <button class="big" id="againBtn"><svg viewBox="0 0 16 16"><path d="M8 2a6 6 0 1 0 6 6h-2a4 4 0 1 1-1.2-2.8L8.5 7.5H14V2l-1.8 1.8A6 6 0 0 0 8 2z"/></svg>Смотреть снова</button>
+      <h2 id="endTitle">КОНЕЦ</h2>
+      <div class="row"><button class="big" id="nextBtn"><svg viewBox="0 0 16 16"><path d="M3 1.5v13l9-6.5zM12 2h2v12h-2z"/></svg>Часть 2</button>
+      <button class="big ghost" id="againBtn"><svg viewBox="0 0 16 16"><path d="M8 2a6 6 0 1 0 6 6h-2a4 4 0 1 1-1.2-2.8L8.5 7.5H14V2l-1.8 1.8A6 6 0 0 0 8 2z"/></svg>Смотреть снова</button></div>
     </div>
   </div>
 
@@ -79,7 +93,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--amber);outline-
   </div>
 
   <section class="script">
-    <h3>Текст озвучки · нажмите строку, чтобы перейти</h3>
+    <h3 id="scriptTitle">Текст озвучки · нажмите строку, чтобы перейти</h3>
     <div class="lines" id="lines"></div>
   </section>
 </div>
@@ -87,9 +101,10 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--amber);outline-
 <audio id="voice" src="voice.mp3" preload="auto"></audio>
 
 <script>
-const SUBS=[[0.0,0.76,[["Ты",0.0,0.22],["в",0.22,0.36],["Припяти.",0.36,0.76]]],[1.4,2.82,[["Я",1.4,1.66],["не",1.66,1.8],["знаю,",1.8,2.06],["что",2.12,2.3],["случилось.",2.3,2.82]]],[3.44,9.68,[["В",3.44,3.56],["1986",3.56,4.64],["году",4.64,5.72],["26",5.72,6.36],["апреля",6.36,7.26],["взорвалась",7.26,7.8],["электростанция",7.8,8.74],["Чернобыльская,",8.74,9.68]]],[9.92,12.62,[["АЭС,",9.92,10.8],["на",11.0,11.18],["четвёртом",11.18,11.72],["энергоблоке.",11.72,12.62]]],[12.98,13.6,[["Взорвался.",12.98,13.6]]],[14.22,15.44,[["Ты",14.22,14.44],["обычный",14.44,15.1],["человек.",15.1,15.44]]],[16.14,17.86,[["Дима,",16.14,16.48],["небольшая",16.82,17.32],["заварушка.",17.32,17.86]]],[18.32,18.96,[["Хрущёвка.",18.32,18.96]]],[19.42,20.9,[["У",19.42,19.52],["тебя",19.52,19.7],["есть",19.7,19.98],["загородный",19.98,20.58],["мопед?",20.58,20.9]]],[21.32,23.06,[["Ключи",21.32,21.66],["от",21.66,21.8],["дома",21.8,22.02],["за",22.02,22.24],["городом",22.24,22.7],["в",22.7,22.88],["селе.",22.88,23.06]]],[23.52,24.48,[["У",23.52,23.66],["тебя",23.66,23.86],["есть",23.86,24.12],["мопед?",24.12,24.48]]],[24.86,26.6,[["Сейчас",24.86,25.32],["у",25.32,25.62],["тебя",25.62,25.82],["нету",25.82,26.24],["ничего.",26.24,26.6]]],[27.04,29.02,[["Ты",27.04,27.18],["сидишь",27.18,27.5],["дома",27.5,27.82],["после",27.82,28.18],["долгой",28.18,28.64],["работы.",28.64,29.02]]],[29.02,31.42,[["После",29.02,29.68],["взрыва",29.68,30.26],["чувствуешь",30.26,30.9],["туман.",30.9,31.42]]],[31.72,33.12,[["Ты",31.72,31.8],["решил",31.8,32.14],["забраться",32.14,32.62],["подвал.",32.62,33.12]]],[33.46,37.56,[["Ну,",33.46,33.64],["оказывается,",33.94,34.54],["там",34.6,34.82],["было",34.82,35.08],["огурчики,",35.08,36.06],["несколько",36.34,36.58],["банок",36.58,37.08],["питья.",37.08,37.56]]],[37.86,38.64,[["Ты",37.86,37.96],["сразу",37.96,38.36],["за.",38.36,38.64]]],[39.04,41.9,[["Видишь,",39.04,39.46],["после",39.72,40.0],["этого",40.0,40.36],["ты",40.36,40.58],["поднимаешься",40.58,41.38],["вверх.",41.38,41.9]]],[42.06,43.96,[["Видишь,",42.06,42.42],["как",42.44,42.56],["автобусы",42.56,43.16],["забирают",43.16,43.66],["людей.",43.66,43.96]]],[44.4,45.82,[["Ты",44.4,44.52],["решающийся",44.52,45.28],["остаться.",45.28,45.82]]],[46.16,47.2,[["И",46.16,46.28],["по",46.28,46.38],["телевизору",46.38,46.96],["говорят.",46.96,47.2]]],[47.74,48.18,[["Приём.",47.74,48.18]]],[48.46,50.82,[["Взорвалась",48.46,48.98],["электростанция",48.98,49.96],["АЭС.",49.96,50.82]]],[51.04,53.82,[["Чернобыльский",51.04,51.76],["четвёртый",51.76,52.5],["энергоблок",52.5,53.14],["подорвался.",53.14,53.82]]],[54.22,55.4,[["Ты",54.22,54.4],["начинаешь",54.4,54.98],["спать.",54.98,55.4]]]];
+const SUBS1=[[0.0,0.76,[["Ты",0.0,0.22],["в",0.22,0.36],["Припяти.",0.36,0.76]]],[1.4,2.82,[["Я",1.4,1.66],["не",1.66,1.8],["знаю,",1.8,2.06],["что",2.12,2.3],["случилось.",2.3,2.82]]],[3.44,9.68,[["В",3.44,3.56],["1986",3.56,4.64],["году",4.64,5.72],["26",5.72,6.36],["апреля",6.36,7.26],["взорвалась",7.26,7.8],["электростанция",7.8,8.74],["Чернобыльская,",8.74,9.68]]],[9.92,12.62,[["АЭС,",9.92,10.8],["на",11.0,11.18],["четвёртом",11.18,11.72],["энергоблоке.",11.72,12.62]]],[12.98,13.6,[["Взорвался.",12.98,13.6]]],[14.22,15.44,[["Ты",14.22,14.44],["обычный",14.44,15.1],["человек.",15.1,15.44]]],[16.14,17.86,[["Дима,",16.14,16.48],["небольшая",16.82,17.32],["заварушка.",17.32,17.86]]],[18.32,18.96,[["Хрущёвка.",18.32,18.96]]],[19.42,20.9,[["У",19.42,19.52],["тебя",19.52,19.7],["есть",19.7,19.98],["загородный",19.98,20.58],["мопед?",20.58,20.9]]],[21.32,23.06,[["Ключи",21.32,21.66],["от",21.66,21.8],["дома",21.8,22.02],["за",22.02,22.24],["городом",22.24,22.7],["в",22.7,22.88],["селе.",22.88,23.06]]],[23.52,24.48,[["У",23.52,23.66],["тебя",23.66,23.86],["есть",23.86,24.12],["мопед?",24.12,24.48]]],[24.86,26.6,[["Сейчас",24.86,25.32],["у",25.32,25.62],["тебя",25.62,25.82],["нету",25.82,26.24],["ничего.",26.24,26.6]]],[27.04,29.02,[["Ты",27.04,27.18],["сидишь",27.18,27.5],["дома",27.5,27.82],["после",27.82,28.18],["долгой",28.18,28.64],["работы.",28.64,29.02]]],[29.02,31.42,[["После",29.02,29.68],["взрыва",29.68,30.26],["чувствуешь",30.26,30.9],["туман.",30.9,31.42]]],[31.72,33.12,[["Ты",31.72,31.8],["решил",31.8,32.14],["забраться",32.14,32.62],["подвал.",32.62,33.12]]],[33.46,37.56,[["Ну,",33.46,33.64],["оказывается,",33.94,34.54],["там",34.6,34.82],["было",34.82,35.08],["огурчики,",35.08,36.06],["несколько",36.34,36.58],["банок",36.58,37.08],["питья.",37.08,37.56]]],[37.86,38.64,[["Ты",37.86,37.96],["сразу",37.96,38.36],["за.",38.36,38.64]]],[39.04,41.9,[["Видишь,",39.04,39.46],["после",39.72,40.0],["этого",40.0,40.36],["ты",40.36,40.58],["поднимаешься",40.58,41.38],["вверх.",41.38,41.9]]],[42.06,43.96,[["Видишь,",42.06,42.42],["как",42.44,42.56],["автобусы",42.56,43.16],["забирают",43.16,43.66],["людей.",43.66,43.96]]],[44.4,45.82,[["Ты",44.4,44.52],["решающийся",44.52,45.28],["остаться.",45.28,45.82]]],[46.16,47.2,[["И",46.16,46.28],["по",46.28,46.38],["телевизору",46.38,46.96],["говорят.",46.96,47.2]]],[47.74,48.18,[["Приём.",47.74,48.18]]],[48.46,50.82,[["Взорвалась",48.46,48.98],["электростанция",48.98,49.96],["АЭС.",49.96,50.82]]],[51.04,53.82,[["Чернобыльский",51.04,51.76],["четвёртый",51.76,52.5],["энергоблок",52.5,53.14],["подорвался.",53.14,53.82]]],[54.22,55.4,[["Ты",54.22,54.4],["начинаешь",54.4,54.98],["спать.",54.98,55.4]]]];
+const SUBS2=[[0.0,2.62,[["Ты",0.0,0.14],["просыпаешься,",0.14,1.04],["заходишь",1.34,1.82],["в",1.82,1.94],["гостиную,",1.94,2.62]]],[2.94,4.98,[["нажимаешь",2.94,3.36],["на",3.36,3.58],["телевизор,",3.58,4.16],["там",4.5,4.64],["говорят,",4.64,4.98]]],[5.48,8.06,[["«Приём,",5.48,5.9],["носите",6.36,6.74],["с",6.74,6.92],["собой",6.92,7.16],["противогазы.",7.16,8.06]]],[8.34,10.5,[["Странный",8.34,8.9],["туман,",8.9,9.32],["который",9.4,9.64],["заражает",9.64,10.22],["людей,",10.22,10.5]]],[10.96,13.02,[["может",10.96,11.1],["с",11.1,11.36],["Чернобыля,",11.36,11.84],["к",11.84,12.0],["в",12.0,12.08],["Москве».",12.08,13.02]]],[13.02,15.02,[["После",13.02,13.28],["этого",13.28,13.68],["ты",13.68,14.04],["заходишь",14.04,14.52],["в",14.52,14.66],["дверь,",14.66,15.02]]],[15.32,18.28,[["находишь",15.32,15.68],["противогаз,",15.68,16.4],["открываешь",16.72,17.28],["дверь,",17.28,17.68],["видишь,",18.0,18.28]]],[18.34,20.1,[["как",18.34,18.42],["люди",18.42,18.74],["умирают",18.74,19.46],["от",19.46,19.58],["тумана,",19.58,20.1]]],[20.4,23.38,[["как",20.4,20.5],["повсюду",20.5,21.04],["едут",21.04,21.3],["автобусы,",21.3,22.0],["которые",22.02,22.28],["забирают",22.28,22.94],["людей,",22.94,23.38]]],[23.72,26.56,[["и",23.72,23.82],["ты",23.82,23.94],["видел,",23.94,24.34],["сколько",24.4,24.82],["люди",24.82,25.22],["становятся",25.22,25.82],["монстром.",25.82,26.56]]],[26.56,29.56,[["После",26.56,27.24],["этого",27.24,27.62],["ты",27.62,27.98],["бежишь",27.98,28.3],["до",28.3,28.46],["ближайшего",28.46,29.02],["магазин.",29.02,29.56]]],[29.98,30.44,[["Первое.",29.98,30.44]]],[30.92,31.7,[["Найди",30.92,31.28],["еду.",31.28,31.7]]],[32.06,34.12,[["Прямо",32.06,32.4],["на",32.4,32.5],["улице,",32.5,32.92],["примерно",33.04,33.3],["в",33.3,33.54],["магазинах,",33.54,34.12]]],[34.14,36.86,[["которые",34.14,34.4],["хранятся",34.4,34.98],["долго,",34.98,35.38],["пример",35.72,36.02],["консервы,",36.02,36.86]]],[37.08,38.32,[["и",37.08,37.16],["которые",37.16,37.46],["не",37.46,37.76],["заражаются.",37.76,38.32]]],[38.86,39.36,[["Второе.",38.86,39.36]]],[39.82,42.76,[["Найди",39.82,40.12],["любое",40.12,40.6],["место,",40.6,40.96],["где",41.14,41.24],["нету",41.24,41.68],["мутантов",41.68,42.14],["и",42.14,42.36],["тумана,",42.36,42.76]]],[43.12,45.58,[["например,",43.12,43.38],["место,",43.7,43.88],["которое",43.96,44.3],["изолировано",44.3,45.12],["от",45.12,45.28],["всех,",45.28,45.58]]],[45.9,46.56,[["нет",45.9,46.1],["окон.",46.1,46.56]]],[46.86,49.12,[["Если",46.86,47.16],["ты",47.16,47.34],["нашёл,",47.34,47.76],["заколоти",48.02,48.44],["вентиляцию,",48.44,49.12]]],[49.42,51.02,[["это",49.42,49.6],["источник",49.6,50.16],["самого",50.16,50.46],["тумана.",50.46,51.02]]],[51.5,51.98,[["Третье.",51.5,51.98]]],[52.36,52.7,[["Жди.",52.36,52.7]]],[53.18,55.6,[["Ты",53.18,53.32],["решил",53.32,53.62],["взять",53.62,53.88],["винтовку",53.88,54.52],["и",54.52,54.82],["слышишь",54.82,55.28],["стук.",55.28,55.6]]]];
 
-const W = 1280, H = 720, DUR = 55.72;
+const W = 1280, H = 720;
 const cvs = document.getElementById('screen');
 const ctx = cvs.getContext('2d');
 const audio = document.getElementById('voice');
@@ -159,6 +174,7 @@ function dima(x, y, s = 1, o = {}) {
     if (sleepy) { ctx.fillRect(hx - 12, hy + 2, 8, 2.5); ctx.fillRect(hx + 4, hy + 2, 8, 2.5); }
     else { circle(hx - 8, hy + 2, 3, '#1b1410'); circle(hx + 8, hy + 2, 3, '#1b1410'); }
     ctx.fillStyle = 'rgba(120,50,40,.6)'; ctx.fillRect(hx - 6, hy + 13, 12, 2.5);
+    if (o.mask) maskFace(hx, hy);
   };
   if (pose === 'stand' || pose === 'walk') {
     const sw = pose === 'walk' ? Math.sin(t * 9) * .4 : 0;
@@ -589,23 +605,297 @@ function scSleep(t) {
   tag('НОЧЬ', 60, 80, ease(prog(t, 54.3, 54.8)) * (1 - end));
 }
 
-const SCENES = [
+const SCENES1 = [
   [0, 3.35, scPripyat], [3.35, 7.12, scDate], [7.12, 14.05, scPlant], [14.05, 19.3, scDima],
   [19.3, 26.9, scItems], [26.9, 31.62, scHome], [31.62, 38.9, scBasement], [38.9, 41.95, scStairs],
   [41.95, 46.1, scStreet], [46.1, 54.15, scTV], [54.15, 999, scSleep]
 ];
 
+/* ================= Part 2: туман ================= */
+const FOG_GREEN = '150,190,110';
+function gasMask(x, y, s) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  rr(-62, -80, 124, 140, 54, '#5d6b58');
+  ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(-2, -80, 4, 30);
+  [-27, 27].forEach(ex => { circle(ex, -22, 24, '#262b28'); circle(ex, -22, 17, 'rgba(160,195,205,.6)'); ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillRect(ex - 9, -32, 6, 6); });
+  circle(0, 26, 17, '#3e4a3c'); circle(0, 26, 7, '#262b28');
+  ctx.strokeStyle = '#4a5646'; ctx.lineWidth = 12; ctx.beginPath(); ctx.moveTo(0, 40); ctx.quadraticCurveTo(10, 90, 60, 100); ctx.stroke();
+  rr(50, 80, 60, 70, 10, '#6b7461'); for (let i = 0; i < 4; i++) { ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.fillRect(50, 92 + i * 14, 60, 3); }
+  ctx.restore();
+}
+function maskFace(hx, hy) {
+  rr(hx - 26, hy - 16, 52, 48, 20, '#5d6b58');
+  [-11, 11].forEach(ex => { circle(hx + ex, hy - 1, 9, '#262b28'); circle(hx + ex, hy - 1, 6, 'rgba(160,195,205,.7)'); });
+  circle(hx, hy + 22, 9, '#3e4a3c');
+}
+function rifle(x, y, s, a) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.rotate(a);
+  rr(-70, -6, 150, 12, 3, '#2a2a2c'); rr(-90, -8, 50, 22, [4, 4, 10, 4], '#6b4a2e'); rr(-10, 4, 10, 18, 2, '#2a2a2c'); rr(20, -14, 30, 8, 3, '#1c1c1e');
+  ctx.restore();
+}
+function monster(x, y, s, k, t) {
+  const sc = s * (1 + .4 * k);
+  ctx.save(); ctx.translate(x, y); ctx.scale(sc, sc);
+  const r = Math.round(44 + (60 - 44) * k), g = Math.round(48 + (74 - 48) * k), b = Math.round(54 + (46 - 54) * k), c = `rgb(${r},${g},${b})`;
+  rr(-10, -32, 8, 32, 3, c); rr(3, -32, 8, 32, 3, c);
+  ctx.translate(0, -30); ctx.rotate(.38 * k + .05 * Math.sin(t * 3 + x));
+  rr(-14, -56, 28, 58, 10, c);
+  const arm = 40 + 34 * k;
+  ctx.save(); ctx.translate(-14, -50); ctx.rotate(.2 + .15 * Math.sin(t * 4 + x)); rr(-4, 0, 8, arm, 4, c); ctx.restore();
+  ctx.save(); ctx.translate(14, -50); ctx.rotate(-.2 - .15 * Math.sin(t * 4 + x)); rr(-4, 0, 8, arm, 4, c); ctx.restore();
+  circle(0, -68, 12 + 2 * k, c);
+  if (k > .3) { const a = (k - .3) / .7; circle(-5, -70, 2.6, `rgba(255,59,47,${a})`); circle(5, -70, 2.6, `rgba(255,59,47,${a})`); glow(0, -70, 16, '255,59,47', .45 * a); }
+  ctx.restore();
+}
+function fallen(x, y, s, k) { // a person collapsing: rotates from standing to lying
+  ctx.save(); ctx.translate(x, y); ctx.rotate(ease(k) * Math.PI / 2 * .98); person(0, 0, s, '#2c3036'); ctx.restore();
+}
+function ruleCard(t, t0, t1, n, title) {
+  const a = ease(prog(t, t0, t0 + .25)) * (1 - ease(prog(t, t1 - .2, t1)));
+  if (a <= 0) return;
+  ctx.fillStyle = `rgba(8,9,11,${a})`; ctx.fillRect(0, 0, W, H);
+  ctx.save(); ctx.globalAlpha = a;
+  ctx.font = '300px "Russo One"'; ctx.textAlign = 'center'; ctx.lineWidth = 4; ctx.strokeStyle = '#ff3b2f';
+  ctx.strokeText(String(n), W / 2, 420 + (1 - a) * 30);
+  ctx.restore();
+  text(title, W / 2, 520, { font: '54px "Russo One"', align: 'center', alpha: a, spacing: 6 });
+}
+function bedroom() {
+  ctx.fillStyle = '#1c2130'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#141824'; ctx.fillRect(0, 560, W, 160);
+  rr(860, 110, 240, 220, 4, '#3a3f4f'); ctx.fillStyle = vgrad(122, 318, [[0, '#7d8a6d'], [1, '#a9b496']]); ctx.fillRect(872, 122, 216, 196);
+  ctx.fillStyle = '#3a3f4f'; ctx.fillRect(976, 122, 8, 196);
+  glow(980, 220, 260, FOG_GREEN, .18);
+  rr(240, 470, 560, 60, 8, '#3a2a1c'); rr(240, 400, 40, 160, 6, '#3a2a1c'); rr(760, 440, 40, 120, 6, '#3a2a1c');
+}
+function smallTV(x, y) { rr(x - 70, y - 120, 140, 110, 10, '#6b4a2e'); rr(x - 58, y - 108, 100, 84, 12, '#1a1a1a'); rr(x - 60, y - 10, 120, 10, 2, '#3a2a1c'); }
+
+function p2Wake(t) {
+  bedroom();
+  if (t < .7) dima(520, 480, 1.2, { pose: 'sleep' });
+  else { rr(330, 434, 470, 56, 22, '#7b2f2f'); dima(430 + ease(prog(t, 1.2, 1.6)) * 200, 640, 1.1, { pose: t > 1.2 ? 'walk' : 'stand', t }); }
+  tag('УТРО · 27 АПРЕЛЯ', 60, 80, ease(prog(t, .1, .5)));
+}
+function p2Living(t) {
+  room(t, .4);
+  smallTV(1000, 560);
+  const k = ease(prog(t, 1.6, 2.9));
+  dima(300 + k * 560, 650, 1.05, { pose: k < 1 ? 'walk' : 'stand', t });
+  if (t > 2.94) { const c = prog(t, 2.94, 3.2); glow(1000, 500, 90 + 40 * c, '170,200,255', .5 * c); }
+  fog(t, .25, FOG_GREEN);
+  tag('ГОСТИНАЯ', 60, 80, ease(prog(t, 1.7, 2.1)));
+}
+function tvFrame(t, drawScreen) {
+  ctx.fillStyle = '#0b0d14'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#141824'; ctx.fillRect(0, 560, W, 160);
+  const sx = 400, sy = 150, sw = 480, sh = 340;
+  glow(640, 330, 640, '150,180,255', .12 + .04 * Math.sin(t * 13));
+  ctx.strokeStyle = '#3a3a3a'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(640, 110); ctx.lineTo(540, 20); ctx.moveTo(640, 110); ctx.lineTo(760, 30); ctx.stroke();
+  rr(370, 110, 620, 410, 18, '#5a3a24'); rr(380, 120, 600, 390, 14, '#6b4a2e');
+  rr(sx - 10, sy - 10, sw + 20, sh + 20, 30, '#1a1a1a');
+  for (let i = 0; i < 3; i++) { circle(935, 190 + i * 70, 18, '#2a2a2a'); circle(935, 190 + i * 70, 6, '#999'); }
+  rr(460, 520, 440, 18, 3, '#3a2a1c'); rr(490, 538, 14, 40, 2, '#2a1e14'); rr(856, 538, 14, 40, 2, '#2a1e14');
+  ctx.save(); ctx.beginPath(); ctx.roundRect(sx, sy, sw, sh, 26); ctx.clip();
+  drawScreen(sx, sy, sw, sh);
+  for (let y = sy; y < sy + sh; y += 4) { ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(sx, y, sw, 2); }
+  ctx.fillStyle = `rgba(255,255,255,${.03 + .03 * Math.sin(t * 40)})`; ctx.fillRect(sx, sy, sw, sh);
+  ctx.restore();
+  circle(210, 560, 60, '#07080c'); rr(110, 610, 200, 140, 40, '#07080c');
+}
+function p2TV(t) {
+  tvFrame(t, (sx, sy, sw, sh) => {
+    if (t < 5.48) { ctx.fillStyle = '#777'; ctx.fillRect(sx, sy, sw, sh); ctx.save(); ctx.translate(sx, sy); ctx.scale(sw / W, sh / H); noise(1, 1); ctx.restore(); return; }
+    if (t < 8.34) {
+      ctx.fillStyle = '#1d2230'; ctx.fillRect(sx, sy, sw, sh);
+      text('ПРИЁМ', 640, sy + 60, { font: '34px "Russo One"', align: 'center' });
+      const m = ease(prog(t, 6.36, 6.8));
+      if (m > 0) { ctx.save(); ctx.globalAlpha = m; gasMask(640, 330, .8 + .1 * m); ctx.restore(); }
+      ctx.fillStyle = '#b5332a'; ctx.fillRect(sx, sy + sh - 66, sw, 40);
+      text('НОСИТЕ С СОБОЙ ПРОТИВОГАЗЫ', sx + 20, sy + sh - 37, { font: '21px "Russo One"', color: '#fff', alpha: m });
+      return;
+    }
+    // map: the fog moves from Chernobyl towards Moscow
+    ctx.fillStyle = '#16211c'; ctx.fillRect(sx, sy, sw, sh);
+    ctx.strokeStyle = 'rgba(140,180,150,.15)'; ctx.lineWidth = 1;
+    for (let x = sx; x < sx + sw; x += 40) { ctx.beginPath(); ctx.moveTo(x, sy); ctx.lineTo(x, sy + sh); ctx.stroke(); }
+    for (let y = sy; y < sy + sh; y += 40) { ctx.beginPath(); ctx.moveTo(sx, y); ctx.lineTo(sx + sw, y); ctx.stroke(); }
+    const cx = 500, cy = 420, mx = 790, my = 210, k = ease(prog(t, 8.9, 12.6));
+    for (let i = 0; i < 9; i++) { const q = k * (i / 8); glow(cx + (mx - cx) * q, cy + (my - cy) * q, 50 + 30 * Math.sin(t * 2 + i), FOG_GREEN, .55 * Math.min(1, k * 3)); }
+    circle(cx, cy, 7, '#ff3b2f'); text('ЧЕРНОБЫЛЬ', cx + 14, cy + 6, { font: '16px "PT Mono"', color: '#ebe7de' });
+    circle(mx, my, 7, '#ebe7de'); text('МОСКВА', mx - 14, my + 6, { font: '16px "PT Mono"', align: 'right', color: '#ebe7de', alpha: ease(prog(t, 11.3, 11.8)) });
+    ctx.fillStyle = '#b5332a'; ctx.fillRect(sx, sy + sh - 66, sw, 40);
+    text('ТУМАН ЗАРАЖАЕТ ЛЮДЕЙ', sx + 20, sy + sh - 37, { font: '21px "Russo One"', color: '#fff' });
+  });
+  tag('ЭКСТРЕННОЕ СООБЩЕНИЕ', 60, 80, ease(prog(t, 5.5, 6)));
+}
+function p2Closet(t) {
+  ctx.fillStyle = '#3a3528'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#2b251c'; ctx.fillRect(0, 580, W, 140);
+  for (let x = 0; x < W; x += 64) { ctx.fillStyle = 'rgba(0,0,0,.08)'; ctx.fillRect(x, 0, 2, 580); }
+  // front door
+  rr(90, 150, 210, 430, 4, '#5a3a24'); circle(270, 380, 9, '#c9a248');
+  ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.fillRect(110, 175, 170, 170); ctx.fillRect(110, 370, 170, 190);
+  // wardrobe, door opens at 15.0
+  rr(780, 120, 380, 460, 6, '#6b4a2e');
+  const op = ease(prog(t, 14.9, 15.4));
+  rr(800, 140, 340, 420, 4, '#2a1e14');
+  for (let i = 0; i < 4; i++) rr(830 + i * 70, 170, 50, 200, 6, ['#6b2f2f', '#2f4a6b', '#5d6b58', '#8a7a5a'][i]);
+  rr(830, 450, 120, 40, 4, '#5d6b58');
+  ctx.save(); ctx.translate(800, 140); ctx.scale(1 - .85 * op, 1); rr(0, 0, 170, 420, 4, '#7a5434'); ctx.restore();
+  ctx.save(); ctx.translate(1140, 140); ctx.scale(-(1 - .85 * op), 1); rr(0, 0, 170, 420, 4, '#7a5434'); ctx.restore();
+  const k = ease(prog(t, 13.3, 14.9));
+  dima(380 + k * 330, 660, 1.05, { pose: k > 0 && k < 1 ? 'walk' : 'stand', t, mask: t > 16.2 });
+  const m = ease(prog(t, 15.68, 16.1));
+  if (m > 0) {
+    ctx.fillStyle = `rgba(0,0,0,${.55 * m * (1 - prog(t, 16.2, 16.6))})`; ctx.fillRect(0, 0, W, H);
+    ctx.save(); ctx.globalAlpha = m * (1 - prog(t, 16.2, 16.6)); gasMask(640, 320, 1.4 + .2 * m); ctx.restore();
+    tag('ПРОТИВОГАЗ ГП-5', 60, 80, m);
+  }
+}
+function p2FogStreet(t) {
+  ctx.fillStyle = vgrad(0, 520, [[0, '#5b6b55'], [1, '#93a07f']]); ctx.fillRect(0, 0, W, H);
+  [[0, 260, 320, 9, 12], [300, 220, 260, 9, 10], [560, 280, 360, 16, 12], [880, 240, 290, 9, 11], [1150, 200, 250, 9, 9]]
+    .forEach(([x, w, h, fl, c], i) => panelBlock(x, 520, w, h, { floors: fl, cols: c, body: '#6f7a63', dark: '#4a5444', litColor: '#4a5444', seed: i + 40 }));
+  ctx.fillStyle = '#4a5045'; ctx.fillRect(0, 520, W, 60); ctx.fillStyle = '#33372f'; ctx.fillRect(0, 580, W, 140);
+  // buses drive past
+  for (let i = 0; i < 3; i++) { const x = 1500 - (t - 20.3 - i * .7) * 520; if (x > -200 && x < 1500) bus(x, 640, .9, t); }
+  // people: some collapse, some turn into monsters
+  const ppl = [[560, 18.74], [700, 19.0], [830, 19.2], [980, 18.9], [1120, 19.3]];
+  ppl.forEach(([x, t0], i) => fallen(x, 565, .9, prog(t, t0, t0 + .6)));
+  const mon = [[640, 24.8], [900, 25.0], [1060, 25.25]];
+  mon.forEach(([x, t0], i) => { if (t > 23.7) monster(x, 568, .9, ease(prog(t, t0, t0 + .9)), t); });
+  fog(t, .9, FOG_GREEN);
+  // the door opening frames the first second
+  const d = 1 - ease(prog(t, 16.72, 17.5));
+  if (d > 0) { ctx.fillStyle = '#2b251c'; ctx.fillRect(0, 0, W / 2 * d, H); ctx.fillRect(W - W / 2 * d, 0, W / 2 * d, H); }
+  dima(180, 700, 1.15, { pose: 'stand', t, mask: true });
+  tag(t < 23.7 ? 'ЛЮДИ УМИРАЮТ ОТ ТУМАНА' : 'ЛЮДИ СТАНОВЯТСЯ МОНСТРАМИ', 60, 80, ease(prog(t, 18.4, 18.9)));
+}
+function p2Run(t) {
+  const pan = (t - 26.5) * 420;
+  ctx.fillStyle = vgrad(0, 520, [[0, '#5b6b55'], [1, '#93a07f']]); ctx.fillRect(0, 0, W, H);
+  ctx.save(); ctx.translate(-(pan * .4) % 600, 0);
+  for (let i = 0; i < 6; i++) panelBlock(i * 300, 520, 250, 260 + (i % 3) * 40, { floors: 9, cols: 10, body: '#6f7a63', dark: '#4a5444', litColor: '#4a5444', seed: i + 60 });
+  ctx.restore();
+  ctx.fillStyle = '#4a5045'; ctx.fillRect(0, 520, W, 60); ctx.fillStyle = '#33372f'; ctx.fillRect(0, 580, W, 140);
+  ctx.fillStyle = '#5c6152'; for (let x = -((pan) % 120); x < W; x += 120) ctx.fillRect(x, 648, 60, 5);
+  // the shop comes into view
+  const shopX = 1500 - prog(t, 27.0, 29.4) * 700;
+  rr(shopX - 200, 300, 420, 260, 2, '#8a8576'); rr(shopX - 170, 400, 160, 160, 2, '#2c3a3a'); rr(shopX + 30, 400, 160, 160, 2, '#2c3a3a');
+  rr(shopX - 180, 320, 380, 56, 4, '#2a6b8a'); text('ПРОДУКТЫ', shopX + 10, 360, { font: '36px "Russo One"', align: 'center', color: '#f1e8c8', spacing: 4 });
+  monster(300 + Math.sin(t) * 20, 540, .7, 1, t);
+  fog(t, .75, FOG_GREEN);
+  dima(380 + prog(t, 26.6, 29.6) * 260, 690, 1.1, { pose: 'walk', t: t * 1.8, mask: true });
+  tag('БЕГИ В МАГАЗИН', 60, 80, ease(prog(t, 26.6, 27.1)));
+}
+const CANS = [['ТУШЁНКА', '#b5332a'], ['КИЛЬКА', '#2f6ea6'], ['СГУЩЁНКА', '#3b78b8'], ['ГОРОШЕК', '#4f7a3a'], ['ТУШЁНКА', '#b5332a'], ['ШПРОТЫ', '#c9a248']];
+function can(x, y, s, label, col) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  rr(-34, -70, 68, 70, 6, '#b8bcc0'); rr(-34, -58, 68, 46, 2, col);
+  ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(-26, -66, 6, 60);
+  text(label, 0, -30, { font: '11px "Russo One"', align: 'center', color: '#fff' });
+  ctx.restore();
+}
+function p2Food(t) {
+  ctx.fillStyle = '#4b4f43'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#3a3c33'; ctx.fillRect(0, 580, W, 140);
+  [320, 445, 570].forEach(y => { ctx.fillStyle = '#7a6a4e'; ctx.fillRect(140, y, 1000, 14); ctx.fillStyle = '#4a3e2c'; ctx.fillRect(140, y + 14, 1000, 6); });
+  for (let r = 0; r < 3; r++) for (let i = 0; i < 9; i++) {
+    const t0 = 33.3 + (r * 9 + i) * .05, a = ease(prog(t, t0, t0 + .3));
+    if (a <= 0) continue;
+    const [l, c] = CANS[(i + r * 2) % CANS.length];
+    ctx.save(); ctx.globalAlpha = a; can(200 + i * 110, [320, 445, 570][r] - (1 - a) * 16, 1, l, c); ctx.restore();
+  }
+  fog(t, .35, FOG_GREEN);
+  dima(1080, 690, 1.05, { pose: 'stand', t, mask: true });
+  const ck = (s, y, t0) => { const a = ease(prog(t, t0, t0 + .3)); if (a <= 0) return; rr(56, y - 34, 330, 50, 6, 'rgba(10,12,10,.75)'); ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = '#7dd36b'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(72, y - 10); ctx.lineTo(82, y); ctx.lineTo(100, y - 22); ctx.stroke(); ctx.restore(); text(s, 116, y - 2, { font: '20px "PT Mono"', alpha: a, spacing: 1 }); };
+  ck('ХРАНИТСЯ ДОЛГО', 136, 34.4);
+  ck('КОНСЕРВЫ', 190, 36.02);
+  ck('НЕ ЗАРАЖАЕТСЯ', 244, 37.46);
+  tag('ПРАВИЛО 1 · НАЙДИ ЕДУ', 60, 80, ease(prog(t, 30.9, 31.3)));
+  ruleCard(t, 29.95, 30.9, 1, 'ПЕРВОЕ');
+}
+function shelterRoom(t, ventFog, boards) {
+  ctx.fillStyle = '#5a5c58'; ctx.fillRect(0, 0, W, H);
+  for (let y = 0; y < 580; y += 96) for (let x = (y / 96 % 2) * 80; x < W; x += 160) { ctx.strokeStyle = 'rgba(0,0,0,.12)'; ctx.lineWidth = 2; ctx.strokeRect(x, y, 160, 96); }
+  ctx.fillStyle = '#3c3e3a'; ctx.fillRect(0, 580, W, 140);
+  // steel door, right
+  rr(1020, 200, 190, 380, 6, '#4a524c'); rr(1036, 216, 158, 348, 4, '#566059'); circle(1050, 390, 10, '#2a2e2b');
+  // vent grate
+  rr(720, 110, 170, 110, 4, '#3a3c38');
+  for (let i = 0; i < 6; i++) { ctx.fillStyle = '#1f201e'; ctx.fillRect(732, 122 + i * 16, 146, 8); }
+  if (ventFog > 0) for (let i = 0; i < 6; i++) { const k = ((t * .4 + i / 6) % 1); glow(805 + Math.sin(i * 2 + t) * 40 * k, 170 + k * 260, 60 + k * 90, FOG_GREEN, .45 * ventFog * (1 - k)); }
+  boards.forEach(([a, rot], i) => { if (a <= 0) return; ctx.save(); ctx.globalAlpha = a; ctx.translate(805, 140 + i * 28); ctx.rotate(rot); rr(-120, -12, 240, 24, 3, '#8a6a44'); circle(-100, 0, 3.5, '#2a2a2a'); circle(100, 0, 3.5, '#2a2a2a'); ctx.restore(); });
+  // a bulb
+  ctx.strokeStyle = '#222'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(420, 0); ctx.lineTo(420, 80); ctx.stroke(); circle(420, 90, 12, '#ffe9b0'); glow(420, 90, 380, '255,220,150', .25);
+}
+function p2Shelter(t) {
+  const bt = [48.02, 48.25, 48.5];
+  const boards = bt.map((t0, i) => [ease(prog(t, t0, t0 + .12)), [-.12, .1, -.05][i]]);
+  const ventFog = 1 - ease(prog(t, 48.5, 49.4));
+  ctx.save();
+  const sh = shake(t, 48.02, 6) + shake(t, 48.25, 6) + shake(t, 48.5, 6); ctx.translate(sh, 0);
+  shelterRoom(t, t > 46.86 ? ventFog : 0, boards);
+  ctx.restore();
+  dima(560, 690, 1.05, { pose: 'stand', t, mask: true });
+  const items = [['НЕТ МУТАНТОВ', 41.68], ['НЕТ ТУМАНА', 42.36], ['НЕТ ОКОН', 45.9]];
+  items.forEach(([s, t0], i) => {
+    const a = ease(prog(t, t0, t0 + .3)), y = 160 + i * 60;
+    if (a <= 0) return;
+    rr(56, y - 34, 300, 50, 6, 'rgba(10,12,10,.75)');
+    ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = '#7dd36b'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(72, y - 10); ctx.lineTo(82, y); ctx.lineTo(100, y - 22); ctx.stroke(); ctx.restore();
+    text(s, 116, y - 2, { font: '20px "PT Mono"', alpha: a, spacing: 1 });
+  });
+  if (t > 46.86) { const a = ease(prog(t, 46.9, 47.3)); ctx.save(); ctx.globalAlpha = a * (1 - prog(t, 48.4, 48.8)); ctx.strokeStyle = '#ff3b2f'; ctx.lineWidth = 4; ctx.setLineDash([10, 8]); ctx.strokeRect(705, 95, 200, 140); ctx.restore(); }
+  if (t > 48.02 && t < 48.9) text('БАМ!', 950, 120 + (t % .23) * 40, { font: '34px "Russo One"', color: '#ff3b2f', alpha: 1 - prog(t, 48.6, 48.9) });
+  tag(t < 46.8 ? 'ПРАВИЛО 2 · НАЙДИ УКРЫТИЕ' : 'ВЕНТИЛЯЦИЯ — ИСТОЧНИК ТУМАНА', 60, 80, ease(prog(t, 39.8, 40.2)));
+  ruleCard(t, 38.8, 39.8, 2, 'ВТОРОЕ');
+}
+function p2Wait(t) {
+  shelterRoom(t, 0, [[1, -.12], [1, .1], [1, -.05]]);
+  ctx.fillStyle = 'rgba(5,6,10,.35)'; ctx.fillRect(0, 0, W, H);
+  // knocking on the steel door
+  const kn = t >= 55.28 ? Math.sin((t - 55.28) * 50) * 6 * Math.exp(-(t - 55.28) * 2) : 0;
+  ctx.save(); ctx.translate(kn, 0); rr(1020, 200, 190, 380, 6, '#4a524c'); rr(1036, 216, 158, 348, 4, '#566059'); circle(1050, 390, 10, '#2a2e2b'); ctx.restore();
+  const hold = ease(prog(t, 53.88, 54.4));
+  dima(620, 690, 1.05, { pose: 'stand', t, mask: true });
+  rifle(620 + 30 - 120 * (1 - hold), 690 - 140 + 260 * (1 - hold), 1, -.15 - 1.2 * (1 - hold));
+  rr(260, 600, 40, 40, 4, '#6b4a2e'); rr(274, 570, 12, 30, 2, '#f1e8c8'); glow(280, 560, 120, '255,190,90', .35 + .05 * Math.sin(t * 12));
+  if (t >= 55.28) {
+    const k = prog(t, 55.28, 55.9);
+    text('ТУК.', 1115, 170, { font: '44px "Russo One"', color: '#ff3b2f', align: 'center', alpha: Math.min(1, k * 4) });
+    text('ТУК.', 1115, 220, { font: '44px "Russo One"', color: '#ff3b2f', align: 'center', alpha: clamp((k - .4) * 4, 0, 1) });
+  }
+  const big = ease(prog(t, 52.36, 52.6)) * (1 - ease(prog(t, 53.0, 53.3)));
+  if (big > 0) { ctx.fillStyle = `rgba(8,9,11,${big * .8})`; ctx.fillRect(0, 0, W, H); text('ЖДИ', W / 2, 400, { font: '150px "Russo One"', align: 'center', alpha: big, spacing: 10 }); }
+  tag('ПРАВИЛО 3 · ЖДИ', 60, 80, ease(prog(t, 53.2, 53.6)));
+  ruleCard(t, 51.45, 52.36, 3, 'ТРЕТЬЕ');
+  const end = ease(prog(t, 55.85, 56.3)); ctx.fillStyle = `rgba(0,0,0,${end})`; ctx.fillRect(0, 0, W, H);
+}
+const SCENES2 = [
+  [0, 1.6, p2Wake], [1.6, 3.55, p2Living], [3.55, 13.0, p2TV], [13.0, 16.7, p2Closet],
+  [16.7, 26.5, p2FogStreet], [26.5, 29.95, p2Run], [29.95, 38.8, p2Food], [38.8, 51.45, p2Shelter], [51.45, 999, p2Wait]
+];
+
+/* ---------- episodes ---------- */
+const EPISODES = [
+  { name: 'Часть 1', sub: 'Взрыв', src: 'voice.mp3', subs: SUBS1, scenes: SCENES1, dur: 55.72, poster: 10.4, title: 'ПРИПЯТЬ. 1986', blurb: '26 апреля. Четвёртый энергоблок. Дима остаётся в городе.' },
+  { name: 'Часть 2', sub: 'Туман', src: 'voice2.mp3', subs: SUBS2, scenes: SCENES2, dur: 55.95, poster: 22.5, title: 'ПРОДОЛЖЕНИЕ СЛЕДУЕТ', blurb: 'Туман заражает людей. Три правила, чтобы выжить.' }
+];
+let EP = EPISODES[0], epIdx = 0;
+
 /* ---------- subtitles: the spoken word lights up red ---------- */
 function currentSeg(t) {
-  for (let i = SUBS.length - 1; i >= 0; i--) {
-    const s = SUBS[i];
-    if (t >= s[0] - .05) { const next = SUBS[i + 1]; const until = Math.min(next ? next[0] - .05 : 999, s[1] + .9); return t < until ? i : -1; }
+  const S = EP.subs;
+  for (let i = S.length - 1; i >= 0; i--) {
+    const s = S[i];
+    if (t >= s[0] - .05) { const next = S[i + 1]; const until = Math.min(next ? next[0] - .05 : 999, s[1] + .9); return t < until ? i : -1; }
   }
   return -1;
 }
 function subtitles(t) {
   const i = currentSeg(t); if (i < 0) return;
-  const words = SUBS[i][2];
+  const words = EP.subs[i][2];
   ctx.save(); ctx.font = '700 36px Rubik'; ctx.textBaseline = 'alphabetic';
   const space = ctx.measureText(' ').width + 10, maxW = 1060;
   const lines = [[]]; let lw = 0;
@@ -636,14 +926,14 @@ let vign = null;
 function frame(t, { subs = true } = {}) {
   ctx.setTransform(cvs.width / W, 0, 0, cvs.height / H, 0, 0);
   ctx.globalAlpha = 1; ctx.filter = 'none';
-  const sc = SCENES.find(s => t >= s[0] && t < s[1]) || SCENES[SCENES.length - 1];
+  const sc = EP.scenes.find(s => t >= s[0] && t < s[1]) || EP.scenes[EP.scenes.length - 1];
   ctx.save(); sc[2](t); ctx.restore();
   const fade = Math.max(0, 1 - (t - sc[0]) / .25, sc[1] < 900 ? 1 - (sc[1] - t) / .25 : 0);
   if (fade > 0 && !(sc[2] === scPlant && t < 7.5) && !(sc[2] === scDate && t > 6.9)) { ctx.fillStyle = `rgba(0,0,0,${fade})`; ctx.fillRect(0, 0, W, H); }
   if (!vign) { vign = ctx.createRadialGradient(W / 2, H / 2, H * .45, W / 2, H / 2, H * .95); vign.addColorStop(0, 'rgba(0,0,0,0)'); vign.addColorStop(1, 'rgba(0,0,0,.55)'); }
   ctx.fillStyle = vign; ctx.fillRect(0, 0, W, H);
   ctx.save(); ctx.globalCompositeOperation = 'overlay'; noise(.05, 2); ctx.restore();
-  if (t > 55.8) { text('ПРИПЯТЬ. 1986', W / 2, H / 2, { font: '72px "Russo One"', align: 'center', alpha: ease(prog(t, 55.8, 56.6)), spacing: 6 }); }
+  if (t > EP.dur + .1) { text(EP.title, W / 2, H / 2, { font: '64px "Russo One"', align: 'center', alpha: ease(prog(t, EP.dur + .1, EP.dur + .9)), spacing: 6 }); }
   if (subs) subtitles(t);
 }
 
@@ -652,55 +942,82 @@ const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2,
 const seek = document.getElementById('seek'), timeEl = document.getElementById('time');
 const playIco = document.getElementById('playIco'), playBtn = document.getElementById('playBtn');
 const startOv = document.getElementById('startOv'), endOv = document.getElementById('endOv');
-const linesEl = document.getElementById('lines');
-let endT = null;
+const linesEl = document.getElementById('lines'), tabs = [...document.querySelectorAll('.ep')];
+let endT = null, lineEls = [], lastLine = -2, raf = 0, endStart = 0;
 
-SUBS.forEach(([s, , ws]) => {
-  const b = document.createElement('button'); b.className = 'line'; b.type = 'button';
-  b.innerHTML = `<b>${fmt(s)}</b><span></span>`; b.querySelector('span').textContent = ws.map(w => w[0]).join(' ');
-  b.addEventListener('click', () => { begin(s); });
-  linesEl.appendChild(b);
-});
-const lineEls = [...linesEl.children];
-
+function buildLines() {
+  linesEl.textContent = '';
+  EP.subs.forEach(([s, , ws]) => {
+    const b = document.createElement('button'); b.className = 'line'; b.type = 'button';
+    b.innerHTML = `<b>${fmt(s)}</b><span></span>`; b.querySelector('span').textContent = ws.map(w => w[0]).join(' ');
+    b.addEventListener('click', () => begin(s));
+    linesEl.appendChild(b);
+  });
+  lineEls = [...linesEl.children]; lastLine = -2;
+}
+function selectEp(i) {
+  epIdx = i; EP = EPISODES[i];
+  audio.pause(); audio.src = EP.src; audio.load();
+  seek.max = EP.dur; endT = null;
+  tabs.forEach((b, j) => b.setAttribute('aria-pressed', String(j === i)));
+  document.getElementById('ovTitle').textContent = i === 0 ? 'ПРИПЯТЬ. 1986' : 'ЧАСТЬ 2. ТУМАН';
+  document.getElementById('ovText').textContent = EP.blurb;
+  document.getElementById('scriptTitle').textContent = `${EP.name} · текст озвучки · нажмите строку, чтобы перейти`;
+  buildLines();
+}
 function resize() {
   const dpr = Math.min(2, window.devicePixelRatio || 1), w = cvs.clientWidth || 1280;
   cvs.width = Math.round(w * dpr); cvs.height = Math.round(w * dpr * 9 / 16); draw();
 }
 function curT() { return endT !== null ? endT : audio.currentTime; }
-let lastLine = -2;
 function draw() {
-  if (!started) { frame(10.4, { subs: false }); return; }
+  if (!started) { frame(EP.poster, { subs: false }); timeEl.textContent = `0:00 / ${fmt(EP.dur)}`; seek.value = 0; return; }
   const t = curT();
   frame(t);
-  seek.value = Math.min(t, DUR); timeEl.textContent = `${fmt(Math.min(t, DUR))} / ${fmt(DUR)}`;
+  seek.value = Math.min(t, EP.dur); timeEl.textContent = `${fmt(Math.min(t, EP.dur))} / ${fmt(EP.dur)}`;
   const li = currentSeg(t);
   if (li !== lastLine) { lineEls.forEach((el, i) => el.classList.toggle('on', i === li)); lastLine = li; }
 }
-let raf = 0, endStart = 0;
 function loop() {
-  if (endT !== null) endT = 55.72 + (performance.now() - endStart) / 1000;
+  if (endT !== null) endT = EP.dur + (performance.now() - endStart) / 1000;
   draw();
-  if (!audio.paused || (endT !== null && endT < 57)) raf = requestAnimationFrame(loop);
+  if (!audio.paused || (endT !== null && endT < EP.dur + 1.6)) raf = requestAnimationFrame(loop);
 }
 function setIcon(playing) { playIco.innerHTML = playing ? '<path d="M3 2h3.5v12H3zm6.5 0H13v12H9.5z"/>' : '<path d="M3 1.5v13l11-6.5z"/>'; playBtn.setAttribute('aria-label', playing ? 'Пауза' : 'Воспроизвести'); }
 function begin(at = 0) {
   started = true; endT = null; startOv.hidden = true; endOv.hidden = true;
-  audio.currentTime = at; audio.play().catch(() => {}); draw();
+  const go = () => { audio.currentTime = at; audio.play().catch(() => { endOv.hidden = false; }); draw(); };
+  if (audio.readyState >= 1) go(); else audio.addEventListener('loadedmetadata', go, { once: true });
+}
+function showEnd() {
+  const last = epIdx === EPISODES.length - 1;
+  document.getElementById('endTitle').textContent = last ? 'ПРОДОЛЖЕНИЕ СЛЕДУЕТ' : 'КОНЕЦ ПЕРВОЙ ЧАСТИ';
+  document.getElementById('nextBtn').hidden = last;
+  endOv.hidden = false;
 }
 audio.addEventListener('play', () => { setIcon(true); cancelAnimationFrame(raf); loop(); });
 audio.addEventListener('pause', () => { setIcon(false); draw(); });
 audio.addEventListener('seeked', draw);
-audio.addEventListener('ended', () => { endT = 55.72; endStart = performance.now(); cancelAnimationFrame(raf); loop(); setTimeout(() => { if (endT !== null) endOv.hidden = false; }, 1400); });
+audio.addEventListener('ended', () => {
+  endT = EP.dur; endStart = performance.now(); cancelAnimationFrame(raf); loop();
+  setTimeout(() => {
+    if (endT === null) return;
+    if (epIdx < EPISODES.length - 1) { selectEp(epIdx + 1); begin(0); } // part 1 flows straight into part 2
+    else showEnd();
+  }, 1700);
+});
+tabs.forEach((b, i) => b.addEventListener('click', () => { if (i === epIdx && started) return; selectEp(i); started ? begin(0) : (draw(), resize()); }));
 document.getElementById('startBtn').addEventListener('click', () => begin(0));
 document.getElementById('againBtn').addEventListener('click', () => begin(0));
-playBtn.addEventListener('click', () => { if (!started) return begin(0); if (endT !== null) return begin(0); audio.paused ? audio.play().catch(() => {}) : audio.pause(); });
+document.getElementById('nextBtn').addEventListener('click', () => { selectEp(epIdx + 1); begin(0); });
+playBtn.addEventListener('click', () => { if (!started || endT !== null) return begin(0); audio.paused ? audio.play().catch(() => {}) : audio.pause(); });
 seek.addEventListener('input', () => { if (!started) { started = true; startOv.hidden = true; } endT = null; endOv.hidden = true; audio.currentTime = +seek.value; draw(); });
 document.getElementById('fsBtn').addEventListener('click', () => { const p = document.getElementById('player'); (document.fullscreenElement ? document.exitFullscreen() : p.requestFullscreen?.())?.catch?.(() => {}); });
 document.addEventListener('keydown', e => { if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); playBtn.click(); } });
 window.addEventListener('resize', resize);
 document.addEventListener('fullscreenchange', () => setTimeout(resize, 60));
-window.__frame = (t) => { started = true; startOv.hidden = true; frame(t); };
+window.__frame = (t, ep = 0) => { EP = EPISODES[ep]; started = true; startOv.hidden = true; frame(t); };
+selectEp(0);
 resize();
 Promise.all(['400 30px "Russo One"', '700 36px Rubik', '16px "PT Mono"'].map(f => document.fonts.load(f))).then(() => draw()).catch(() => {});
 </script>
